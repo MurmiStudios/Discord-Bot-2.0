@@ -2,6 +2,7 @@ import express from 'express';
 import { registriereAnmeldung, sitzungsMiddleware } from './seiten/anmeldung.mjs';
 import { stufenMiddleware, verlangt } from './mw/verlangt.mjs';
 import { csrfSchutz, csrfFeld } from '../auth/csrf.mjs';
+import { sicherheitsKoepfe, allgemeineGrenze, anmeldeGrenze } from './mw/sicherheit.mjs';
 import { STUFE } from '../auth/rechte.mjs';
 
 /**
@@ -17,6 +18,11 @@ export function erstelleApp({ konfig, db, gilden, sitzungen, oauth, logger, zugr
   // Ohne das haelt Express hinter einem Reverse Proxy jede Verbindung fuer
   // unverschluesselt — und das Secure-Cookie kaeme nie zustande.
   if (konfig.vertraueProxy) app.set('trust proxy', 1);
+
+  app.use(sicherheitsKoepfe(konfig));
+  app.use(allgemeineGrenze());
+  // Eigene, strengere Grenze fuer den Anmeldeweg.
+  app.use(['/login', '/auth'], anmeldeGrenze());
 
   app.use(express.urlencoded({ extended: false, limit: '1mb' }));
   app.use(sitzungsMiddleware(sitzungen));

@@ -97,14 +97,14 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/auth/rechte.mjs`, `src/web/mw/verlangt.mjs`,
     `tests/einheit/rechte.test.mjs`, `tests/integration/routenabdeckung.test.mjs`
 
-- [ ] **9 · CSRF-Schutz** — S · hängt ab von: 8
+- [x] **9 · CSRF-Schutz** — S · hängt ab von: 8
   - **Abnahme:** Token je Sitzung, in jedem schreibenden Formular, zeitkonstant
     verglichen. Fehlend oder falsch ⇒ 403 ohne Nebenwirkung.
   - **Prüfen:** Integrationstest: POST ohne Token, mit fremdem Token, mit gültigem
     Token — und Nachweis, dass in den ersten beiden Fällen nichts geschrieben wurde.
   - **Dateien:** `src/auth/csrf.mjs`, `tests/integration/csrf.test.mjs`
 
-- [ ] **10 · Sicherheits-Header und Ratenbegrenzung** — S · hängt ab von: 9
+- [x] **10 · Sicherheits-Header und Ratenbegrenzung** — S · hängt ab von: 9
   - **Abnahme:** CSP vollständig ausgeschrieben, ohne `unsafe-inline`, mit
     `frame-ancestors 'none'`; dazu `X-Content-Type-Options`, `Referrer-Policy`,
     `X-Frame-Options`, bei HTTPS `Strict-Transport-Security`.
@@ -115,9 +115,9 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/web/mw/sicherheit.mjs`, `tests/integration/sicherheit.test.mjs`
 
 ### Kontrollpunkt A — Anmeldung
-- [ ] Anmeldung über Discord funktioniert Ende zu Ende.
-- [ ] Ein Konto ohne Stufe sieht auf jeder Route nur die Abweisungsseite.
-- [ ] Header und Ratenbegrenzung greifen. Tests grün, Linting sauber.
+- [x] Anmeldung über Discord funktioniert Ende zu Ende.
+- [x] Ein Konto ohne Stufe sieht auf jeder Route nur die Abweisungsseite.
+- [x] Header und Ratenbegrenzung greifen. Tests grün, Linting sauber.
 - [ ] **Dir zeigen:** Anmeldeablauf und die Rechtematrix.
 
 ---
