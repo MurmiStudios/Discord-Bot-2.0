@@ -66,6 +66,8 @@ function botAnzeige(botStatus) {
  * daneben.
  */
 export function seite({ titel, pfad, stufe, sitzung, botStatus, inhalt, skripte = [] }) {
+  // Die Seitensuche gehoert zu jeder Seite, also laedt jede Seite sie mit.
+  const alleSkripte = [`/suche.js?v=${dateiVersion('suche.js')}`, ...skripte];
   return html`<!doctype html>
 <html lang="de">
 <head>
@@ -101,7 +103,7 @@ export function seite({ titel, pfad, stufe, sitzung, botStatus, inhalt, skripte 
     </main>
   </div>
 </div>
-${skripte.map((quelle) => html`<script src="${quelle}" defer></script>`)}
+${alleSkripte.map((quelle) => html`<script src="${quelle}" defer></script>`)}
 </body>
 </html>
 `;

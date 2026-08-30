@@ -183,7 +183,7 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/web/oeffentlich/panel.css`, `src/web/html/layout.mjs`,
     `tests/integration/kein-inline.test.mjs`
 
-- [ ] **17 · Seitensuche** — S · hängt ab von: 16
+- [x] **17 · Seitensuche** — S · hängt ab von: 16
   - **Abnahme:** Taste `/` und Knopf oben links öffnen die Suche; Tippen filtert,
     Pfeile wählen, Enter springt.
   - **Abnahme:** Ohne JavaScript ist es ein normales Suchformular, das zur

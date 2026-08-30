@@ -35,4 +35,26 @@ export default [
       'no-var': 'error',
     },
   },
+  {
+    // Browser-Skripte: eigene Umgebung, kein Node.
+    files: ['src/web/oeffentlich/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2024,
+      sourceType: 'script',
+      globals: {
+        document: 'readonly',
+        window: 'readonly',
+        navigator: 'readonly',
+        location: 'readonly',
+        fetch: 'readonly',
+        FormData: 'readonly',
+        URL: 'readonly',
+        URLSearchParams: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        requestAnimationFrame: 'readonly',
+        localStorage: 'readonly',
+      },
+    },
+  },
 ];
