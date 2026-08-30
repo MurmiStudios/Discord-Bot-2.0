@@ -1,7 +1,9 @@
 import express from 'express';
 import { registriereAnmeldung, sitzungsMiddleware } from './seiten/anmeldung.mjs';
 import { stufenMiddleware, verlangt } from './mw/verlangt.mjs';
-import { csrfSchutz, csrfFeld } from '../auth/csrf.mjs';
+import { csrfSchutz } from '../auth/csrf.mjs';
+import { seite } from './html/layout.mjs';
+import { html } from './html/html.mjs';
 import { sicherheitsKoepfe, allgemeineGrenze, anmeldeGrenze } from './mw/sicherheit.mjs';
 import { STUFE } from '../auth/rechte.mjs';
 
@@ -9,7 +11,10 @@ import { STUFE } from '../auth/rechte.mjs';
  * Baut die Express-App auf. Bewusst ohne `listen` — so kann jeder Test die App
  * auf einem freien Port starten und danach wieder herunterfahren.
  */
-export function erstelleApp({ konfig, db, gilden, sitzungen, oauth, logger, zugriff, mitgliedschaft }) {
+export function erstelleApp({
+  konfig, db, gilden, sitzungen, oauth, logger, zugriff, mitgliedschaft,
+  bot = { status: () => ({ verbunden: false, grund: 'Der Bot ist nicht eingerichtet.' }) },
+}) {
   const app = express();
 
   // Verraet sonst in jeder Antwort, dass hier Express laeuft.
@@ -34,13 +39,20 @@ export function erstelleApp({ konfig, db, gilden, sitzungen, oauth, logger, zugr
   // Vorlaeufige Uebersicht. Schritt 56 baut die richtige.
   app.get('/', verlangt(STUFE.BETRACHTER), (req, res) => {
     res.type('html').send(
-      '<!doctype html>\n<html lang="de">\n<head><meta charset="utf-8">' +
-        '<title>Übersicht · Discord-Panel</title></head>\n<body>\n' +
-        '<h1>Panel läuft</h1>\n' +
-        `<p>Angemeldet als ${req.sitzung.anzeigename ?? req.sitzung.discordUserId}.</p>\n` +
-        `<form method="post" action="/logout">${csrfFeld(req)}` +
-        '<button type="submit">Abmelden</button></form>\n' +
-        '</body>\n</html>\n',
+      String(
+        seite({
+          titel: 'Übersicht',
+          pfad: '/',
+          stufe: req.stufe,
+          sitzung: req.sitzung,
+          botStatus: bot.status(),
+          inhalt: html`
+            <h1>Panel läuft</h1>
+            <p>Angemeldet als ${req.sitzung.anzeigename ?? req.sitzung.discordUserId}.</p>
+            <p>Die Übersicht mit Kennzahlen entsteht in Schritt 56.</p>
+          `,
+        }),
+      ),
     );
   });
 

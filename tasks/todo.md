@@ -163,7 +163,7 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/discord/interaktion/router.mjs`,
     `src/discord/interaktion/registrieren.mjs`, `tests/einheit/router.test.mjs`
 
-- [ ] **15 · HTML-Grundlage und Layout** — M · hängt ab von: 8
+- [x] **15 · HTML-Grundlage und Layout** — M · hängt ab von: 8
   - **Abnahme:** `html`-Tag maskiert jeden eingesetzten Wert automatisch;
     ein bewusst als sicher markierter Wert wird nicht doppelt maskiert.
   - **Abnahme:** Layout mit Seitenleiste (neun Seiten), Kopfzeile mit Bot-Status,

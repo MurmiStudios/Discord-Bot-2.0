@@ -59,8 +59,9 @@ export async function mitApp(fn, { konfig = {}, discord = {}, rollen = {}, zugri
     // `undefined` heisst: nicht Mitglied des Servers.
     const mitgliedschaft = { rollenVon: (_guildId, userId) => rollen[userId] };
 
+    const bot = { status: () => ({ verbunden: true, grund: undefined }) };
     const app = erstelleApp({
-      konfig: vollKonfig, db, gilden, sitzungen, oauth, logger, zugriff, mitgliedschaft,
+      konfig: vollKonfig, db, gilden, sitzungen, oauth, logger, zugriff, mitgliedschaft, bot,
     });
     const server = app.listen(0, '127.0.0.1');
     await new Promise((fertig, fehler) => {
