@@ -146,14 +146,14 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/discord/gilde.mjs`, `src/discord/rechte.mjs`,
     `tests/einheit/gilde.test.mjs`
 
-- [ ] **13 · Discord-Fehler in Klartext** — S · hängt ab von: 11
+- [x] **13 · Discord-Fehler in Klartext** — S · hängt ab von: 11
   - **Abnahme:** Abbildung für mindestens 50007, 50013, 50001, 10003, 10011,
     10013, 40003 auf deutsche Sätze. Unbekannter Code ergibt einen verständlichen
     Fallback statt einer nackten Zahl.
   - **Prüfen:** Test je Code; Test für unbekannten Code.
   - **Dateien:** `src/discord/fehler.mjs`, `tests/einheit/fehler.test.mjs`
 
-- [ ] **14 · Interaktions-Router, dreispurig** — M · hängt ab von: 11
+- [x] **14 · Interaktions-Router, dreispurig** — M · hängt ab von: 11
   - **Abnahme:** Verteiler für `buttons/`, `modals/`, `befehle/`. Unbekannte
     Interaktion wird protokolliert und beantwortet, statt still zu verfallen.
   - **Abnahme:** `befehle/` ist leer; die Registrierungslogik läuft beim Start

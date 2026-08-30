@@ -8,6 +8,8 @@ import { erstelleSitzungen } from './auth/sitzung.mjs';
 import { erstelleOauth } from './auth/oauth.mjs';
 import { erstelleBot } from './discord/bot.mjs';
 import { erstelleGildenAnsicht } from './discord/gilde.mjs';
+import { erstelleRouter } from './discord/interaktion/router.mjs';
+import { ladeBefehle, registriereBefehle } from './discord/interaktion/registrieren.mjs';
 import { erstelleApp } from './web/server.mjs';
 
 let konfig;
@@ -40,9 +42,17 @@ const zugriff = erstelleZugriff(db);
 const bot = erstelleBot({ konfig, logger });
 const gildenAnsicht = erstelleGildenAnsicht({ bot, konfig });
 
+// Drei Spuren fuer alles, was aus Discord zurueckkommt. `befehle/` ist heute
+// leer — der Weg dorthin existiert trotzdem, damit ein spaeterer Slash-Befehl
+// eine Datei ist und kein Umbau.
+const befehle = await ladeBefehle(new URL('./discord/interaktion/befehle/', import.meta.url));
+const router = erstelleRouter({ logger, buttons: new Map(), modals: new Map(), befehle });
+router.registriereAn(bot.client);
+
 // Der Webserver startet unabhaengig davon, ob Discord erreichbar ist. Faellt
 // die Verbindung aus, bleibt das Panel bedienbar und sagt es in der Kopfzeile.
 bot.verbinde();
+registriereBefehle({ befehle, konfig, logger });
 
 erstelleApp({
   konfig, db, gilden, sitzungen, oauth, logger, zugriff,
