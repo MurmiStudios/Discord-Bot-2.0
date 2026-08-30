@@ -124,7 +124,7 @@ Grundlage: `docs/SPEC.md`.
 
 ## Phase 2 — Bot, Guild-Cache, Grundoberfläche
 
-- [ ] **11 · Bot-Verbindung und Testdoppel** — M · hängt ab von: 3
+- [x] **11 · Bot-Verbindung und Testdoppel** — M · hängt ab von: 3
   - **Abnahme:** discord.js verbindet mit den nötigen Intents, behandelt
     Verbindungsabbruch mit Wiederaufbau, meldet Status (verbunden / nicht
     verbunden mit Grund).

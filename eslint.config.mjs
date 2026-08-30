@@ -23,6 +23,7 @@ export default [
         setInterval: 'readonly',
         clearInterval: 'readonly',
         structuredClone: 'readonly',
+        queueMicrotask: 'readonly',
         AbortController: 'readonly',
       },
     },
