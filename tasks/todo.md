@@ -47,7 +47,7 @@ Grundlage: `docs/SPEC.md`.
 
 ## Phase 1 — Datenbank und Anmeldung
 
-- [ ] **4 · Migrations-Runner** — S · hängt ab von: 2
+- [x] **4 · Migrations-Runner** — S · hängt ab von: 2
   - **Abnahme:** Nummerierte Migrationen aus `src/daten/migrationen/` laufen der
     Reihe nach, jede genau einmal, festgehalten in `schema_version`.
     `PRAGMA foreign_keys = ON` und WAL-Modus aktiv.
@@ -56,7 +56,7 @@ Grundlage: `docs/SPEC.md`.
   - **Prüfen:** Test mit temporärer Datei; zweimal laufen lassen, Schema vergleichen.
   - **Dateien:** `src/daten/db.mjs`, `src/daten/migrieren.mjs`, `tests/einheit/migrieren.test.mjs`
 
-- [ ] **5 · Schema 001 und Repository-Grundlage** — M · hängt ab von: 4
+- [x] **5 · Schema 001 und Repository-Grundlage** — M · hängt ab von: 4
   - **Abnahme:** Tabellen `gilden`, `sitzungen`, `zugriff`, `protokoll` angelegt,
     jede fachliche Tabelle mit `guild_id`.
   - **Abnahme:** Repository-Grundlage erzwingt `guildId` als ersten Parameter;
@@ -66,7 +66,7 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/daten/migrationen/001-grundlage.sql`, `src/daten/repository.mjs`,
     `src/daten/gilden.mjs`, `tests/einheit/repository.test.mjs`
 
-- [ ] **6 · Sitzungen in der Datenbank** — S · hängt ab von: 5
+- [x] **6 · Sitzungen in der Datenbank** — S · hängt ab von: 5
   - **Abnahme:** Sitzung anlegen, lesen, verlängern, ablaufen lassen, löschen.
     Sitzungs-ID kryptografisch zufällig, Cookie `HttpOnly`, `SameSite=Lax`,
     `Secure` genau dann, wenn `PANEL_URL` `https://` ist.
@@ -74,7 +74,7 @@ Grundlage: `docs/SPEC.md`.
   - **Prüfen:** Tests für Ablauf, für Secure-Schaltung bei beiden `PANEL_URL`-Formen.
   - **Dateien:** `src/auth/sitzung.mjs`, `tests/einheit/sitzung.test.mjs`
 
-- [ ] **7 · Anmeldung über Discord** — M · hängt ab von: 6
+- [x] **7 · Anmeldung über Discord** — M · hängt ab von: 6
   - **Abnahme:** `/login` leitet zu Discord mit zufälligem `state`; `/auth/callback`
     prüft `state` und tauscht den Code gegen ein Token. Falscher oder fehlender
     `state` führt zur Fehlerseite, nicht zur Anmeldung.
@@ -85,7 +85,7 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/auth/oauth.mjs`, `src/web/seiten/anmeldung.mjs`,
     `tests/integration/anmeldung.test.mjs`
 
-- [ ] **8 · Zugriffsstufen und Rechtematrix** — M · hängt ab von: 7 · **100 % Abdeckung**
+- [x] **8 · Zugriffsstufen und Rechtematrix** — M · hängt ab von: 7 · **100 % Abdeckung**
   - **Abnahme:** Vier Stufen `OWNER`, `MODERATOR`, `BETRACHTER`, `KEIN_ZUGRIFF`.
     `OWNER` aus `OWNER_DISCORD_ID`, übrige aus Discord-Rollen, bei jeder Anfrage
     neu bestimmt. Vorgabe ist `KEIN_ZUGRIFF`.

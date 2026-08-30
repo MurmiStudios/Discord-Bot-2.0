@@ -1,15 +1,13 @@
 import express from 'express';
-import {
-  registriereAnmeldung,
-  sitzungsMiddleware,
-  verlangtAnmeldung,
-} from './seiten/anmeldung.mjs';
+import { registriereAnmeldung, sitzungsMiddleware } from './seiten/anmeldung.mjs';
+import { stufenMiddleware, verlangt } from './mw/verlangt.mjs';
+import { STUFE } from '../auth/rechte.mjs';
 
 /**
  * Baut die Express-App auf. Bewusst ohne `listen` — so kann jeder Test die App
  * auf einem freien Port starten und danach wieder herunterfahren.
  */
-export function erstelleApp({ konfig, db, gilden, sitzungen, oauth, logger }) {
+export function erstelleApp({ konfig, db, gilden, sitzungen, oauth, logger, zugriff, mitgliedschaft }) {
   const app = express();
 
   // Verraet sonst in jeder Antwort, dass hier Express laeuft.
@@ -21,11 +19,12 @@ export function erstelleApp({ konfig, db, gilden, sitzungen, oauth, logger }) {
 
   app.use(express.urlencoded({ extended: false, limit: '1mb' }));
   app.use(sitzungsMiddleware(sitzungen));
+  app.use(stufenMiddleware({ konfig, zugriff, mitgliedschaft }));
 
   registriereAnmeldung(app, { konfig, db, gilden, sitzungen, oauth, logger });
 
   // Vorlaeufige Uebersicht. Schritt 56 baut die richtige.
-  app.get('/', verlangtAnmeldung, (req, res) => {
+  app.get('/', verlangt(STUFE.BETRACHTER), (req, res) => {
     res.type('html').send(
       '<!doctype html>\n<html lang="de">\n<head><meta charset="utf-8">' +
         '<title>Übersicht · Discord-Panel</title></head>\n<body>\n' +

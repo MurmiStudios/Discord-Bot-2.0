@@ -2,6 +2,7 @@ import { join } from 'node:path';
 import { oeffneDatenbank } from '../../src/daten/db.mjs';
 import { migriere, ladeMigrationen } from '../../src/daten/migrieren.mjs';
 import { erstelleGilden } from '../../src/daten/gilden.mjs';
+import { erstelleZugriff } from '../../src/daten/zugriff.mjs';
 import { erstelleSitzungen } from '../../src/auth/sitzung.mjs';
 import { erstelleOauth } from '../../src/auth/oauth.mjs';
 import { erstelleLogger } from '../../src/kern/logger.mjs';
@@ -33,7 +34,7 @@ export const TEST_KONFIG = Object.freeze({
  * Startet die vollstaendige App auf einem freien Port, mit echter SQLite-Datei
  * im Temp-Verzeichnis und erfundenem Discord.
  */
-export async function mitApp(fn, { konfig = {}, discord = {} } = {}) {
+export async function mitApp(fn, { konfig = {}, discord = {}, rollen = {}, zugriffsregeln = [] } = {}) {
   return mitTempVerzeichnis(async (dir) => {
     const db = oeffneDatenbank(join(dir, 'panel.db'));
     migriere(db, ladeMigrationen(new URL('../../src/daten/migrationen/', import.meta.url).pathname));
@@ -51,8 +52,17 @@ export async function mitApp(fn, { konfig = {}, discord = {} } = {}) {
     const sitzungen = erstelleSitzungen(db, { sessionSecret: vollKonfig.sessionSecret });
     const oauth = erstelleOauth({ konfig: vollKonfig, holen: doppel.holen });
 
-    const server = erstelleApp({ konfig: vollKonfig, db, gilden, sitzungen, oauth, logger })
-      .listen(0, '127.0.0.1');
+    const zugriff = erstelleZugriff(db);
+    for (const [rollenId, stufe] of zugriffsregeln) zugriff.setze(vollKonfig.guildId, rollenId, stufe);
+
+    // Steht spaeter fuer den Guild-Cache des Bots (Schritt 12).
+    // `undefined` heisst: nicht Mitglied des Servers.
+    const mitgliedschaft = { rollenVon: (_guildId, userId) => rollen[userId] };
+
+    const app = erstelleApp({
+      konfig: vollKonfig, db, gilden, sitzungen, oauth, logger, zugriff, mitgliedschaft,
+    });
+    const server = app.listen(0, '127.0.0.1');
     await new Promise((fertig, fehler) => {
       server.once('listening', fertig);
       server.once('error', fehler);
@@ -60,7 +70,9 @@ export async function mitApp(fn, { konfig = {}, discord = {} } = {}) {
     const basis = `http://127.0.0.1:${server.address().port}`;
 
     try {
-      return await fn({ basis, db, gilden, sitzungen, konfig: vollKonfig, doppel, logzeilen: zeilen });
+      return await fn({
+        app, basis, db, gilden, sitzungen, zugriff, konfig: vollKonfig, doppel, logzeilen: zeilen,
+      });
     } finally {
       await new Promise((fertig) => server.close(fertig));
       db.close();

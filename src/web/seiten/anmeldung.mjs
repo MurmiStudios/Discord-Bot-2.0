@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { COOKIE_NAME, gleichSicher } from '../../auth/sitzung.mjs';
 import { OauthFehler } from '../../auth/oauth.mjs';
 import { liesCookies } from '../mw/cookies.mjs';
+import { oeffentlich } from '../mw/verlangt.mjs';
 
 const STATE_COOKIE = 'panel_state';
 const STATE_LEBENSDAUER_MS = 10 * 60 * 1000;
@@ -23,7 +24,7 @@ export function registriereAnmeldung(app, { konfig, sitzungen, oauth, logger }) 
     maxAge: STATE_LEBENSDAUER_MS,
   };
 
-  app.get('/login', (_req, res) => {
+  app.get('/login', oeffentlich(), (_req, res) => {
     res.type('html').send(
       seite(
         'Anmelden',
@@ -35,7 +36,7 @@ export function registriereAnmeldung(app, { konfig, sitzungen, oauth, logger }) 
     );
   });
 
-  app.get('/auth/start', (_req, res) => {
+  app.get('/auth/start', oeffentlich(), (_req, res) => {
     // Der Zufallswert liegt im Cookie und in der Adresse. Nur wenn beide
     // uebereinstimmen, stammt der Rueckweg wirklich von unserem Start.
     const state = randomBytes(24).toString('base64url');
@@ -43,7 +44,7 @@ export function registriereAnmeldung(app, { konfig, sitzungen, oauth, logger }) 
     res.redirect(302, oauth.anmeldeUrl(state));
   });
 
-  app.get('/auth/callback', async (req, res) => {
+  app.get('/auth/callback', oeffentlich(), async (req, res) => {
     const cookies = liesCookies(req);
     res.clearCookie(STATE_COOKIE, { path: '/' });
 
@@ -111,7 +112,7 @@ export function registriereAnmeldung(app, { konfig, sitzungen, oauth, logger }) 
     return res.redirect(302, '/');
   });
 
-  app.post('/logout', (req, res) => {
+  app.post('/logout', oeffentlich(), (req, res) => {
     const kennung = liesCookies(req)[COOKIE_NAME];
     if (kennung) sitzungen.loesche(kennung);
     res.clearCookie(COOKIE_NAME, { path: '/' });
@@ -126,10 +127,4 @@ export function sitzungsMiddleware(sitzungen) {
     req.sitzung = kennung ? sitzungen.lies(kennung) : undefined;
     next();
   };
-}
-
-/** Vorlaeufiger Schutz. Schritt 8 ersetzt ihn durch die vier Zugriffsstufen. */
-export function verlangtAnmeldung(req, res, next) {
-  if (!req.sitzung) return res.redirect(302, '/login');
-  return next();
 }
