@@ -1,6 +1,7 @@
 import express from 'express';
 import { registriereAnmeldung, sitzungsMiddleware } from './seiten/anmeldung.mjs';
 import { stufenMiddleware, verlangt } from './mw/verlangt.mjs';
+import { csrfSchutz, csrfFeld } from '../auth/csrf.mjs';
 import { STUFE } from '../auth/rechte.mjs';
 
 /**
@@ -20,6 +21,7 @@ export function erstelleApp({ konfig, db, gilden, sitzungen, oauth, logger, zugr
   app.use(express.urlencoded({ extended: false, limit: '1mb' }));
   app.use(sitzungsMiddleware(sitzungen));
   app.use(stufenMiddleware({ konfig, zugriff, mitgliedschaft }));
+  app.use(csrfSchutz);
 
   registriereAnmeldung(app, { konfig, db, gilden, sitzungen, oauth, logger });
 
@@ -30,7 +32,8 @@ export function erstelleApp({ konfig, db, gilden, sitzungen, oauth, logger, zugr
         '<title>Übersicht · Discord-Panel</title></head>\n<body>\n' +
         '<h1>Panel läuft</h1>\n' +
         `<p>Angemeldet als ${req.sitzung.anzeigename ?? req.sitzung.discordUserId}.</p>\n` +
-        '<form method="post" action="/logout"><button type="submit">Abmelden</button></form>\n' +
+        `<form method="post" action="/logout">${csrfFeld(req)}` +
+        '<button type="submit">Abmelden</button></form>\n' +
         '</body>\n</html>\n',
     );
   });

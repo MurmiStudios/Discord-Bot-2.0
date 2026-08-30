@@ -1,9 +1,10 @@
 import { bestimmeStufe, reichtAus, STUFE } from '../../auth/rechte.mjs';
+import { csrfFeld } from '../../auth/csrf.mjs';
 
 /** Marke fuer Routen, die absichtlich ohne Anmeldung erreichbar sind. */
 export const OEFFENTLICH = 'OEFFENTLICH';
 
-function abweisen(res) {
+function abweisen(req, res) {
   // Nennt bewusst keine Seitennamen: Wer keinen Zugriff hat, soll auch nicht
   // erfahren, was es hinter der Abweisung ueberhaupt gibt.
   return res
@@ -15,7 +16,8 @@ function abweisen(res) {
         '<h1>Du hast hier keinen Zugriff</h1>\n' +
         '<p>Dein Discord-Konto ist für dieses Panel nicht freigeschaltet. Wenn das\n' +
         'ein Versehen ist, wende dich an die Person, die das Panel betreibt.</p>\n' +
-        '<form method="post" action="/logout"><button type="submit">Abmelden</button></form>\n' +
+        `<form method="post" action="/logout">${csrfFeld(req)}` +
+        '<button type="submit">Abmelden</button></form>\n' +
         '</body>\n</html>\n',
     );
 }
@@ -29,7 +31,7 @@ function abweisen(res) {
 export function verlangt(stufe) {
   const pruefung = (req, res, next) => {
     if (!req.sitzung) return res.redirect(302, '/login');
-    if (!reichtAus(req.stufe, stufe)) return abweisen(res);
+    if (!reichtAus(req.stufe, stufe)) return abweisen(req, res);
     return next();
   };
   pruefung.stufe = stufe;

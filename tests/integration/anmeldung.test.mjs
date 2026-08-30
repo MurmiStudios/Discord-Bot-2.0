@@ -188,11 +188,16 @@ test('der Zufallswert gilt nur einmal — der Rueckweg loescht ihn', async () =>
 test('Abmelden loescht die Sitzung serverseitig, nicht nur das Cookie', async () => {
   await mitApp(async ({ basis, sitzungen }) => {
     const { sitzung } = await meldeAn(basis);
+    const { csrfToken } = sitzungen.lies(sitzung);
 
     const antwort = await fetch(`${basis}/logout`, {
       method: 'POST',
       redirect: 'manual',
-      headers: { cookie: `${SITZUNG_COOKIE}=${encodeURIComponent(sitzung)}` },
+      headers: {
+        cookie: `${SITZUNG_COOKIE}=${encodeURIComponent(sitzung)}`,
+        'content-type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({ _csrf: csrfToken }).toString(),
     });
 
     assert.equal(antwort.status, 302);
