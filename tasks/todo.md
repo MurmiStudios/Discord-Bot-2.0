@@ -32,7 +32,7 @@ Grundlage: `docs/SPEC.md`.
   - **Prüfen:** Tests für jeden Abbruchgrund einzeln, jeweils mit der erwarteten Meldung.
   - **Dateien:** `src/kern/konfig.mjs`, `.env.example`, `tests/einheit/konfig.test.mjs`
 
-- [ ] **3 · Logger mit Geheimnis-Maskierung** — S · hängt ab von: 2
+- [x] **3 · Logger mit Geheimnis-Maskierung** — S · hängt ab von: 2
   - **Abnahme:** Strukturierte Ausgabe nach stdout mit Zeitstempel, Stufe, Bereich.
   - **Abnahme:** Token, Client-Secret und Sitzungsschlüssel werden maskiert —
     auch wenn sie in einem verschachtelten Objekt oder in einer Fehlermeldung stecken.
@@ -41,7 +41,7 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/kern/logger.mjs`, `tests/einheit/logger.test.mjs`
 
 ### Kontrollpunkt 0
-- [ ] `npm test`, `npm run lint`, `npm start` — alle drei grün.
+- [x] `npm test`, `npm run lint`, `npm start` — alle drei grün.
 
 ---
 
