@@ -22,7 +22,7 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `package.json`, `eslint.config.mjs`, `src/web/server.mjs`,
     `src/start.mjs`, `tests/einheit/rauch.test.mjs`
 
-- [ ] **2 · Konfiguration und Startprüfung** — S · hängt ab von: 1
+- [x] **2 · Konfiguration und Startprüfung** — S · hängt ab von: 1
   - **Abnahme:** `.env` wird über `--env-file` gelesen; fehlende Pflichtvariable
     bricht den Start mit benannter Meldung ab (welche Variable, wo sie herkommt).
   - **Abnahme:** `PANEL_URL` mit `https://` ohne `TRUST_PROXY=1` bricht ab.

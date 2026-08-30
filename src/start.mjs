@@ -1,7 +1,17 @@
+import { leseKonfig, KonfigFehler } from './kern/konfig.mjs';
 import { erstelleApp } from './web/server.mjs';
 
-const port = Number(process.env.PORT ?? 3000);
+let konfig;
+try {
+  konfig = leseKonfig();
+} catch (fehler) {
+  if (fehler instanceof KonfigFehler) {
+    console.error(`\n${fehler.message}\n`);
+    process.exit(1);
+  }
+  throw fehler;
+}
 
-erstelleApp().listen(port, () => {
-  console.log(`Panel läuft auf http://localhost:${port}`);
+erstelleApp().listen(konfig.port, () => {
+  console.log(`Panel läuft auf ${konfig.panelUrl}`);
 });
