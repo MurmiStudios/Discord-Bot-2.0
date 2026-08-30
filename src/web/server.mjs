@@ -5,6 +5,7 @@ import { csrfSchutz } from '../auth/csrf.mjs';
 import { seite } from './html/layout.mjs';
 import { html } from './html/html.mjs';
 import { sicherheitsKoepfe, allgemeineGrenze, anmeldeGrenze } from './mw/sicherheit.mjs';
+import { registriereStatisch } from './statisch.mjs';
 import { STUFE } from '../auth/rechte.mjs';
 
 /**
@@ -25,6 +26,11 @@ export function erstelleApp({
   if (konfig.vertraueProxy) app.set('trust proxy', 1);
 
   app.use(sicherheitsKoepfe(konfig));
+
+  // Vor der Ratenbegrenzung: Eine Seite laedt mehrere Dateien, die sollen die
+  // Grenze fuer echte Seitenaufrufe nicht verbrauchen.
+  registriereStatisch(app);
+
   app.use(allgemeineGrenze());
   // Eigene, strengere Grenze fuer den Anmeldeweg.
   app.use(['/login', '/auth'], anmeldeGrenze());

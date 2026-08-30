@@ -1,0 +1,259 @@
+/* Discord-Panel — Oberfläche.
+ *
+ * Zwei Farbschemata, vollständig getrennt definiert. Kein Wert steht nur in
+ * einem Schema: Sonst zeigt das Panel bei dunkler Systemeinstellung Text der
+ * einen Palette auf dem Grund der anderen.
+ *
+ * Die Neutraltöne sind leicht ins Blauviolette gezogen — derselbe Ton, aus dem
+ * der Akzent kommt, statt eines beliebigen Graus.
+ */
+
+:root {
+  color-scheme: light;
+
+  --grund: #f6f6fb;
+  --flaeche: #ffffff;
+  --flaeche-tief: #eeeef6;
+  --tinte: #16171d;
+  --tinte-leise: #5a5d6b;
+  --linie: #e2e2ee;
+  --linie-zart: #ededf5;
+  --akzent: #4b57e8;
+  --akzent-flaeche: #eceefc;
+  --akzent-tinte: #ffffff;
+  --gut: #1f7a52;
+  --gut-flaeche: #e4f2ec;
+  --warn: #8f5310;
+  --warn-flaeche: #f8efe2;
+  --stop: #a32f2a;
+  --stop-flaeche: #f9e8e6;
+  --schatten: 0 1px 2px rgba(22, 23, 29, .05), 0 8px 24px rgba(22, 23, 29, .04);
+
+  --radius: 10px;
+  --leiste: 232px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --grund: #101116;
+    --flaeche: #191a21;
+    --flaeche-tief: #14151b;
+    --tinte: #eceef4;
+    --tinte-leise: #9ba0b0;
+    --linie: #272935;
+    --linie-zart: #202129;
+    --akzent: #8b93f8;
+    --akzent-flaeche: #1e2036;
+    --akzent-tinte: #12131a;
+    --gut: #55c191;
+    --gut-flaeche: #16271f;
+    --warn: #e0a253;
+    --warn-flaeche: #2a2216;
+    --stop: #ef8078;
+    --stop-flaeche: #2c1a19;
+    --schatten: none;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--grund);
+  color: var(--tinte);
+  font: 400 15px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--akzent); }
+
+/* Sichtbarer Fokus. Ohne ihn ist das Panel mit der Tastatur unbedienbar. */
+:focus-visible {
+  outline: 2px solid var(--akzent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.sprunglink {
+  position: absolute;
+  left: -9999px;
+  top: 8px;
+  padding: 10px 16px;
+  background: var(--akzent);
+  color: var(--akzent-tinte);
+  border-radius: var(--radius);
+  z-index: 10;
+}
+.sprunglink:focus { left: 8px; }
+
+/* ── Gerüst ───────────────────────────────────────────────────────── */
+
+.panel {
+  display: grid;
+  grid-template-columns: var(--leiste) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.seitenleiste {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px 14px;
+  border-right: 1px solid var(--linie);
+  background: var(--flaeche);
+}
+
+.marke {
+  margin: 0 0 2px 10px;
+  font-weight: 600;
+  font-size: .82rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--akzent);
+}
+
+.seitensuche label {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.seitensuche input {
+  width: 100%;
+  padding: 8px 11px;
+  border: 1px solid var(--linie);
+  border-radius: 8px;
+  background: var(--flaeche-tief);
+  color: var(--tinte);
+  font: inherit;
+  font-size: .9rem;
+}
+
+.nav-gruppe { display: flex; flex-direction: column; gap: 1px; }
+
+.nav-titel {
+  margin: 0 0 6px 10px;
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+  color: var(--tinte-leise);
+}
+
+.seitenleiste a {
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--tinte-leise);
+  font-size: .92rem;
+  text-decoration: none;
+  transition: background .12s ease, color .12s ease;
+}
+.seitenleiste a:hover { background: var(--flaeche-tief); color: var(--tinte); }
+
+/* Die aktuelle Seite ist zusätzlich zur Farbe durch Gewicht und Balken
+   gekennzeichnet — Farbe allein reicht nicht. */
+.seitenleiste a[aria-current="page"] {
+  background: var(--akzent-flaeche);
+  color: var(--akzent);
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--akzent);
+}
+
+.abmelden { margin-top: auto; }
+.abmelden button {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--linie);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--tinte-leise);
+  font: inherit;
+  font-size: .9rem;
+  cursor: pointer;
+}
+.abmelden button:hover { background: var(--flaeche-tief); color: var(--tinte); }
+
+.hauptbereich { display: flex; flex-direction: column; min-width: 0; }
+
+.kopfzeile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 28px;
+  border-bottom: 1px solid var(--linie);
+  background: var(--flaeche);
+  font-size: .88rem;
+}
+
+.bot { display: inline-flex; align-items: center; gap: 8px; }
+.bot .punkt { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.bot-an { color: var(--gut); }
+.bot-an .punkt { background: var(--gut); }
+.bot-aus { color: var(--warn); flex-wrap: wrap; }
+.bot-aus .punkt { background: var(--warn); }
+.bot-grund { color: var(--tinte-leise); font-size: .85em; }
+
+.konto { color: var(--tinte-leise); }
+
+main {
+  flex: 1;
+  padding: 30px 28px 80px;
+  max-width: 1080px;
+}
+main:focus { outline: none; }
+
+h1 { margin: 0 0 14px; font-size: 1.6rem; letter-spacing: -.015em; }
+h2 { margin: 28px 0 10px; font-size: 1.15rem; }
+p { max-width: 68ch; }
+
+/* ── Telefon ──────────────────────────────────────────────────────────
+   Entschieden wird an der Fensterbreite, nicht an einer Gerätekennung:
+   ein schmales Fenster auf dem Rechner braucht dasselbe Layout. */
+
+@media (max-width: 900px) {
+  .panel { grid-template-columns: 1fr; }
+
+  .seitenleiste {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 10px 12px;
+    border-right: 0;
+    border-bottom: 1px solid var(--linie);
+    scrollbar-width: none;
+  }
+  .seitenleiste::-webkit-scrollbar { display: none; }
+
+  .marke, .nav-titel { display: none; }
+
+  .nav-gruppe { flex-direction: row; gap: 8px; }
+
+  .seitenleiste a,
+  .abmelden button,
+  .seitensuche input {
+    flex: none;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    border: 1px solid var(--linie);
+    border-radius: 999px;
+  }
+
+  .seitenleiste a[aria-current="page"] { box-shadow: none; border-color: var(--akzent); }
+
+  .abmelden { margin-top: 0; }
+  .abmelden button { min-width: 44px; }
+  .seitensuche { order: -1; }
+
+  .kopfzeile { padding: 12px 16px; }
+  main { padding: 20px 16px 60px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+}

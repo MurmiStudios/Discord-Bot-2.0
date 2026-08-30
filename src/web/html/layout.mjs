@@ -1,5 +1,6 @@
 import { html } from './html.mjs';
 import { STUFE, reichtAus } from '../../auth/rechte.mjs';
+import { dateiVersion } from '../statisch.mjs';
 
 /**
  * Die Seiten des Panels, in der Reihenfolge der Seitenleiste.
@@ -24,8 +25,8 @@ export const NAVIGATION = Object.freeze([
 
 const GRUPPEN = ['Verlauf', 'Senden', 'Automatisch', 'Bausteine', 'Verwaltung'];
 
-/** Wird in Schritt 16 durch den Inhaltshash ersetzt. */
-const STYLESHEET = '/panel.css';
+/** Der Hash im Verweis sorgt dafuer, dass niemand eine alte Fassung sieht. */
+const stylesheet = () => `/panel.css?v=${dateiVersion('panel.css')}`;
 
 function navigation(stufe, pfad) {
   return GRUPPEN.map((gruppe) => {
@@ -71,7 +72,7 @@ export function seite({ titel, pfad, stufe, sitzung, botStatus, inhalt, skripte 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${titel} · Discord-Panel</title>
-<link rel="stylesheet" href="${STYLESHEET}">
+<link rel="stylesheet" href="${stylesheet()}">
 </head>
 <body>
 <a class="sprunglink" href="#inhalt">Zum Inhalt springen</a>

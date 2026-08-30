@@ -173,7 +173,7 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/web/html/html.mjs`, `src/web/html/layout.mjs`,
     `tests/einheit/html.test.mjs`
 
-- [ ] **16 · Stylesheet: Farbschemata, Telefon-Layout, Fokus** — M · hängt ab von: 15
+- [x] **16 · Stylesheet: Farbschemata, Telefon-Layout, Fokus** — M · hängt ab von: 15
   - **Abnahme:** Helles und dunkles Schema vollständig definiert; Telefon-Layout
     unter 900 px Fensterbreite mit waagerecht scrollender Navigation und 44-px-Bedienelementen.
   - **Abnahme:** Sichtbarer Fokusring; `prefers-reduced-motion` schaltet Übergänge ab.
