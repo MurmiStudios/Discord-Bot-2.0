@@ -192,7 +192,7 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/web/seiten/suche.mjs`, `src/web/oeffentlich/suche.js`,
     `tests/integration/suche.test.mjs`
 
-- [ ] **18 · Protokoll schreiben und lesen** — S · hängt ab von: 5
+- [x] **18 · Protokoll schreiben und lesen** — S · hängt ab von: 5
   - **Abnahme:** `protokoll.schreibe(art, nutzer, daten)` legt einen Eintrag mit
     Zeit, Person, Vorgangsart und Ergebnis an. Vorgangsarten sind Daten, keine
     fest verdrahteten Fälle.
