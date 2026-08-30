@@ -135,7 +135,7 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/discord/bot.mjs`, `src/discord/status.mjs`,
     `tests/hilfen/discord-doppel.mjs`, `tests/einheit/bot.test.mjs`
 
-- [ ] **12 · Guild-Cache und Rechte-Vorprüfung** — M · hängt ab von: 11
+- [x] **12 · Guild-Cache und Rechte-Vorprüfung** — M · hängt ab von: 11
   - **Abnahme:** Kanäle mit Kategorie, Typ und Schreibrecht des Bots; Rollen mit
     Position, Verwaltet-Kennzeichen und Vergleich zur höchsten Bot-Rolle;
     Mitglieder für Suche und Rollenauflösung.

@@ -1,4 +1,5 @@
 import { EventEmitter } from 'node:events';
+import { ChannelType, PermissionFlagsBits } from 'discord.js';
 
 /**
  * Erfundener Discord-Server samt Client.
@@ -9,14 +10,24 @@ import { EventEmitter } from 'node:events';
  * discord.js vollständig nachbaut, testet am Ende sich selbst.
  */
 
-export const KANALART = { TEXT: 0, ANKUENDIGUNG: 5, THREAD: 11, SPRACHE: 2, KATEGORIE: 4 };
+export const KANALART = {
+  TEXT: ChannelType.GuildText,
+  ANKUENDIGUNG: ChannelType.GuildAnnouncement,
+  THREAD: ChannelType.PublicThread,
+  SPRACHE: ChannelType.GuildVoice,
+  KATEGORIE: ChannelType.GuildCategory,
+};
 
-/** Rechteflaggen als Zeichenketten — im Doppel reicht das. */
+/**
+ * Echte discord.js-Flaggen statt eigener Zeichenketten: Sonst wuerde das Doppel
+ * an der Bibliothek vorbei testen und ein Tippfehler im Flaggennamen faende
+ * sich erst im Betrieb.
+ */
 export const RECHT = {
-  NACHRICHTEN_SENDEN: 'SendMessages',
-  KANAL_SEHEN: 'ViewChannel',
-  MITGLIEDER_KICKEN: 'KickMembers',
-  ROLLEN_VERWALTEN: 'ManageRoles',
+  NACHRICHTEN_SENDEN: PermissionFlagsBits.SendMessages,
+  KANAL_SEHEN: PermissionFlagsBits.ViewChannel,
+  MITGLIEDER_KICKEN: PermissionFlagsBits.KickMembers,
+  ROLLEN_VERWALTEN: PermissionFlagsBits.ManageRoles,
 };
 
 function rechte(gewaehrt) {

@@ -6,6 +6,8 @@ import { erstelleGilden } from './daten/gilden.mjs';
 import { erstelleZugriff } from './daten/zugriff.mjs';
 import { erstelleSitzungen } from './auth/sitzung.mjs';
 import { erstelleOauth } from './auth/oauth.mjs';
+import { erstelleBot } from './discord/bot.mjs';
+import { erstelleGildenAnsicht } from './discord/gilde.mjs';
 import { erstelleApp } from './web/server.mjs';
 
 let konfig;
@@ -35,12 +37,17 @@ const sitzungen = erstelleSitzungen(db, { sessionSecret: konfig.sessionSecret })
 const oauth = erstelleOauth({ konfig });
 const zugriff = erstelleZugriff(db);
 
-// Platzhalter bis Schritt 12: Ohne verbundenen Bot kennt das Panel die Rollen
-// noch nicht. `undefined` heisst "keine Mitgliedschaft feststellbar" — bis
-// dahin kommt nur der Owner aus der .env herein.
-const mitgliedschaft = { rollenVon: () => undefined };
+const bot = erstelleBot({ konfig, logger });
+const gildenAnsicht = erstelleGildenAnsicht({ bot, konfig });
 
-erstelleApp({ konfig, db, gilden, sitzungen, oauth, logger, zugriff, mitgliedschaft })
+// Der Webserver startet unabhaengig davon, ob Discord erreichbar ist. Faellt
+// die Verbindung aus, bleibt das Panel bedienbar und sagt es in der Kopfzeile.
+bot.verbinde();
+
+erstelleApp({
+  konfig, db, gilden, sitzungen, oauth, logger, zugriff,
+  bot, gildenAnsicht, mitgliedschaft: gildenAnsicht,
+})
   .listen(konfig.port, () => {
     logger.info('start', 'Panel läuft', {
       adresse: konfig.panelUrl,
