@@ -99,11 +99,19 @@ a { color: var(--akzent); }
 .seitenleiste {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding: 20px 14px;
+  gap: 14px;
+  padding: 16px 12px;
   border-right: 1px solid var(--linie);
   background: var(--flaeche);
+  /* Bleibt stehen, waehrend der Inhalt scrollt — sonst ist die Navigation auf
+     einer langen Seite weg, wenn man sie braucht. */
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
 }
+
+.nav-liste { display: flex; flex-direction: column; gap: 14px; }
 
 .marke {
   margin: 0 0 2px 10px;
@@ -131,10 +139,10 @@ a { color: var(--akzent); }
   font-size: .9rem;
 }
 
-.nav-gruppe { display: flex; flex-direction: column; gap: 1px; }
+.nav-gruppe { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 
 .nav-titel {
-  margin: 0 0 6px 10px;
+  margin: 0 0 4px 10px;
   font-size: .68rem;
   font-weight: 600;
   letter-spacing: .11em;
@@ -143,7 +151,7 @@ a { color: var(--akzent); }
 }
 
 .seitenleiste a {
-  padding: 8px 10px;
+  padding: 7px 10px;
   border-radius: 8px;
   color: var(--tinte-leise);
   font-size: .92rem;
@@ -175,7 +183,7 @@ a { color: var(--akzent); }
 }
 .abmelden button:hover { background: var(--flaeche-tief); color: var(--tinte); }
 
-.hauptbereich { display: flex; flex-direction: column; min-width: 0; }
+.hauptbereich { display: flex; flex-direction: column; min-width: 0; overflow-x: hidden; }
 
 .kopfzeile {
   display: flex;
@@ -214,27 +222,59 @@ p { max-width: 68ch; }
    ein schmales Fenster auf dem Rechner braucht dasselbe Layout. */
 
 @media (max-width: 900px) {
-  .panel { grid-template-columns: 1fr; }
+  /* Ohne feste Zeilen teilen sich Kopfzeile und Inhalt die Hoehe gleichmaessig,
+     und ueber der Navigation klafft eine leere Flaeche. */
+  .panel {
+    /* minmax(0, 1fr) statt 1fr: Sonst nimmt die Spalte die Mindestbreite ihres
+       breitesten Kindes an, und die ganze Seite laeuft seitlich ueber. */
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
 
   .seitenleiste {
+    position: static;
+    height: auto;
+    overflow: visible;
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
     gap: 8px;
-    overflow-x: auto;
     padding: 10px 12px;
     border-right: 0;
     border-bottom: 1px solid var(--linie);
-    scrollbar-width: none;
+    min-width: 0;
   }
-  .seitenleiste::-webkit-scrollbar { display: none; }
 
   .marke, .nav-titel { display: none; }
 
-  .nav-gruppe { flex-direction: row; gap: 8px; }
+  /* Suche und Abmelden in die obere Zeile, die Seiten darunter in eine
+     waagerecht scrollende Reihe. */
+  .seitensuche { order: -2; flex: 1 1 180px; min-width: 0; }
+  .abmelden { order: -1; margin-top: 0; flex: none; }
+
+  .nav-liste {
+    flex: 1 0 100%;
+    flex-direction: row;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+    /* Ohne das waechst die Reihe auf die Breite aller Pillen, statt zu scrollen. */
+    min-width: 0;
+  }
+  .nav-liste::-webkit-scrollbar { display: none; }
+
+  /* flex: none und max-content: Sonst schrumpfen die Gruppen unter ihre
+     Inhaltsbreite und die Pillen liegen uebereinander, statt zu scrollen. */
+  .nav-gruppe {
+    flex: 0 0 auto;
+    flex-direction: row;
+    gap: 8px;
+    min-width: max-content;
+  }
 
   .seitenleiste a,
-  .abmelden button,
-  .seitensuche input {
+  .abmelden button {
     flex: none;
     min-height: 44px;
     display: flex;
@@ -244,11 +284,14 @@ p { max-width: 68ch; }
     border-radius: 999px;
   }
 
-  .seitenleiste a[aria-current="page"] { box-shadow: none; border-color: var(--akzent); }
+  .seitensuche input {
+    width: 100%;
+    min-height: 44px;
+    border-radius: 999px;
+  }
 
-  .abmelden { margin-top: 0; }
-  .abmelden button { min-width: 44px; }
-  .seitensuche { order: -1; }
+  .seitenleiste a[aria-current="page"] { box-shadow: none; border-color: var(--akzent); }
+  .abmelden button { min-width: 44px; justify-content: center; }
 
   .kopfzeile { padding: 12px 16px; }
   main { padding: 20px 16px 60px; }

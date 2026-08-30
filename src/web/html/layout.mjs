@@ -85,7 +85,7 @@ export function seite({ titel, pfad, stufe, sitzung, botStatus, inhalt, skripte 
       <label for="seitensuche-feld">Seite suchen</label>
       <input type="search" id="seitensuche-feld" name="q" placeholder="Seite suchen (/)">
     </form>
-    ${navigation(stufe, pfad)}
+    <div class="nav-liste">${navigation(stufe, pfad)}</div>
     <div class="abmelden">
       <form method="post" action="/logout">
         <input type="hidden" name="_csrf" value="${sitzung?.csrfToken ?? ''}">

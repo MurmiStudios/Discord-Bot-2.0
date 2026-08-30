@@ -202,8 +202,8 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/protokoll/protokoll.mjs`, `tests/einheit/protokoll.test.mjs`
 
 ### Kontrollpunkt B — Bot und Oberfläche
-- [ ] Bot-Status steht in der Kopfzeile. Layout in beiden Farbschemata, am Telefon brauchbar.
-- [ ] Interaktions-Router nimmt alle drei Spuren an, `befehle/` ist leer und stört nicht.
+- [x] Bot-Status steht in der Kopfzeile. Layout in beiden Farbschemata, am Telefon brauchbar.
+- [x] Interaktions-Router nimmt alle drei Spuren an, `befehle/` ist leer und stört nicht.
 - [ ] **Dir zeigen:** Layout hell/dunkel, Telefonansicht, Bot-Status verbunden und getrennt.
 
 ---
