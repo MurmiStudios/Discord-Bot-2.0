@@ -1,0 +1,87 @@
+import { join } from 'node:path';
+import { oeffneDatenbank } from '../../src/daten/db.mjs';
+import { migriere, ladeMigrationen } from '../../src/daten/migrieren.mjs';
+import { erstelleGilden } from '../../src/daten/gilden.mjs';
+import { erstelleSitzungen } from '../../src/auth/sitzung.mjs';
+import { erstelleOauth } from '../../src/auth/oauth.mjs';
+import { erstelleLogger } from '../../src/kern/logger.mjs';
+import { erstelleApp } from '../../src/web/server.mjs';
+import { mitTempVerzeichnis } from './db.mjs';
+import { erstelleDiscordDoppel } from './discord-oauth-doppel.mjs';
+
+export const GILDE = '111111111111111111';
+
+export const TEST_KONFIG = Object.freeze({
+  token: 'MTIzNDU2Nzg5MDEyMzQ1Njc4.GaBcDe.test-token-wert-hier',
+  clientId: '123456789012345678',
+  clientSecret: 'test-client-secret-lang-genug-fuer-alles',
+  guildId: GILDE,
+  ownerId: '4242',
+  sessionSecret: 'b'.repeat(64),
+  panelUrl: 'http://127.0.0.1:3000',
+  redirectUri: 'http://127.0.0.1:3000/auth/callback',
+  port: 3000,
+  dmMaxEmpfaenger: 100,
+  dmPauseMs: 1200,
+  uploadMaxBytes: 5242880,
+  uploadMaxKante: 4096,
+  vertraueProxy: false,
+  sicheresCookie: false,
+});
+
+/**
+ * Startet die vollstaendige App auf einem freien Port, mit echter SQLite-Datei
+ * im Temp-Verzeichnis und erfundenem Discord.
+ */
+export async function mitApp(fn, { konfig = {}, discord = {} } = {}) {
+  return mitTempVerzeichnis(async (dir) => {
+    const db = oeffneDatenbank(join(dir, 'panel.db'));
+    migriere(db, ladeMigrationen(new URL('../../src/daten/migrationen/', import.meta.url).pathname));
+
+    const vollKonfig = { ...TEST_KONFIG, ...konfig };
+    const gilden = erstelleGilden(db);
+    gilden.merke(vollKonfig.guildId, 'Testserver');
+
+    const doppel = erstelleDiscordDoppel(discord);
+    const zeilen = [];
+    const logger = erstelleLogger({
+      geheimnisse: [vollKonfig.token, vollKonfig.clientSecret, vollKonfig.sessionSecret],
+      schreibe: (zeile) => zeilen.push(zeile),
+    });
+    const sitzungen = erstelleSitzungen(db, { sessionSecret: vollKonfig.sessionSecret });
+    const oauth = erstelleOauth({ konfig: vollKonfig, holen: doppel.holen });
+
+    const server = erstelleApp({ konfig: vollKonfig, db, gilden, sitzungen, oauth, logger })
+      .listen(0, '127.0.0.1');
+    await new Promise((fertig, fehler) => {
+      server.once('listening', fertig);
+      server.once('error', fehler);
+    });
+    const basis = `http://127.0.0.1:${server.address().port}`;
+
+    try {
+      return await fn({ basis, db, gilden, sitzungen, konfig: vollKonfig, doppel, logzeilen: zeilen });
+    } finally {
+      await new Promise((fertig) => server.close(fertig));
+      db.close();
+    }
+  });
+}
+
+/** Liest einen gesetzten Cookie-Wert aus den Set-Cookie-Koepfen einer Antwort. */
+export function cookieAus(antwort, name) {
+  for (const kopf of antwort.headers.getSetCookie?.() ?? []) {
+    const [paar] = kopf.split(';');
+    const trenner = paar.indexOf('=');
+    if (paar.slice(0, trenner) === name) return decodeURIComponent(paar.slice(trenner + 1));
+  }
+  return undefined;
+}
+
+/** Liest die Zusaetze (Secure, HttpOnly, ...) eines gesetzten Cookies. */
+export function cookieZusaetze(antwort, name) {
+  for (const kopf of antwort.headers.getSetCookie?.() ?? []) {
+    if (kopf.startsWith(`${name}=`)) return kopf;
+  }
+  return undefined;
+}
