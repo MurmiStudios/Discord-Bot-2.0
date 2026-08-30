@@ -10,7 +10,7 @@ Grundlage: `docs/SPEC.md`.
 
 ## Phase 0 — Gerüst
 
-- [ ] **1 · Projektgerüst und Werkzeugkette** — M · hängt ab von: —
+- [x] **1 · Projektgerüst und Werkzeugkette** — M · hängt ab von: —
   - **Abnahme:** `package.json` mit `"type": "module"`, Node-Anforderung `>=22.13`,
     den fünf Laufzeit-Abhängigkeiten und den Skripten aus der Spec.
     ESLint-Konfiguration. `npm start` startet einen Express-Server, der auf `/`
