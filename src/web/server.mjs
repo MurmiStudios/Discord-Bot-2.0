@@ -15,7 +15,7 @@ import { STUFE } from '../auth/rechte.mjs';
  * auf einem freien Port starten und danach wieder herunterfahren.
  */
 export function erstelleApp({
-  konfig, db, gilden, sitzungen, oauth, logger, zugriff, mitgliedschaft,
+  konfig, db, gilden, sitzungen, oauth, logger, zugriff, mitgliedschaft, gildenAnsicht,
   bot = { status: () => ({ verbunden: false, grund: 'Der Bot ist nicht eingerichtet.' }) },
 }) {
   const app = express();
@@ -44,7 +44,7 @@ export function erstelleApp({
 
   registriereAnmeldung(app, { konfig, db, gilden, sitzungen, oauth, logger });
   registriereSuche(app, { bot });
-  registriereNachricht(app, { bot });
+  registriereNachricht(app, { bot, konfig, gildenAnsicht });
 
   // Vorlaeufige Uebersicht. Schritt 56 baut die richtige.
   app.get('/', verlangt(STUFE.BETRACHTER), (req, res) => {

@@ -6,6 +6,8 @@ import { csrfFeld } from '../../auth/csrf.mjs';
 import { GRENZE, ART, leeresEmbed } from '../../nachricht/modell.mjs';
 import { embedEditor } from '../html/embed.mjs';
 import { vorschau, MODUS } from '../../nachricht/vorschau.mjs';
+import { empfaengerwahl } from '../html/empfaengerwahl.mjs';
+import { loeseEmpfaengerAuf, parseAuswahl, alsAuswahlWert } from '../../versand/empfaenger.mjs';
 import { vorschauGrenze } from '../mw/sicherheit.mjs';
 import { PLATZHALTER } from '../../nachricht/platzhalter.mjs';
 import { pruefeNachricht } from '../../nachricht/pruefen.mjs';
@@ -46,6 +48,8 @@ function entwurfAus(koerper = {}) {
     text: String(koerper.text ?? ''),
     bildvorlageId: String(koerper.bildvorlageId ?? '') || null,
     vorschauModus: koerper.vorschauModus === MODUS.ROH ? MODUS.ROH : MODUS.BEISPIEL,
+    empfaenger: parseAuswahl(koerper.empfaenger),
+    empfaengerSuche: String(koerper.empfaengerSuche ?? ''),
     embedAn: koerper.embedAn === 'ja',
     embed: {
       ...leeresEmbed(),
@@ -104,9 +108,45 @@ function fehlerZu(fehler, feld) {
   return html`<p class="feldfehler" role="alert">${treffer.map((f) => html`${f.meldung} `)}</p>`;
 }
 
-function editorSeite({ req, bot, entwurf, fehler = [] }) {
+/** Treffer der Empfaengersuche: Mitglieder und Rollen gemeinsam. */
+function sucheTreffer(gildenAnsicht, guildId, begriff, auswahl) {
+  if (begriff.trim() === '') return [];
+
+  const gewaehlt = new Set(auswahl.map(alsAuswahlWert));
+  const gesucht = begriff.trim().toLowerCase();
+
+  const mitglieder = gildenAnsicht.sucheMitglieder(begriff, guildId).map((m) => ({
+    art: 'mitglied', id: m.id, name: m.name,
+  }));
+
+  const alleMitglieder = gildenAnsicht.sucheMitglieder('', guildId);
+  const rollen = gildenAnsicht
+    .rollen(guildId)
+    .filter((r) => r.name.toLowerCase().includes(gesucht))
+    .map((r) => ({
+      art: 'rolle', id: r.id, name: r.name,
+      anzahl: alleMitglieder.filter((m) => m.rollenIds.includes(r.id)).length,
+    }));
+
+  return [...rollen, ...mitglieder].filter((t) => !gewaehlt.has(alsAuswahlWert(t))).slice(0, 20);
+}
+
+function editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, fehler = [] }) {
   const laenge = entwurf.text.length;
   const zuFeld = (feld) => fehlerZu(fehler, feld);
+
+  const aufgeloest = loeseEmpfaengerAuf(gildenAnsicht, entwurf.empfaenger, konfig.guildId);
+  const namen = new Map([
+    ...gildenAnsicht.sucheMitglieder('', konfig.guildId).map((m) => [`mitglied:${m.id}`, m.name]),
+    ...gildenAnsicht.rollen(konfig.guildId).map((r) => [`rolle:${r.id}`, r.name]),
+  ]);
+  const chipTitel = (eintrag) => namen.get(alsAuswahlWert(eintrag)) ?? 'Nicht mehr vorhanden';
+
+  // Wie viele Empfaenger eine Rolle wirklich ergibt, steht am Chip: Der Name
+  // allein sagt nicht, ob dahinter drei Leute stehen oder dreihundert.
+  const alleMitglieder = gildenAnsicht.sucheMitglieder('', konfig.guildId);
+  const chipZahl = (eintrag) =>
+    alleMitglieder.filter((m) => m.rollenIds.includes(eintrag.id)).length;
 
   return seite({
     titel: 'Nachricht',
@@ -152,6 +192,19 @@ function editorSeite({ req, bot, entwurf, fehler = [] }) {
           )}
         </div>
 
+        ${entwurf.art === ART.DM
+          ? empfaengerwahl({
+              auswahl: entwurf.empfaenger,
+              aufgeloest,
+              treffer: sucheTreffer(gildenAnsicht, konfig.guildId, entwurf.empfaengerSuche, entwurf.empfaenger),
+              suchbegriff: entwurf.empfaengerSuche,
+              konfig,
+              botVerbunden: bot.status().verbunden,
+              chipTitel,
+              chipZahl,
+            })
+          : ''}
+
         ${entwurf.embedAn
           ? embedEditor({ embed: entwurf.embed, fehlerZu: zuFeld })
           : html`
@@ -196,7 +249,7 @@ function editorSeite({ req, bot, entwurf, fehler = [] }) {
   });
 }
 
-export function registriereNachricht(app, { bot }) {
+export function registriereNachricht(app, { bot, konfig, gildenAnsicht }) {
   // Alte Adressen bleiben gueltig.
   app.get('/dm', verlangt(STUFE.MODERATOR), (_req, res) => res.redirect(301, '/nachricht?art=dm'));
   app.get('/kanaele', verlangt(STUFE.MODERATOR), (_req, res) =>
@@ -205,7 +258,7 @@ export function registriereNachricht(app, { bot }) {
 
   app.get('/nachricht', verlangt(STUFE.MODERATOR), (req, res) => {
     const entwurf = entwurfAus({ art: req.query.art });
-    res.type('html').send(String(editorSeite({ req, bot, entwurf })));
+    res.type('html').send(String(editorSeite({ req, bot, konfig, gildenAnsicht, entwurf })));
   });
 
   // Dieselbe Vorschau wie auf der Seite — nur das Bruchstueck, fuer editor.js.
@@ -217,13 +270,31 @@ export function registriereNachricht(app, { bot }) {
   app.post('/nachricht', verlangt(STUFE.MODERATOR), (req, res) => {
     const koerper = req.body ?? {};
     const entwurf = entwurfAus(koerper);
-    const zeigen = () => res.type('html').send(String(editorSeite({ req, bot, entwurf })));
+    const zeigen = () =>
+      res.type('html').send(String(editorSeite({ req, bot, konfig, gildenAnsicht, entwurf })));
 
     // Reiter gewechselt: dasselbe Formular, anderes Ziel, gleicher Inhalt.
     if (koerper.wechselZu === ART.DM || koerper.wechselZu === ART.KANAL) {
       entwurf.art = koerper.wechselZu;
       return zeigen();
     }
+
+    if (koerper.hinzufuegen !== undefined) {
+      entwurf.empfaenger = parseAuswahl([
+        ...entwurf.empfaenger.map(alsAuswahlWert),
+        String(koerper.hinzufuegen),
+      ]);
+      entwurf.empfaengerSuche = '';
+      return zeigen();
+    }
+
+    if (koerper.entfernen !== undefined) {
+      const weg = String(koerper.entfernen);
+      entwurf.empfaenger = entwurf.empfaenger.filter((e) => alsAuswahlWert(e) !== weg);
+      return zeigen();
+    }
+
+    if (koerper.suchen !== undefined) return zeigen();
 
     if (koerper.vorschauWechseln !== undefined) {
       entwurf.vorschauModus = koerper.vorschauWechseln === MODUS.ROH ? MODUS.ROH : MODUS.BEISPIEL;
@@ -265,7 +336,7 @@ export function registriereNachricht(app, { bot }) {
       return res
         .status(422)
         .type('html')
-        .send(String(editorSeite({ req, bot, entwurf, fehler: geprueft.fehler })));
+        .send(String(editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, fehler: geprueft.fehler })));
     }
 
     return zeigen();

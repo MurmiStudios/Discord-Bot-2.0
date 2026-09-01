@@ -56,7 +56,7 @@ registriereBefehle({ befehle, konfig, logger });
 
 erstelleApp({
   konfig, db, gilden, sitzungen, oauth, logger, zugriff,
-  bot, mitgliedschaft: gildenAnsicht,
+  bot, gildenAnsicht, mitgliedschaft: gildenAnsicht,
 })
   .listen(konfig.port, () => {
     logger.info('start', 'Panel läuft', {

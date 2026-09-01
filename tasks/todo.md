@@ -258,7 +258,7 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/nachricht/vorschau.mjs`, `src/web/oeffentlich/vorschau.js`,
     `tests/integration/vorschau.test.mjs`
 
-- [ ] **24 · Empfängersuche mit Chips** — M · hängt ab von: 21, 12
+- [x] **24 · Empfängersuche mit Chips** — M · hängt ab von: 21, 12
   - **Abnahme:** Suchfeld über Mitglieder und Rollen; eine gewählte Rolle wird zu
     ihren Mitgliedern als Einzelempfänger aufgelöst.
   - **Abnahme:** Gewählte als Chips im Feld, mit Tastatur bedienbar: Pfeile wählen,

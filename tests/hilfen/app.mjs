@@ -9,6 +9,9 @@ import { erstelleLogger } from '../../src/kern/logger.mjs';
 import { erstelleApp } from '../../src/web/server.mjs';
 import { mitTempVerzeichnis } from './db.mjs';
 import { erstelleDiscordDoppel } from './discord-oauth-doppel.mjs';
+import { erstelleClientDoppel } from './discord-doppel.mjs';
+import { erstelleBot } from '../../src/discord/bot.mjs';
+import { erstelleGildenAnsicht } from '../../src/discord/gilde.mjs';
 
 export const GILDE = '111111111111111111';
 
@@ -34,7 +37,10 @@ export const TEST_KONFIG = Object.freeze({
  * Startet die vollstaendige App auf einem freien Port, mit echter SQLite-Datei
  * im Temp-Verzeichnis und erfundenem Discord.
  */
-export async function mitApp(fn, { konfig = {}, discord = {}, rollen = {}, zugriffsregeln = [] } = {}) {
+export async function mitApp(
+  fn,
+  { konfig = {}, discord = {}, rollen, zugriffsregeln = [], discordServer = {}, botVerbunden = true } = {},
+) {
   return mitTempVerzeichnis(async (dir) => {
     const db = oeffneDatenbank(join(dir, 'panel.db'));
     migriere(db, ladeMigrationen(new URL('../../src/daten/migrationen/', import.meta.url).pathname));
@@ -55,13 +61,24 @@ export async function mitApp(fn, { konfig = {}, discord = {}, rollen = {}, zugri
     const zugriff = erstelleZugriff(db);
     for (const [rollenId, stufe] of zugriffsregeln) zugriff.setze(vollKonfig.guildId, rollenId, stufe);
 
-    // Steht spaeter fuer den Guild-Cache des Bots (Schritt 12).
-    // `undefined` heisst: nicht Mitglied des Servers.
-    const mitgliedschaft = { rollenVon: (_guildId, userId) => rollen[userId] };
+    // Echter Guild-Cache auf einem erfundenen Server.
+    const { client } = erstelleClientDoppel({ guildId: vollKonfig.guildId, ...discordServer });
+    const bot = erstelleBot({ konfig: vollKonfig, logger, erzeugeClient: () => client });
+    if (botVerbunden) {
+      await bot.verbinde();
+      await new Promise((f) => setTimeout(f, 0));
+    }
+    const gildenAnsicht = erstelleGildenAnsicht({ bot, konfig: vollKonfig });
 
-    const bot = { status: () => ({ verbunden: true, grund: undefined }) };
+    // `rollen` erlaubt es einem Test, die Mitgliedschaft direkt vorzugeben,
+    // ohne den ganzen Server zu beschreiben. Ohne die Angabe entscheidet der
+    // Guild-Cache — so wie im Betrieb.
+    const mitgliedschaft =
+      rollen === undefined ? gildenAnsicht : { rollenVon: (_guildId, userId) => rollen[userId] };
+
     const app = erstelleApp({
-      konfig: vollKonfig, db, gilden, sitzungen, oauth, logger, zugriff, mitgliedschaft, bot,
+      konfig: vollKonfig, db, gilden, sitzungen, oauth, logger, zugriff,
+      mitgliedschaft, bot, gildenAnsicht,
     });
     const server = app.listen(0, '127.0.0.1');
     await new Promise((fertig, fehler) => {
@@ -72,7 +89,8 @@ export async function mitApp(fn, { konfig = {}, discord = {}, rollen = {}, zugri
 
     try {
       return await fn({
-        app, basis, db, gilden, sitzungen, zugriff, konfig: vollKonfig, doppel, logzeilen: zeilen,
+        app, basis, db, gilden, sitzungen, zugriff, konfig: vollKonfig, doppel,
+        logzeilen: zeilen, bot, gildenAnsicht,
       });
     } finally {
       await new Promise((fertig) => server.close(fertig));

@@ -677,3 +677,102 @@ p { max-width: 68ch; }
 
 /* editor.js blendet den Knopf aus, sobald es laeuft — ohne JavaScript bleibt er. */
 .js-an [data-nur-ohne-js] { display: none; }
+
+/* ── Empfängerauswahl ─────────────────────────────────────────────── */
+
+.empfaengerfeld { gap: 10px; }
+
+.chipfeld {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 7px 9px;
+  border: 1px solid var(--linie);
+  border-radius: 8px;
+  background: var(--flaeche);
+}
+.chip-leer { color: var(--tinte-leise); font-size: .88rem; padding: 0 4px; }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 4px 4px 9px;
+  border: 1px solid var(--linie);
+  border-radius: 999px;
+  background: var(--flaeche-tief);
+  font-size: .86rem;
+}
+.chip-art {
+  font-size: .66rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--akzent);
+}
+.chip-name { font-weight: 500; }
+.chip-zahl, .treffer-zahl { color: var(--tinte-leise); font-size: .78rem; }
+
+.chip-weg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--tinte-leise);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.chip-weg:hover { background: var(--stop-flaeche); color: var(--stop); }
+
+.suchzeile { display: flex; gap: 8px; flex-wrap: wrap; }
+.suchzeile input {
+  flex: 1 1 240px;
+  min-width: 0;
+  padding: 9px 12px;
+  border: 1px solid var(--linie);
+  border-radius: 8px;
+  background: var(--flaeche);
+  color: var(--tinte);
+  font: inherit;
+}
+
+.trefferwahl { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.trefferwahl button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--linie);
+  border-radius: 8px;
+  background: var(--flaeche);
+  color: var(--tinte);
+  font: inherit;
+  font-size: .9rem;
+  text-align: left;
+  cursor: pointer;
+}
+.trefferwahl button:hover { border-color: var(--akzent); background: var(--akzent-flaeche); }
+
+.empfaengerbilanz { margin: 0; color: var(--tinte-leise); font-size: .88rem; }
+.empfaengerbilanz strong { color: var(--tinte); font-variant-numeric: tabular-nums; }
+
+.hinweis-warn {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--warn-flaeche);
+  color: var(--warn);
+  font-size: .88rem;
+}
+
+@media (max-width: 900px) {
+  .suchzeile input, .trefferwahl button { min-height: 44px; }
+}
