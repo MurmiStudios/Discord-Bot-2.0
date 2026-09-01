@@ -29,6 +29,24 @@
     aktualisiere();
   }
 
+  // Embed-Zähler: Discord rechnet alle Teile gegen ein gemeinsames Limit,
+  // also zählt hier auch alles zusammen — genau wie die Prüfung auf dem Server.
+  const embedZaehler = document.querySelector('[data-embed-zaehler]');
+  if (embedZaehler) {
+    const teile = document.querySelectorAll('[data-embed-teil]');
+    const grenze = Number(embedZaehler.getAttribute('data-grenze')) || 0;
+
+    const zaehleEmbed = () => {
+      let summe = 0;
+      for (const teil of teile) summe += teil.value.length;
+      embedZaehler.textContent = `${summe} / ${grenze}`;
+      embedZaehler.classList.toggle('zaehler-zuviel', summe > grenze);
+    };
+
+    for (const teil of teile) teil.addEventListener('input', zaehleEmbed);
+    zaehleEmbed();
+  }
+
   const textfeld = document.getElementById('text');
   if (!textfeld) return;
 

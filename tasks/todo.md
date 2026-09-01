@@ -238,7 +238,7 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/web/seiten/nachricht.mjs`, `src/web/html/bausteine.mjs`,
     `tests/integration/nachricht.test.mjs`
 
-- [ ] **22 · Embed-Editor** — M · hängt ab von: 21
+- [x] **22 · Embed-Editor** — M · hängt ab von: 21
   - **Abnahme:** Ein Knopf schaltet die Embed-Karte ein, der Editor klappt darunter
     auf: Titel, Beschreibung, Felder, Fusszeile, Autor, Farbe.
   - **Abnahme:** Der 6000er-Zähler steht sichtbar am Editor und meldet die

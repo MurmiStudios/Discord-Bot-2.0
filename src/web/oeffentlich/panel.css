@@ -476,3 +476,84 @@ p { max-width: 68ch; }
 @media (max-width: 900px) {
   .reiter-knopf, .knopf-haupt, .platzhalter-knopf { min-height: 44px; }
 }
+
+/* ── Embed-Editor ─────────────────────────────────────────────────── */
+
+.embed-anbieten { display: flex; }
+
+.embedkasten {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 16px 18px 18px;
+  border: 1px solid var(--linie);
+  border-left: 3px solid var(--akzent);
+  border-radius: var(--radius);
+  background: var(--flaeche);
+}
+
+.embedkasten legend {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 0 6px;
+  font-size: .88rem;
+  font-weight: 600;
+}
+
+.embedfelder { display: flex; flex-direction: column; gap: 8px; }
+.embedfelder-titel {
+  margin: 0;
+  font-size: .88rem;
+  font-weight: 600;
+}
+
+.embedfeld { display: flex; flex-wrap: wrap; gap: 8px; }
+.embedfeld input { flex: 1 1 180px; min-width: 0; }
+.embedfeld input,
+.embedkasten input[type="text"],
+.embedkasten textarea {
+  padding: 9px 12px;
+  border: 1px solid var(--linie);
+  border-radius: 8px;
+  background: var(--grund);
+  color: var(--tinte);
+  font: inherit;
+}
+.embedkasten textarea { resize: vertical; line-height: 1.55; }
+
+.embed-zweispalt {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.feld-schmal { max-width: 160px; }
+.feld input[type="color"] {
+  width: 100%;
+  height: 40px;
+  padding: 3px;
+  border: 1px solid var(--linie);
+  border-radius: 8px;
+  background: var(--flaeche);
+  cursor: pointer;
+}
+
+.knopf-leise {
+  align-self: flex-start;
+  padding: 7px 14px;
+  border: 1px solid var(--linie);
+  border-radius: 8px;
+  background: var(--flaeche);
+  color: var(--tinte-leise);
+  font: inherit;
+  font-size: .88rem;
+  cursor: pointer;
+}
+.knopf-leise:hover { border-color: var(--akzent); color: var(--akzent); }
+
+@media (max-width: 900px) {
+  .knopf-leise { min-height: 44px; }
+  .embedfeld input { flex: 1 0 100%; }
+}
