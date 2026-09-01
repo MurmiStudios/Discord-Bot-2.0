@@ -210,7 +210,7 @@ Grundlage: `docs/SPEC.md`.
 
 ## Phase 3 — Nachrichtenbaukasten
 
-- [ ] **19 · Platzhalter-Ersetzung** — S · hängt ab von: 12
+- [x] **19 · Platzhalter-Ersetzung** — S · hängt ab von: 12
   - **Abnahme:** `{user}`, `{tag}`, `{guild}`, `{role}`, `{count}` werden ersetzt;
     unbekannte Platzhalter bleiben unverändert stehen statt zu verschwinden.
   - **Abnahme:** Ein Rohtext-Modus liefert den Text ohne Ersetzung zurück.
