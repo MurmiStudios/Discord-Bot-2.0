@@ -847,3 +847,19 @@ p { max-width: 68ch; }
   .kanalzeile { min-height: 44px; }
   .kanal-grund { margin-left: 0; white-space: normal; }
 }
+
+.platzhalter-ziel {
+  padding: 5px 8px;
+  border: 1px solid var(--linie);
+  border-radius: 8px;
+  background: var(--flaeche);
+  color: var(--tinte);
+  font: inherit;
+  font-size: .82rem;
+  max-width: 260px;
+}
+
+@media (max-width: 900px) {
+  .platzhalter-ziel { min-height: 44px; flex: 1 0 100%; max-width: none; }
+  .platzhalterreihe .platzhalter-titel { flex: 1 0 100%; }
+}

@@ -27,13 +27,15 @@ export function embedEditor({ embed, fehlerZu }) {
 
       <div class="feld">
         <label for="embedTitel">Titel</label>
-        <input type="text" id="embedTitel" name="embedTitel" value="${embed.titel}" data-embed-teil>
+        <input type="text" id="embedTitel" name="embedTitel" value="${embed.titel}"
+               data-embed-teil data-platzhalter-ziel="embedTitel">
         ${fehlerZu('embedTitel')}
       </div>
 
       <div class="feld">
         <label for="embedBeschreibung">Beschreibung</label>
-        <textarea id="embedBeschreibung" name="embedBeschreibung" rows="5" data-embed-teil>${embed.beschreibung}</textarea>
+        <textarea id="embedBeschreibung" name="embedBeschreibung" rows="5"
+                  data-embed-teil data-platzhalter-ziel="embedBeschreibung">${embed.beschreibung}</textarea>
         ${fehlerZu('embedBeschreibung')}
       </div>
 
@@ -45,11 +47,13 @@ export function embedEditor({ embed, fehlerZu }) {
             <div class="embedfeld">
               <input
                 type="text" name="embedFeldName" value="${feld.name}"
-                aria-label="Name von Feld ${i + 1}" placeholder="Name" data-embed-teil
+                aria-label="Name von Feld ${i + 1}" placeholder="Name"
+                data-embed-teil data-platzhalter-ziel="embedFeldName:${i}"
               >
               <input
                 type="text" name="embedFeldWert" value="${feld.wert}"
-                aria-label="Wert von Feld ${i + 1}" placeholder="Wert" data-embed-teil
+                aria-label="Wert von Feld ${i + 1}" placeholder="Wert"
+                data-embed-teil data-platzhalter-ziel="embedFeldWert:${i}"
               >
               <button type="submit" name="feldEntfernen" value="${i}" class="knopf-leise"
                       title="Feld ${i + 1} entfernen">Entfernen</button>
@@ -64,12 +68,14 @@ export function embedEditor({ embed, fehlerZu }) {
       <div class="embed-zweispalt">
         <div class="feld">
           <label for="embedFusszeile">Fußzeile</label>
-          <input type="text" id="embedFusszeile" name="embedFusszeile" value="${embed.fusszeile}" data-embed-teil>
+          <input type="text" id="embedFusszeile" name="embedFusszeile" value="${embed.fusszeile}"
+                 data-embed-teil data-platzhalter-ziel="embedFusszeile">
           ${fehlerZu('embedFusszeile')}
         </div>
         <div class="feld">
           <label for="embedAutor">Autor</label>
-          <input type="text" id="embedAutor" name="embedAutor" value="${embed.autor}" data-embed-teil>
+          <input type="text" id="embedAutor" name="embedAutor" value="${embed.autor}"
+                 data-embed-teil data-platzhalter-ziel="embedAutor">
           ${fehlerZu('embedAutor')}
         </div>
       </div>

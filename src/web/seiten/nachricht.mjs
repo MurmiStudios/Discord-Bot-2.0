@@ -12,6 +12,7 @@ import { darfBot, AKTION } from '../../discord/rechte.mjs';
 import { loeseEmpfaengerAuf, parseAuswahl, alsAuswahlWert } from '../../versand/empfaenger.mjs';
 import { vorschauGrenze } from '../mw/sicherheit.mjs';
 import { PLATZHALTER } from '../../nachricht/platzhalter.mjs';
+import { moeglicheZiele, fuegeEin } from '../../nachricht/platzhalterziel.mjs';
 import { pruefeNachricht } from '../../nachricht/pruefen.mjs';
 
 /**
@@ -54,6 +55,7 @@ function entwurfAus(koerper = {}) {
     empfaengerSuche: String(koerper.empfaengerSuche ?? ''),
     kanalId: String(koerper.kanalId ?? '') || null,
     kanalSuche: String(koerper.kanalSuche ?? ''),
+    platzhalterZiel: String(koerper.platzhalterZiel ?? 'text'),
     embedAn: koerper.embedAn === 'ja',
     embed: {
       ...leeresEmbed(),
@@ -177,12 +179,22 @@ function editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, fehler = [] }) 
               ${laenge} / ${GRENZE.TEXT}
             </span>
           </label>
-          <textarea id="text" name="text" rows="8" maxlength="${GRENZE.TEXT * 2}">${entwurf.text}</textarea>
+          <textarea id="text" name="text" rows="8" maxlength="${GRENZE.TEXT * 2}"
+                    data-platzhalter-ziel="text">${entwurf.text}</textarea>
           ${fehlerZu(fehler, 'text')}
         </div>
 
         <div class="platzhalterreihe">
-          <span class="platzhalter-titel">Platzhalter einfügen</span>
+          <label class="platzhalter-titel" for="platzhalterZiel">Platzhalter einfügen in</label>
+          <select id="platzhalterZiel" name="platzhalterZiel" class="platzhalter-ziel">
+            ${moeglicheZiele(entwurf).map(
+              (ziel) => html`
+                <option value="${ziel.wert}"${ziel.wert === entwurf.platzhalterZiel ? html` selected` : ''}>
+                  ${ziel.name}
+                </option>
+              `,
+            )}
+          </select>
           ${PLATZHALTER.map(
             (platzhalter) => html`
               <button
@@ -339,11 +351,14 @@ export function registriereNachricht(app, { bot, konfig, gildenAnsicht }) {
       return zeigen();
     }
 
-    // Platzhalter angehaengt. Ohne JavaScript ans Textende — mit JavaScript
-    // setzt editor.js ihn an die Schreibmarke, bevor es hierher kommt.
+    // Platzhalter angehaengt. Ohne JavaScript ans Ende des gewaehlten Feldes —
+    // mit JavaScript setzt editor.js ihn an die Schreibmarke, bevor es hierher
+    // kommt.
     if (koerper.platzhalterEinfuegen !== undefined) {
       const platzhalter = String(koerper.platzhalterEinfuegen);
-      if (ERLAUBTE_PLATZHALTER.has(platzhalter)) entwurf.text += platzhalter;
+      if (ERLAUBTE_PLATZHALTER.has(platzhalter)) {
+        fuegeEin(entwurf, entwurf.platzhalterZiel, platzhalter);
+      }
       return zeigen();
     }
 

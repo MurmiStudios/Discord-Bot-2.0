@@ -55,6 +55,7 @@ export default [
         requestAnimationFrame: 'readonly',
         localStorage: 'readonly',
         Event: 'readonly',
+        CSS: 'readonly',
         CustomEvent: 'readonly',
         HTMLElement: 'readonly',
       },

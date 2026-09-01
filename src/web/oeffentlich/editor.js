@@ -47,26 +47,48 @@
     zaehleEmbed();
   }
 
-  // Bewusst kein vorzeitiges return: Weitere Seiten benutzen denselben Editor,
-  // und eine davon koennte eine Vorschau ohne Textfeld haben.
-  const textfeld = document.getElementById('text');
+  // ── Platzhalter einfügen ───────────────────────────────────────────
+  //
+  // Ohne JavaScript sagt die Zielwahl, in welches Feld der Platzhalter soll.
+  // Mit JavaScript stellt sie sich auf das zuletzt benutzte Feld — dieselbe
+  // Angabe, nur bequemer erhoben. Eingefügt wird dann an der Schreibmarke
+  // statt am Ende.
+  const zielwahl = document.getElementById('platzhalterZiel');
+  const zielfelder = document.querySelectorAll('[data-platzhalter-ziel]');
 
-  for (const knopf of textfeld ? document.querySelectorAll('.platzhalter-knopf') : []) {
+  const feldZu = (wert) =>
+    document.querySelector(`[data-platzhalter-ziel="${CSS.escape(wert)}"]`);
+
+  for (const feld of zielfelder) {
+    feld.addEventListener('focus', () => {
+      if (!zielwahl) return;
+      const wert = feld.getAttribute('data-platzhalter-ziel');
+      // Nur setzen, wenn es die Option auch gibt — sonst stünde dort nichts.
+      if ([...zielwahl.options].some((o) => o.value === wert)) zielwahl.value = wert;
+    });
+  }
+
+  for (const knopf of zielfelder.length > 0 ? document.querySelectorAll('.platzhalter-knopf') : []) {
     knopf.addEventListener('click', (ereignis) => {
+      const ziel = zielwahl ? feldZu(zielwahl.value) : document.getElementById('text');
+      // Kein Ziel gefunden: den Knopf normal absenden lassen, dann erledigt es
+      // der Server.
+      if (!ziel) return;
+
       ereignis.preventDefault();
 
       const platzhalter = knopf.value;
-      const start = textfeld.selectionStart ?? textfeld.value.length;
-      const ende = textfeld.selectionEnd ?? textfeld.value.length;
+      const start = ziel.selectionStart ?? ziel.value.length;
+      const ende = ziel.selectionEnd ?? ziel.value.length;
 
-      textfeld.value = textfeld.value.slice(0, start) + platzhalter + textfeld.value.slice(ende);
+      ziel.value = ziel.value.slice(0, start) + platzhalter + ziel.value.slice(ende);
 
       // Schreibmarke hinter den eingefügten Platzhalter setzen, damit man
       // einfach weitertippen kann.
       const neu = start + platzhalter.length;
-      textfeld.focus();
-      textfeld.setSelectionRange(neu, neu);
-      textfeld.dispatchEvent(new Event('input', { bubbles: true }));
+      ziel.focus();
+      ziel.setSelectionRange?.(neu, neu);
+      ziel.dispatchEvent(new Event('input', { bubbles: true }));
     });
   }
 
