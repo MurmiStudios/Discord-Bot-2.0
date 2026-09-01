@@ -1,6 +1,7 @@
 import express from 'express';
 import { registriereAnmeldung, sitzungsMiddleware } from './seiten/anmeldung.mjs';
 import { registriereSuche } from './seiten/suche.mjs';
+import { registriereNachricht } from './seiten/nachricht.mjs';
 import { stufenMiddleware, verlangt } from './mw/verlangt.mjs';
 import { csrfSchutz } from '../auth/csrf.mjs';
 import { seite } from './html/layout.mjs';
@@ -43,6 +44,7 @@ export function erstelleApp({
 
   registriereAnmeldung(app, { konfig, db, gilden, sitzungen, oauth, logger });
   registriereSuche(app, { bot });
+  registriereNachricht(app, { bot });
 
   // Vorlaeufige Uebersicht. Schritt 56 baut die richtige.
   app.get('/', verlangt(STUFE.BETRACHTER), (req, res) => {

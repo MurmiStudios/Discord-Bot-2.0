@@ -67,7 +67,10 @@ function botAnzeige(botStatus) {
  */
 export function seite({ titel, pfad, stufe, sitzung, botStatus, inhalt, skripte = [] }) {
   // Die Seitensuche gehoert zu jeder Seite, also laedt jede Seite sie mit.
-  const alleSkripte = [`/suche.js?v=${dateiVersion('suche.js')}`, ...skripte];
+  // Jedes Skript bekommt seinen Inhaltshash, damit niemand eine alte Fassung sieht.
+  const alleSkripte = ['/suche.js', ...skripte].map(
+    (pfad) => `${pfad}?v=${dateiVersion(pfad.replace(/^\//, ''))}`,
+  );
   return html`<!doctype html>
 <html lang="de">
 <head>

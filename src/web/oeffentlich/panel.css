@@ -365,3 +365,114 @@ p { max-width: 68ch; }
 @media (max-width: 900px) {
   .suchformular input, .suchformular button { min-height: 44px; }
 }
+
+/* ── Editor ───────────────────────────────────────────────────────── */
+
+.unterzeile { margin: -6px 0 22px; color: var(--tinte-leise); }
+
+.editor { display: flex; flex-direction: column; gap: 18px; max-width: 760px; }
+
+.reiter { display: flex; gap: 4px; border-bottom: 1px solid var(--linie); }
+
+.reiter-knopf {
+  padding: 9px 16px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 8px 8px 0 0;
+  background: transparent;
+  color: var(--tinte-leise);
+  font: inherit;
+  font-size: .95rem;
+  cursor: pointer;
+  margin-bottom: -1px;
+}
+.reiter-knopf:hover { background: var(--flaeche-tief); color: var(--tinte); }
+
+/* Nicht nur Farbe: Der aktive Reiter traegt Gewicht und einen Balken. */
+.reiter-aktiv {
+  color: var(--akzent);
+  font-weight: 600;
+  border-bottom-color: var(--akzent);
+}
+
+.feld { display: flex; flex-direction: column; gap: 6px; }
+
+.feld label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: .88rem;
+  font-weight: 600;
+}
+
+.zaehler {
+  font-weight: 400;
+  font-size: .82rem;
+  color: var(--tinte-leise);
+  font-variant-numeric: tabular-nums;
+}
+.zaehler-zuviel { color: var(--stop); font-weight: 600; }
+
+.feld textarea,
+.feld input[type="text"] {
+  padding: 10px 12px;
+  border: 1px solid var(--linie);
+  border-radius: 8px;
+  background: var(--flaeche);
+  color: var(--tinte);
+  font: inherit;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.feldfehler {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--stop-flaeche);
+  color: var(--stop);
+  font-size: .88rem;
+}
+
+.platzhalterreihe {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.platzhalter-titel {
+  margin-right: 4px;
+  font-size: .82rem;
+  color: var(--tinte-leise);
+}
+.platzhalter-knopf {
+  padding: 5px 10px;
+  border: 1px solid var(--linie);
+  border-radius: 999px;
+  background: var(--flaeche);
+  color: var(--tinte-leise);
+  font: inherit;
+  font-size: .82rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  cursor: pointer;
+}
+.platzhalter-knopf:hover { border-color: var(--akzent); color: var(--akzent); }
+
+.editor-fuss { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.hinweis { color: var(--tinte-leise); font-size: .85rem; }
+
+.knopf-haupt {
+  padding: 10px 20px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--akzent);
+  color: var(--akzent-tinte);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .reiter-knopf, .knopf-haupt, .platzhalter-knopf { min-height: 44px; }
+}

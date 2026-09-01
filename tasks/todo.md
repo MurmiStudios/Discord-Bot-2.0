@@ -227,7 +227,7 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/nachricht/modell.mjs`, `src/nachricht/pruefen.mjs`,
     `tests/einheit/nachricht.test.mjs`
 
-- [ ] **21 · Seite /nachricht ohne JavaScript** — M · hängt ab von: 20, 16
+- [x] **21 · Seite /nachricht ohne JavaScript** — M · hängt ab von: 20, 16
   - **Abnahme:** Ziel-Reiter Direktnachricht/Kanal als echte Verweise; der Wechsel
     behält den getippten Text. Textfeld mit Zähler in der Schrittmarke.
   - **Abnahme:** Platzhalter-Knopfreihe unter dem Feld; ohne JavaScript hängt sie
