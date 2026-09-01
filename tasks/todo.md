@@ -269,7 +269,7 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/versand/empfaenger.mjs`, `src/web/seiten/nachricht.mjs`,
     `src/web/oeffentlich/chips.js`, `tests/einheit/empfaenger.test.mjs`
 
-- [ ] **25 · Kanalauswahl im Discord-Layout** — M · hängt ab von: 21, 12
+- [x] **25 · Kanalauswahl im Discord-Layout** — M · hängt ab von: 21, 12
   - **Abnahme:** Nach Kategorien gruppiert, mit Suche, mit den Symbolen für Text-,
     Ankündigungs- und Thread-Kanäle.
   - **Abnahme:** Kanäle ohne Schreibrecht des Bots sind gesperrt und nennen den Grund.
@@ -279,9 +279,9 @@ Grundlage: `docs/SPEC.md`.
     `tests/integration/kanalwahl.test.mjs`
 
 ### Kontrollpunkt C — Nachrichtenbaukasten
-- [ ] Nachricht mit Text, Platzhaltern und Embed schreibbar, Vorschau stimmt.
-- [ ] Empfänger und Kanäle wählbar, Grenzen sichtbar, gesperrte Kanäle abgelehnt.
-- [ ] Alles ohne JavaScript bedienbar.
+- [x] Nachricht mit Text, Platzhaltern und Embed schreibbar, Vorschau stimmt.
+- [x] Empfänger und Kanäle wählbar, Grenzen sichtbar, gesperrte Kanäle abgelehnt.
+- [x] Alles ohne JavaScript bedienbar.
 - [ ] **Dir zeigen:** Editor mit Vorschau, mit und ohne JavaScript.
 
 ---

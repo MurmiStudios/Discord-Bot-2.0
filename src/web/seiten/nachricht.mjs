@@ -7,6 +7,8 @@ import { GRENZE, ART, leeresEmbed } from '../../nachricht/modell.mjs';
 import { embedEditor } from '../html/embed.mjs';
 import { vorschau, MODUS } from '../../nachricht/vorschau.mjs';
 import { empfaengerwahl } from '../html/empfaengerwahl.mjs';
+import { kanalwahl } from '../html/kanalwahl.mjs';
+import { darfBot, AKTION } from '../../discord/rechte.mjs';
 import { loeseEmpfaengerAuf, parseAuswahl, alsAuswahlWert } from '../../versand/empfaenger.mjs';
 import { vorschauGrenze } from '../mw/sicherheit.mjs';
 import { PLATZHALTER } from '../../nachricht/platzhalter.mjs';
@@ -50,6 +52,8 @@ function entwurfAus(koerper = {}) {
     vorschauModus: koerper.vorschauModus === MODUS.ROH ? MODUS.ROH : MODUS.BEISPIEL,
     empfaenger: parseAuswahl(koerper.empfaenger),
     empfaengerSuche: String(koerper.empfaengerSuche ?? ''),
+    kanalId: String(koerper.kanalId ?? '') || null,
+    kanalSuche: String(koerper.kanalSuche ?? ''),
     embedAn: koerper.embedAn === 'ja',
     embed: {
       ...leeresEmbed(),
@@ -203,7 +207,19 @@ function editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, fehler = [] }) 
               chipTitel,
               chipZahl,
             })
-          : ''}
+          : kanalwahl({
+              kanaele: gildenAnsicht
+                .kanaele(konfig.guildId)
+                .filter(
+                  (k) =>
+                    entwurf.kanalSuche.trim() === '' ||
+                    k.name.toLowerCase().includes(entwurf.kanalSuche.trim().toLowerCase()),
+                ),
+              gewaehlt: entwurf.kanalId,
+              suchbegriff: entwurf.kanalSuche,
+              botVerbunden: bot.status().verbunden,
+              fehler: zuFeld('kanalId'),
+            })}
 
         ${entwurf.embedAn
           ? embedEditor({ embed: entwurf.embed, fehlerZu: zuFeld })
@@ -332,11 +348,29 @@ export function registriereNachricht(app, { bot, konfig, gildenAnsicht }) {
     }
 
     const geprueft = pruefeNachricht(alsEingabe(entwurf));
-    if (!geprueft.ok) {
+
+    // Das Ziel wird serverseitig geprueft, nicht nur im Formular ausgeblendet:
+    // Eine untergeschobene Kanal-ID darf nicht dazu fuehren, dass der Bot
+    // irgendwohin schreibt.
+    const zielfehler = [];
+    if (entwurf.art === ART.KANAL) {
+      if (!entwurf.kanalId) {
+        zielfehler.push({ feld: 'kanalId', meldung: 'Wähle einen Kanal aus.' });
+      } else {
+        const urteil = darfBot(AKTION.IN_KANAL_SCHREIBEN, {
+          ansicht: gildenAnsicht,
+          kanalId: entwurf.kanalId,
+        });
+        if (!urteil.erlaubt) zielfehler.push({ feld: 'kanalId', meldung: urteil.grund });
+      }
+    }
+
+    if (!geprueft.ok || zielfehler.length > 0) {
+      const fehler = [...(geprueft.fehler ?? []), ...zielfehler];
       return res
         .status(422)
         .type('html')
-        .send(String(editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, fehler: geprueft.fehler })));
+        .send(String(editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, fehler })));
     }
 
     return zeigen();

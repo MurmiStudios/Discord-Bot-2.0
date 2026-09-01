@@ -776,3 +776,72 @@ p { max-width: 68ch; }
 @media (max-width: 900px) {
   .suchzeile input, .trefferwahl button { min-height: 44px; }
 }
+
+/* ── Kanalauswahl ─────────────────────────────────────────────────── */
+
+.kanalfeld { gap: 10px; }
+
+.kanalliste {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding: 12px;
+  border: 1px solid var(--linie);
+  border-radius: 8px;
+  background: var(--flaeche);
+}
+
+.kanalgruppe { display: flex; flex-direction: column; gap: 2px; }
+.kanalgruppe-titel {
+  margin: 0 0 4px;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--tinte-leise);
+}
+
+.kanalzeile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: .92rem;
+  cursor: pointer;
+}
+.kanalzeile:hover { background: var(--flaeche-tief); }
+
+.kanal-symbol {
+  flex: none;
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: var(--tinte-leise);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.kanal-name { min-width: 0; overflow-wrap: anywhere; }
+
+/* Gesperrte Kanäle bleiben lesbar: Nur ausgegraut wäre bei dünner Schrift
+   schnell unter der Kontrastschwelle. */
+.kanal-gesperrt { cursor: not-allowed; }
+.kanal-gesperrt .kanal-name { color: var(--tinte-leise); text-decoration: line-through; }
+.kanal-grund {
+  margin-left: auto;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--warn-flaeche);
+  color: var(--warn);
+  font-size: .74rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .kanalzeile { min-height: 44px; }
+  .kanal-grund { margin-left: 0; white-space: normal; }
+}
