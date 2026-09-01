@@ -233,7 +233,7 @@ function editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, fehler = [] }) 
 
         <div class="editor-fuss">
           <button type="submit" name="pruefen" value="ja" class="knopf-haupt">Prüfen</button>
-          <span class="hinweis">Versand und Empfängerauswahl folgen in den nächsten Schritten.</span>
+          <span class="hinweis">Der Versand folgt in Schritt 28.</span>
         </div>
 
         <input type="hidden" name="vorschauModus" value="${entwurf.vorschauModus}">

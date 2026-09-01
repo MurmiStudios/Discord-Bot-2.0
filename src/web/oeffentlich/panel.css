@@ -397,7 +397,9 @@ p { max-width: 68ch; }
 
 .feld { display: flex; flex-direction: column; gap: 6px; }
 
-.feld label {
+/* Nur die eigene Beschriftung des Feldes, nicht jedes Label darin: Die
+   Kanalzeilen sind ebenfalls Labels und wuerden sonst auseinandergezogen. */
+.feld > label {
   display: flex;
   align-items: baseline;
   justify-content: space-between;

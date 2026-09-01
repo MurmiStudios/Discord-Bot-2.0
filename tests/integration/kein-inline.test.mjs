@@ -93,3 +93,13 @@ test('Zustände hängen nicht allein an der Farbe', () => {
 
   assert.match(css, /aria-current/);
 });
+
+test('die Feldbeschriftung wird nur als direktes Kind gestaltet', () => {
+  // Im Browser gefunden: `.feld label` traf auch die Kanalzeilen, die selbst
+  // Labels sind — dadurch wurden Radioknopf, Symbol und Name über die ganze
+  // Breite auseinandergezogen.
+  const css = readFileSync(CSS, 'utf8');
+
+  assert.match(css, /\.feld > label \{/);
+  assert.ok(!/^\.feld label \{/m.test(css), 'Die Regel trifft wieder jedes Label im Feld');
+});

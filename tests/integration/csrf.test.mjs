@@ -116,3 +116,47 @@ test('die Abweisung erklärt, was zu tun ist, statt nur zu blocken', async () =>
     assert.match(text, /neu geladen|noch einmal/i);
   });
 });
+
+test('das CSRF-Feld ist ein echtes Formularfeld, kein sichtbarer Text', async () => {
+  // Gefunden im Browser: csrfFeld() lieferte eine gewöhnliche Zeichenkette,
+  // die das Auto-Escaping der html-Funktion maskiert hat. Das Formular hatte
+  // damit gar kein Token — und stand stattdessen als Text auf der Seite.
+  await mitApp(async (umgebung) => {
+    const { cookie } = alsOwner(umgebung);
+
+    for (const pfad of ['/', '/nachricht']) {
+      const text = await (
+        await fetch(`${umgebung.basis}${pfad}`, { redirect: 'manual', headers: { cookie } })
+      ).text();
+
+      assert.match(
+        text,
+        /<input type="hidden" name="_csrf" value="[^"]+">/,
+        `${pfad}: kein echtes CSRF-Feld`,
+      );
+      assert.ok(!text.includes('&lt;input'), `${pfad}: maskiertes HTML steht sichtbar auf der Seite`);
+    }
+  });
+});
+
+test('ein aus dem Formular gelesenes Token wird auch angenommen', async () => {
+  await mitApp(async (umgebung) => {
+    const { cookie, kennung } = alsOwner(umgebung);
+    const text = await (
+      await fetch(`${umgebung.basis}/`, { redirect: 'manual', headers: { cookie } })
+    ).text();
+    const token = /name="_csrf" value="([^"]+)"/.exec(text)?.[1];
+
+    assert.ok(token, 'Im Formular steht kein Token');
+
+    const antwort = await fetch(`${umgebung.basis}/logout`, {
+      method: 'POST',
+      redirect: 'manual',
+      headers: { cookie, 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ _csrf: token }).toString(),
+    });
+
+    assert.equal(antwort.status, 302);
+    assert.equal(umgebung.sitzungen.lies(kennung), undefined);
+  });
+});

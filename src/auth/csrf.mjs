@@ -1,4 +1,5 @@
 import { gleichSicher } from './sitzung.mjs';
+import { html } from '../web/html/html.mjs';
 
 const SCHREIBEND = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 export const CSRF_FELD = '_csrf';
@@ -38,8 +39,14 @@ export function csrfSchutz(req, res, next) {
     );
 }
 
-/** Verstecktes Feld fuer jedes schreibende Formular. */
+/**
+ * Verstecktes Feld fuer jedes schreibende Formular.
+ *
+ * Gibt bewusst einen sicheren Textbaustein zurueck und keine gewoehnliche
+ * Zeichenkette: Sonst maskiert das Auto-Escaping der html-Funktion das ganze
+ * Element, das Formular hat gar kein Token — und der Token steht stattdessen
+ * als Text auf der Seite. Genau so ist es einmal passiert.
+ */
 export function csrfFeld(req) {
-  const token = req.sitzung?.csrfToken ?? '';
-  return `<input type="hidden" name="${CSRF_FELD}" value="${token}">`;
+  return html`<input type="hidden" name="${CSRF_FELD}" value="${req.sitzung?.csrfToken ?? ''}">`;
 }
