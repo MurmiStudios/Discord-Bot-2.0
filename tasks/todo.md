@@ -248,7 +248,7 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/web/seiten/nachricht.mjs`, `src/web/html/embed.mjs`,
     `tests/integration/embed.test.mjs`
 
-- [ ] **23 · Live-Vorschau in Discord-Optik** — M · hängt ab von: 22
+- [x] **23 · Live-Vorschau in Discord-Optik** — M · hängt ab von: 22
   - **Abnahme:** Text, Embed-Karte, Bildplatzhalter und Buttons zusammen, in
     Discords Optik; umschaltbar zwischen „Mit Beispieldaten" und „Rohtext".
   - **Abnahme:** Mit JavaScript aktualisiert sie sich beim Tippen; ohne

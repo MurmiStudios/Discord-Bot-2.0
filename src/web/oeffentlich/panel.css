@@ -557,3 +557,123 @@ p { max-width: 68ch; }
   .knopf-leise { min-height: 44px; }
   .embedfeld input { flex: 1 0 100%; }
 }
+
+/* ── Vorschau in Discord-Optik ────────────────────────────────────── */
+
+.vorschaubereich {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--linie);
+}
+
+.vorschaukopf {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.vorschaukopf h2 { margin: 0; font-size: 1rem; }
+
+.vorschauwahl { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.vorschau-knopf {
+  padding: 6px 12px;
+  border: 1px solid var(--linie);
+  border-radius: 999px;
+  background: var(--flaeche);
+  color: var(--tinte-leise);
+  font: inherit;
+  font-size: .84rem;
+  cursor: pointer;
+}
+.vorschau-aktiv {
+  border-color: var(--akzent);
+  background: var(--akzent-flaeche);
+  color: var(--akzent);
+  font-weight: 600;
+}
+
+/* Discords eigener Grund — dunkel in beiden Schemata, weil eine Nachricht dort
+   auch bei hellem Panel so aussieht. */
+.vorschau-flaeche {
+  padding: 16px;
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  background: #313338;
+  color: #dbdee1;
+  font-size: .94rem;
+}
+
+.vorschau-nachricht { display: flex; gap: 12px; align-items: flex-start; }
+
+.v-avatar {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #5865f2, #8b93f8);
+}
+
+.v-koerper { min-width: 0; flex: 1; }
+
+.v-kopf { display: flex; align-items: baseline; gap: 8px; margin: 0 0 3px; flex-wrap: wrap; }
+.v-name { font-weight: 600; color: #f2f3f5; }
+.v-marke {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: #5865f2;
+  color: #fff;
+  font-size: .64rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+.v-zeit { color: #949ba4; font-size: .76rem; }
+
+.v-text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; max-width: none; }
+.v-leer { margin: 0; color: #949ba4; font-style: italic; }
+
+.v-embed {
+  display: flex;
+  margin-top: 8px;
+  max-width: 520px;
+  border-radius: 4px;
+  background: #2b2d31;
+  overflow: hidden;
+}
+.v-embed-streifen { flex: none; width: 4px; align-self: stretch; }
+.v-embed-inhalt { padding: 9px 14px 13px; min-width: 0; }
+
+.v-embed-autor { margin: 0 0 4px; font-size: .82rem; font-weight: 600; color: #f2f3f5; }
+.v-embed-titel { margin: 0 0 5px; font-weight: 600; color: #00a8fc; }
+.v-embed-text { margin: 0; color: #dbdee1; font-size: .88rem; white-space: pre-wrap; max-width: none; }
+
+.v-embed-felder {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px 14px;
+  margin-top: 9px;
+}
+.v-feld-name { margin: 0; font-size: .82rem; font-weight: 600; color: #f2f3f5; }
+.v-feld-wert { margin: 1px 0 0; font-size: .82rem; color: #dbdee1; max-width: none; }
+
+.v-embed-fuss { margin: 9px 0 0; font-size: .76rem; color: #949ba4; }
+
+.v-bild {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8px;
+  padding: 22px 16px;
+  max-width: 420px;
+  border: 1px dashed #4e5058;
+  border-radius: 6px;
+  color: #949ba4;
+  font-size: .82rem;
+  text-align: center;
+}
+
+/* editor.js blendet den Knopf aus, sobald es laeuft — ohne JavaScript bleibt er. */
+.js-an [data-nur-ohne-js] { display: none; }

@@ -73,3 +73,12 @@ export function allgemeineGrenze() {
 export function anmeldeGrenze() {
   return rateLimit({ ...GEMEINSAM, windowMs: 15 * 60 * 1000, limit: 20 });
 }
+
+/**
+ * 60 Vorschau-Anfragen je Minute. Die Vorschau wird beim Tippen abgerufen —
+ * grosszuegig genug fuer fluessiges Schreiben, eng genug, dass sie sich nicht
+ * als Lastwerkzeug missbrauchen laesst.
+ */
+export function vorschauGrenze() {
+  return rateLimit({ ...GEMEINSAM, windowMs: 60 * 1000, limit: 60 });
+}

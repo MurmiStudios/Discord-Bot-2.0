@@ -5,6 +5,8 @@ import { STUFE } from '../../auth/rechte.mjs';
 import { csrfFeld } from '../../auth/csrf.mjs';
 import { GRENZE, ART, leeresEmbed } from '../../nachricht/modell.mjs';
 import { embedEditor } from '../html/embed.mjs';
+import { vorschau, MODUS } from '../../nachricht/vorschau.mjs';
+import { vorschauGrenze } from '../mw/sicherheit.mjs';
 import { PLATZHALTER } from '../../nachricht/platzhalter.mjs';
 import { pruefeNachricht } from '../../nachricht/pruefen.mjs';
 
@@ -42,6 +44,8 @@ function entwurfAus(koerper = {}) {
   return {
     art: koerper.art === ART.KANAL ? ART.KANAL : ART.DM,
     text: String(koerper.text ?? ''),
+    bildvorlageId: String(koerper.bildvorlageId ?? '') || null,
+    vorschauModus: koerper.vorschauModus === MODUS.ROH ? MODUS.ROH : MODUS.BEISPIEL,
     embedAn: koerper.embedAn === 'ja',
     embed: {
       ...leeresEmbed(),
@@ -162,6 +166,30 @@ function editorSeite({ req, bot, entwurf, fehler = [] }) {
           <button type="submit" name="pruefen" value="ja" class="knopf-haupt">Prüfen</button>
           <span class="hinweis">Versand und Empfängerauswahl folgen in den nächsten Schritten.</span>
         </div>
+
+        <input type="hidden" name="vorschauModus" value="${entwurf.vorschauModus}">
+        <input type="hidden" name="bildvorlageId" value="${entwurf.bildvorlageId ?? ''}">
+
+        <section class="vorschaubereich" aria-label="Vorschau">
+          <div class="vorschaukopf">
+            <h2>Vorschau</h2>
+            <div class="vorschauwahl" role="group" aria-label="Ansicht der Vorschau">
+              <button type="submit" name="vorschauWechseln" value="${MODUS.BEISPIEL}"
+                class="vorschau-knopf${entwurf.vorschauModus === MODUS.BEISPIEL ? ' vorschau-aktiv' : ''}"
+                aria-pressed="${entwurf.vorschauModus === MODUS.BEISPIEL ? 'true' : 'false'}"
+              >Mit Beispieldaten</button>
+              <button type="submit" name="vorschauWechseln" value="${MODUS.ROH}"
+                class="vorschau-knopf${entwurf.vorschauModus === MODUS.ROH ? ' vorschau-aktiv' : ''}"
+                aria-pressed="${entwurf.vorschauModus === MODUS.ROH ? 'true' : 'false'}"
+              >Rohtext</button>
+              <button type="submit" name="vorschauErneuern" value="ja" class="knopf-leise"
+                      data-nur-ohne-js>Vorschau aktualisieren</button>
+            </div>
+          </div>
+          <div class="vorschau-flaeche" id="vorschau">
+            ${vorschau(entwurf, { modus: entwurf.vorschauModus })}
+          </div>
+        </section>
       </form>
     `,
     skripte: ['/editor.js'],
@@ -180,6 +208,12 @@ export function registriereNachricht(app, { bot }) {
     res.type('html').send(String(editorSeite({ req, bot, entwurf })));
   });
 
+  // Dieselbe Vorschau wie auf der Seite — nur das Bruchstueck, fuer editor.js.
+  app.post('/nachricht/vorschau', verlangt(STUFE.MODERATOR), vorschauGrenze(), (req, res) => {
+    const entwurf = entwurfAus(req.body ?? {});
+    res.type('html').send(String(vorschau(entwurf, { modus: entwurf.vorschauModus })));
+  });
+
   app.post('/nachricht', verlangt(STUFE.MODERATOR), (req, res) => {
     const koerper = req.body ?? {};
     const entwurf = entwurfAus(koerper);
@@ -190,6 +224,13 @@ export function registriereNachricht(app, { bot }) {
       entwurf.art = koerper.wechselZu;
       return zeigen();
     }
+
+    if (koerper.vorschauWechseln !== undefined) {
+      entwurf.vorschauModus = koerper.vorschauWechseln === MODUS.ROH ? MODUS.ROH : MODUS.BEISPIEL;
+      return zeigen();
+    }
+
+    if (koerper.vorschauErneuern !== undefined) return zeigen();
 
     if (koerper.embedUmschalten !== undefined) {
       entwurf.embedAn = !entwurf.embedAn;

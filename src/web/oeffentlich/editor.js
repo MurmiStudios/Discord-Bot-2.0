@@ -47,10 +47,11 @@
     zaehleEmbed();
   }
 
+  // Bewusst kein vorzeitiges return: Weitere Seiten benutzen denselben Editor,
+  // und eine davon koennte eine Vorschau ohne Textfeld haben.
   const textfeld = document.getElementById('text');
-  if (!textfeld) return;
 
-  for (const knopf of document.querySelectorAll('.platzhalter-knopf')) {
+  for (const knopf of textfeld ? document.querySelectorAll('.platzhalter-knopf') : []) {
     knopf.addEventListener('click', (ereignis) => {
       ereignis.preventDefault();
 
@@ -66,6 +67,45 @@
       textfeld.focus();
       textfeld.setSelectionRange(neu, neu);
       textfeld.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  }
+
+  // ── Live-Vorschau ──────────────────────────────────────────────────
+  //
+  // Geholt wird sie vom Server, nicht im Browser nachgebaut: Sonst zeigte die
+  // Vorschau irgendwann etwas anderes als das, was wirklich rausgeht.
+  const vorschau = document.getElementById('vorschau');
+  const formular = document.querySelector('form.editor');
+
+  if (vorschau && formular) {
+    // Der Knopf zum Nachladen wird ueberfluessig, sobald das hier laeuft.
+    document.documentElement.classList.add('js-an');
+
+    let warten = null;
+    let laufend = false;
+
+    const holeVorschau = async () => {
+      if (laufend) return;
+      laufend = true;
+      try {
+        const antwort = await fetch('/nachricht/vorschau', {
+          method: 'POST',
+          headers: { 'content-type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams(new FormData(formular)).toString(),
+        });
+        if (antwort.ok) vorschau.innerHTML = await antwort.text();
+      } catch {
+        // Kein Netz, keine Vorschau — die Seite bleibt trotzdem bedienbar.
+      } finally {
+        laufend = false;
+      }
+    };
+
+    // Nicht bei jedem Tastendruck: 300 ms nach der letzten Eingabe reicht und
+    // haelt uns weit unter der Grenze von 60 Anfragen je Minute.
+    formular.addEventListener('input', () => {
+      clearTimeout(warten);
+      warten = setTimeout(holeVorschau, 300);
     });
   }
 })();
