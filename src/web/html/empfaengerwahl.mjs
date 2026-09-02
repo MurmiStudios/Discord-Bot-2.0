@@ -21,12 +21,15 @@ export function empfaengerwahl({
   botVerbunden,
   chipTitel,
   chipZahl,
+  fehler,
 }) {
   const dauerSekunden = Math.round((aufgeloest.anzahl * konfig.dmPauseMs) / 1000);
 
   return html`
     <div class="feld empfaengerfeld">
       <label for="empfaengerSuche">Empfänger</label>
+
+      ${fehler}
 
       <div class="chipfeld">
         ${auswahl.length === 0

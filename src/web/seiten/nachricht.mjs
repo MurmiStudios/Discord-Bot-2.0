@@ -9,7 +9,7 @@ import { vorschau, MODUS } from '../../nachricht/vorschau.mjs';
 import { empfaengerwahl } from '../html/empfaengerwahl.mjs';
 import { kanalwahl } from '../html/kanalwahl.mjs';
 import { darfBot, AKTION } from '../../discord/rechte.mjs';
-import { loeseEmpfaengerAuf, parseAuswahl, alsAuswahlWert } from '../../versand/empfaenger.mjs';
+import { loeseEmpfaengerAuf, parseAuswahl, alsAuswahlWert, pruefeGrenze } from '../../versand/empfaenger.mjs';
 import { vorschauGrenze } from '../mw/sicherheit.mjs';
 import { PLATZHALTER } from '../../nachricht/platzhalter.mjs';
 import { fuegeEin, zerlegeKnopfwert } from '../../nachricht/platzhalterziel.mjs';
@@ -196,6 +196,7 @@ function editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, fehler = [] }) 
               botVerbunden: bot.status().verbunden,
               chipTitel,
               chipZahl,
+              fehler: zuFeld('empfaenger'),
             })
           : kanalwahl({
               kanaele: gildenAnsicht
@@ -346,6 +347,12 @@ export function registriereNachricht(app, { bot, konfig, gildenAnsicht }) {
     // Eine untergeschobene Kanal-ID darf nicht dazu fuehren, dass der Bot
     // irgendwohin schreibt.
     const zielfehler = [];
+    if (entwurf.art === ART.DM) {
+      const aufgeloest = loeseEmpfaengerAuf(gildenAnsicht, entwurf.empfaenger, konfig.guildId);
+      const grenze = pruefeGrenze(aufgeloest, konfig.dmMaxEmpfaenger);
+      if (!grenze.ok) zielfehler.push({ feld: 'empfaenger', meldung: grenze.meldung });
+    }
+
     if (entwurf.art === ART.KANAL) {
       if (!entwurf.kanalId) {
         zielfehler.push({ feld: 'kanalId', meldung: 'Wähle einen Kanal aus.' });

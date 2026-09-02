@@ -180,14 +180,20 @@ test('das Ausschalten des Embeds lässt den Text unangetastet', async () => {
 });
 
 test('ein Embed allein reicht als Inhalt — ohne Text', async () => {
-  await mitApp(async (u) => {
-    const { cookie, csrfToken } = alsOwner(u);
+  // Mit Empfänger, sonst scheitert die Prüfung an der leeren Empfängerliste
+  // statt am Inhalt — und der Test prüfte etwas anderes als sein Name sagt.
+  await mitApp(
+    async (u) => {
+      const { cookie, csrfToken } = alsOwner(u);
 
-    const antwort = await sende(u.basis, cookie, [
-      ['_csrf', csrfToken], ['art', 'dm'], ['text', ''], ['embedAn', 'ja'],
-      ['embedBeschreibung', 'Nur die Karte'], ['pruefen', 'ja'],
-    ]);
+      const antwort = await sende(u.basis, cookie, [
+        ['_csrf', csrfToken], ['art', 'dm'], ['text', ''], ['embedAn', 'ja'],
+        ['embedBeschreibung', 'Nur die Karte'],
+        ['empfaenger', 'mitglied:m1'], ['pruefen', 'ja'],
+      ]);
 
-    assert.equal(antwort.status, 200);
-  });
+      assert.equal(antwort.status, 200);
+    },
+    { discordServer: { mitglieder: [{ id: 'm1', name: 'Anna', rollen: [] }] } },
+  );
 });

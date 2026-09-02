@@ -86,3 +86,33 @@ export function loeseEmpfaengerAuf(ansicht, auswahl, guildId) {
   const liste = [...empfaenger.values()].sort((a, b) => a.name.localeCompare(b.name, 'de'));
   return { empfaenger: liste, anzahl: liste.length, verschwunden, leereRollen };
 }
+
+/**
+ * Passt die Empfängerzahl zur eingestellten Grenze?
+ *
+ * Abgelehnt wird, nicht abgeschnitten. Eine gekürzte Liste wäre die
+ * unangenehmste Variante: Der Versand liefe scheinbar durch, und dass die
+ * Hälfte fehlt, merkt man erst, wenn jemand nachfragt.
+ */
+export function pruefeGrenze(aufgeloest, hoechstzahl) {
+  const anzahl = aufgeloest?.anzahl ?? 0;
+
+  if (anzahl === 0) {
+    return {
+      ok: false,
+      meldung: 'Es ist niemand ausgewählt — es gibt nichts zu senden.',
+    };
+  }
+
+  if (anzahl > hoechstzahl) {
+    return {
+      ok: false,
+      meldung:
+        `${anzahl} Empfänger sind mehr als die erlaubten ${hoechstzahl}. ` +
+        'Nimm Empfänger heraus, oder erhöhe DM_MAX_RECIPIENTS in der .env — ' +
+        'bedenke dabei, dass Discord bei zu vielen Direktnachrichten in kurzer Zeit bremst.',
+    };
+  }
+
+  return { ok: true, meldung: null };
+}

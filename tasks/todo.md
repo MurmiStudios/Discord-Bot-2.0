@@ -288,7 +288,7 @@ Grundlage: `docs/SPEC.md`.
 
 ## Phase 4 — Versand
 
-- [ ] **26 · Empfängerauflösung und Grenzen** — S · hängt ab von: 24
+- [x] **26 · Empfängerauflösung und Grenzen** — S · hängt ab von: 24
   - **Abnahme:** Mehr als `DM_MAX_RECIPIENTS` Empfänger werden **abgelehnt**, nicht
     abgeschnitten — mit Meldung, wie viele es sind und wie viele erlaubt.
   - **Abnahme:** Ausgetretene Mitglieder und gelöschte Rollen werden erkannt und benannt.

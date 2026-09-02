@@ -147,3 +147,43 @@ test('eine Auswahl übersteht den Weg durchs Formular unverändert', () => {
 test('doppelte Einträge in der Auswahl werden einmal gezählt', () => {
   assert.deepEqual(parseAuswahl(['mitglied:m1', 'mitglied:m1']), [{ art: 'mitglied', id: 'm1' }]);
 });
+
+test('genau die erlaubte Anzahl geht durch', async () => {
+  const { pruefeGrenze } = await import('../../src/versand/empfaenger.mjs');
+
+  assert.equal(pruefeGrenze({ anzahl: 100 }, 100).ok, true);
+});
+
+test('einer zu viel wird abgelehnt und nennt beide Zahlen', async () => {
+  const { pruefeGrenze } = await import('../../src/versand/empfaenger.mjs');
+
+  const ergebnis = pruefeGrenze({ anzahl: 101 }, 100);
+
+  assert.equal(ergebnis.ok, false);
+  assert.match(ergebnis.meldung, /101/);
+  assert.match(ergebnis.meldung, /100/);
+});
+
+test('zu viele Empfänger werden abgelehnt, nicht abgeschnitten', async () => {
+  const { pruefeGrenze } = await import('../../src/versand/empfaenger.mjs');
+
+  const ergebnis = pruefeGrenze({ anzahl: 250 }, 100);
+
+  assert.equal(ergebnis.ok, false);
+  assert.equal(ergebnis.gekuerzt, undefined, 'Es wurde eine gekürzte Liste angeboten');
+});
+
+test('ohne Empfänger gibt es nichts zu senden', async () => {
+  const { pruefeGrenze } = await import('../../src/versand/empfaenger.mjs');
+
+  const ergebnis = pruefeGrenze({ anzahl: 0 }, 100);
+
+  assert.equal(ergebnis.ok, false);
+  assert.match(ergebnis.meldung, /niemand|kein/i);
+});
+
+test('die Ablehnung nennt den Weg heraus, nicht nur das Problem', async () => {
+  const { pruefeGrenze } = await import('../../src/versand/empfaenger.mjs');
+
+  assert.match(pruefeGrenze({ anzahl: 150 }, 100).meldung, /DM_MAX_RECIPIENTS/);
+});
