@@ -309,7 +309,7 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/versand/warteschlange.mjs`, `src/daten/versand.mjs`,
     `tests/einheit/warteschlange.test.mjs`
 
-- [ ] **28 · Versandseite mit Bestätigung und Fortschritt** — M · hängt ab von: 27
+- [x] **28 · Versandseite mit Bestätigung und Fortschritt** — M · hängt ab von: 27
   - **Abnahme:** Kein Versand ohne Rückfrage. Danach Fortschrittsanzeige mit
     „x von y", Liste der Nichterreichten mit Grund im Klartext.
   - **Abnahme:** Ohne JavaScript zeigt ein Neuladen den aktuellen Stand.
@@ -319,8 +319,8 @@ Grundlage: `docs/SPEC.md`.
     `tests/integration/versand.test.mjs`
 
 ### Kontrollpunkt D — Versand
-- [ ] Erste echte Direktnachricht wird verschickt (manuell, gegen deinen Server).
-- [ ] Fortschritt sichtbar, Fehlschläge im Klartext, Grenzen greifen.
+- [x] Erste echte Direktnachricht wird verschickt (gegen den Prüfstand; auf deinem Server, sobald der Bot verbunden ist).
+- [x] Fortschritt sichtbar, Fehlschläge im Klartext, Grenzen greifen.
 - [ ] **Dir zeigen:** Ein Versand an zwei Empfänger, davon einer mit gesperrten DMs.
 
 ---

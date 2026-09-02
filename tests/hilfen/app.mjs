@@ -12,6 +12,10 @@ import { erstelleDiscordDoppel } from './discord-oauth-doppel.mjs';
 import { erstelleClientDoppel } from './discord-doppel.mjs';
 import { erstelleBot } from '../../src/discord/bot.mjs';
 import { erstelleGildenAnsicht } from '../../src/discord/gilde.mjs';
+import { erstelleVersandAblage } from '../../src/daten/versand.mjs';
+import { erstelleVersender } from '../../src/discord/versender.mjs';
+import { erstelleWarteschlange } from '../../src/versand/warteschlange.mjs';
+import { erstelleProtokoll } from '../../src/protokoll/protokoll.mjs';
 
 export const GILDE = '111111111111111111';
 
@@ -62,7 +66,8 @@ export async function mitApp(
     for (const [rollenId, stufe] of zugriffsregeln) zugriff.setze(vollKonfig.guildId, rollenId, stufe);
 
     // Echter Guild-Cache auf einem erfundenen Server.
-    const { client } = erstelleClientDoppel({ guildId: vollKonfig.guildId, ...discordServer });
+    const doppelServer = erstelleClientDoppel({ guildId: vollKonfig.guildId, ...discordServer });
+    const { client } = doppelServer;
     const bot = erstelleBot({ konfig: vollKonfig, logger, erzeugeClient: () => client });
     if (botVerbunden) {
       await bot.verbinde();
@@ -76,9 +81,22 @@ export async function mitApp(
     const mitgliedschaft =
       rollen === undefined ? gildenAnsicht : { rollenVon: (_guildId, userId) => rollen[userId] };
 
+    const versandAblage = erstelleVersandAblage(db);
+    const versender = erstelleVersender({ bot, konfig: vollKonfig });
+    const warteschlange = erstelleWarteschlange({
+      ablage: versandAblage,
+      senden: (empfaenger, nachricht) => versender.sendeDm(empfaenger, nachricht),
+      protokoll: erstelleProtokoll(db),
+      logger,
+      konfig: vollKonfig,
+      // Im Test wird nicht wirklich gewartet — sonst dauerte jeder Versandtest
+      // so lange wie im Betrieb.
+      warte: async () => {},
+    });
+
     const app = erstelleApp({
       konfig: vollKonfig, db, gilden, sitzungen, oauth, logger, zugriff,
-      mitgliedschaft, bot, gildenAnsicht,
+      mitgliedschaft, bot, gildenAnsicht, warteschlange, versandAblage, versender,
     });
     const server = app.listen(0, '127.0.0.1');
     await new Promise((fertig, fehler) => {
@@ -90,7 +108,8 @@ export async function mitApp(
     try {
       return await fn({
         app, basis, db, gilden, sitzungen, zugriff, konfig: vollKonfig, doppel,
-        logzeilen: zeilen, bot, gildenAnsicht,
+        logzeilen: zeilen, bot, gildenAnsicht, doppelServer, versandAblage,
+        warteAufVersand: () => warteschlange.letzterLauf(),
       });
     } finally {
       await new Promise((fertig) => server.close(fertig));

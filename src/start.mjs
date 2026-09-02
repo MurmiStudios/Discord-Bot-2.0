@@ -8,6 +8,10 @@ import { erstelleSitzungen } from './auth/sitzung.mjs';
 import { erstelleOauth } from './auth/oauth.mjs';
 import { erstelleBot } from './discord/bot.mjs';
 import { erstelleGildenAnsicht } from './discord/gilde.mjs';
+import { erstelleVersandAblage } from './daten/versand.mjs';
+import { erstelleVersender } from './discord/versender.mjs';
+import { erstelleWarteschlange } from './versand/warteschlange.mjs';
+import { erstelleProtokoll } from './protokoll/protokoll.mjs';
 import { erstelleRouter } from './discord/interaktion/router.mjs';
 import { ladeBefehle, registriereBefehle } from './discord/interaktion/registrieren.mjs';
 import { erstelleApp } from './web/server.mjs';
@@ -54,9 +58,27 @@ router.registriereAn(bot.client);
 bot.verbinde();
 registriereBefehle({ befehle, konfig, logger });
 
+const protokoll = erstelleProtokoll(db, {
+  geheimnisse: [konfig.token, konfig.clientSecret, konfig.sessionSecret],
+});
+const versandAblage = erstelleVersandAblage(db);
+const versender = erstelleVersender({ bot, konfig });
+const warteschlange = erstelleWarteschlange({
+  ablage: versandAblage,
+  senden: (empfaenger, nachricht) => versender.sendeDm(empfaenger, nachricht),
+  protokoll,
+  logger,
+  konfig,
+});
+
+// Ein Vorgang, der nach einem Neustart noch „laeuft", kann es nicht — der
+// Prozess, der ihn betrieb, ist weg.
+warteschlange.brichLaufendeAb(konfig.guildId);
+
 erstelleApp({
   konfig, db, gilden, sitzungen, oauth, logger, zugriff,
   bot, gildenAnsicht, mitgliedschaft: gildenAnsicht,
+  warteschlange, versandAblage, versender,
 })
   .listen(konfig.port, () => {
     logger.info('start', 'Panel läuft', {

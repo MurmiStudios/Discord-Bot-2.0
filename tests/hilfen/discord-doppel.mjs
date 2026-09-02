@@ -44,6 +44,8 @@ export function erstelleClientDoppel({
   kanaele = [],
   mitglieder = [],
   anmeldungScheitert = false,
+  dmFehler = {},
+  kanalFehler = {},
 } = {}) {
   const client = new EventEmitter();
   client.zerstoert = false;
@@ -85,6 +87,9 @@ export function erstelleClientDoppel({
     roles: { highest: rollenMap.get('bot-rolle') },
   };
 
+  // Was tatsaechlich verschickt wurde — die Testzusicherung haengt daran.
+  const gesendet = [];
+
   const kanaeleMap = new Map();
   for (const k of kanaele) {
     kanaeleMap.set(k.id, {
@@ -94,6 +99,11 @@ export function erstelleClientDoppel({
       parentId: k.parentId ?? null,
       rawPosition: k.position ?? 0,
       permissionsFor: () => rechte(k.botDarf ?? botRechte),
+      async send(nutzlast) {
+        if (kanalFehler[k.id]) throw kanalFehler[k.id];
+        gesendet.push({ art: 'kanal', ziel: k.id, nutzlast });
+        return { id: 'nachricht-1' };
+      },
     });
   }
 
@@ -117,6 +127,21 @@ export function erstelleClientDoppel({
   client.guilds = { cache: new Map([[guildId, gilde]]) };
   client.user = { id: 'bot-konto', tag: 'Panel-Bot#0001' };
 
+  client.users = {
+    async fetch(id) {
+      const mitglied = mitgliederMap.get(id);
+      if (!mitglied) throw Object.assign(new Error('Unknown User'), { code: 10013 });
+      return {
+        id,
+        async send(nutzlast) {
+          if (dmFehler[id]) throw dmFehler[id];
+          gesendet.push({ art: 'dm', ziel: id, nutzlast });
+          return { id: 'nachricht-1' };
+        },
+      };
+    },
+  };
+
   client.login = async (token) => {
     client.angemeldetMit = token;
     if (anmeldungScheitert) {
@@ -132,5 +157,5 @@ export function erstelleClientDoppel({
     client.zerstoert = true;
   };
 
-  return { client, gilde, rollenMap, kanaeleMap, mitgliederMap };
+  return { client, gilde, rollenMap, kanaeleMap, mitgliederMap, gesendet };
 }

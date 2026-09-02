@@ -869,3 +869,75 @@ p { max-width: 68ch; }
   .platzhalterreihe .platzhalter-titel { flex: 1 0 100%; }
   .platzhalterreihe-klein .platzhalter-knopf { min-height: 36px; }
 }
+
+/* ── Rückfrage vor dem Versand ────────────────────────────────────── */
+
+.rueckfrage {
+  padding: 16px 20px;
+  margin-bottom: 22px;
+  border: 1px solid var(--linie);
+  border-left: 3px solid var(--warn);
+  border-radius: var(--radius);
+  background: var(--flaeche);
+}
+.rueckfrage-kern { margin: 0 0 6px; font-size: 1.05rem; }
+.rueckfrage-kern strong { font-variant-numeric: tabular-nums; }
+.rueckfrage p:last-child { margin-bottom: 0; }
+
+.empfaengerliste { display: flex; flex-wrap: wrap; gap: 6px; max-width: none; }
+
+.rueckfrage-knoepfe {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 26px;
+  padding-top: 18px;
+  border-top: 1px solid var(--linie);
+}
+.knopf-abbrechen { color: var(--tinte-leise); font-size: .92rem; }
+
+/* ── Fortschritt ──────────────────────────────────────────────────── */
+
+.fortschritt {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px 20px;
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  background: var(--flaeche);
+  box-shadow: var(--schatten);
+  max-width: 620px;
+}
+
+.fortschritt-zahl { margin: 0; font-size: 1.05rem; }
+.fortschritt-zahl strong { font-variant-numeric: tabular-nums; }
+.fortschritt-lage { margin-left: 8px; color: var(--tinte-leise); font-size: .86rem; }
+
+.fortschritt progress {
+  width: 100%;
+  height: 10px;
+  appearance: none;
+}
+.fortschritt progress::-webkit-progress-bar { background: var(--flaeche-tief); border-radius: 999px; }
+.fortschritt progress::-webkit-progress-value { background: var(--akzent); border-radius: 999px; }
+.fortschritt progress::-moz-progress-bar { background: var(--akzent); border-radius: 999px; }
+
+.fortschritt-bilanz { margin: 0; color: var(--tinte-leise); font-size: .9rem; }
+.fehlzahl { color: var(--warn); font-weight: 600; }
+
+.fehlerliste { margin: 0; padding: 0; list-style: none; max-width: 720px; }
+.fehlerliste li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--linie);
+  border-radius: 8px;
+  background: var(--flaeche);
+}
+.fehlerliste li + li { margin-top: 6px; }
+.fehler-name { font-weight: 600; }
+.fehler-grund { color: var(--tinte-leise); font-size: .9rem; }

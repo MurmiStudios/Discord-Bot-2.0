@@ -33,10 +33,10 @@ export function erstelleWarteschlange({
   konfig,
   warte = standardWarte,
 }) {
-  async function sendeAnEinen(guildId, vorgangId, empfaenger, nachricht) {
+  async function sendeAnEinen(guildId, vorgangId, empfaenger, nachricht, sendeMit) {
     for (let versuch = 1; versuch <= HOECHSTVERSUCHE; versuch += 1) {
       try {
-        await senden(empfaenger, nachricht);
+        await sendeMit(empfaenger, nachricht);
         ablage.merkeErgebnis(guildId, vorgangId, { empfaengerId: empfaenger.id, zugestellt: true });
         return;
       } catch (fehler) {
@@ -62,7 +62,7 @@ export function erstelleWarteschlange({
     }
   }
 
-  async function arbeite(guildId, vorgangId, nachricht, akteur, betreff) {
+  async function arbeite(guildId, vorgangId, nachricht, akteur, betreff, sendeMit) {
     // Einmal die Kontrolle abgeben, bevor der erste Versand losgeht: Sonst
     // liefe er synchron im Aufrufer von `starte`, und die Seite bekaeme ihre
     // Vorgangs-ID erst, wenn schon eine Nachricht draussen ist.
@@ -74,7 +74,7 @@ export function erstelleWarteschlange({
       // Vor dem ersten wird nicht gewartet — die Pause gehoert zwischen zwei
       // Nachrichten, nicht vor die erste.
       if (i > 0) await warte(konfig.dmPauseMs);
-      await sendeAnEinen(guildId, vorgangId, empfaenger, nachricht);
+      await sendeAnEinen(guildId, vorgangId, empfaenger, nachricht, sendeMit);
     }
 
     ablage.schliesseAb(guildId, vorgangId, VORGANG.FERTIG);
@@ -92,20 +92,31 @@ export function erstelleWarteschlange({
     });
   }
 
+  // Der jüngste Lauf. Im Betrieb wartet niemand darauf; Tests schon.
+  let letzterLauf = Promise.resolve();
+
   return {
+    /** Das Versprechen auf das Ende des jüngsten Laufs. */
+    letzterLauf: () => letzterLauf,
+
     /**
      * Startet einen Versand im Hintergrund.
      *
      * `fertig` ist das Versprechen auf das Ende — im Betrieb wird es nicht
      * abgewartet, in Tests schon.
      */
-    starte(guildId, { nachricht, empfaenger, akteur, betreff, art = 'dm' }) {
+    starte(guildId, { nachricht, empfaenger, akteur, betreff, art = 'dm', senden: eigenesSenden }) {
       const vorgangId = ablage.beginne(guildId, { art, empfaenger, akteur, betreff });
 
-      const fertig = arbeite(guildId, vorgangId, nachricht, akteur, betreff).catch((fehler) => {
+      // Ein Kanal ist kein Empfaenger: Der Aufrufer darf den Weg mitgeben,
+      // ohne dass die Warteschlange die Unterscheidung kennen muss.
+      const sendeMit = eigenesSenden ?? senden;
+
+      const fertig = arbeite(guildId, vorgangId, nachricht, akteur, betreff, sendeMit).catch((fehler) => {
         logger.fehler('versand', 'Versand abgebrochen', fehler);
         ablage.schliesseAb(guildId, vorgangId, VORGANG.ABGEBROCHEN);
       });
+      letzterLauf = fertig;
 
       return { vorgangId, fertig };
     },

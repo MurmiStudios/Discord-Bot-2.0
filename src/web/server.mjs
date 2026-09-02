@@ -1,7 +1,8 @@
 import express from 'express';
 import { registriereAnmeldung, sitzungsMiddleware } from './seiten/anmeldung.mjs';
 import { registriereSuche } from './seiten/suche.mjs';
-import { registriereNachricht } from './seiten/nachricht.mjs';
+import { registriereNachricht, erstellePruefung } from './seiten/nachricht.mjs';
+import { registriereVersand } from './seiten/versand.mjs';
 import { stufenMiddleware, verlangt } from './mw/verlangt.mjs';
 import { csrfSchutz } from '../auth/csrf.mjs';
 import { seite } from './html/layout.mjs';
@@ -16,6 +17,7 @@ import { STUFE } from '../auth/rechte.mjs';
  */
 export function erstelleApp({
   konfig, db, gilden, sitzungen, oauth, logger, zugriff, mitgliedschaft, gildenAnsicht,
+  warteschlange, versandAblage, versender,
   bot = { status: () => ({ verbunden: false, grund: 'Der Bot ist nicht eingerichtet.' }) },
 }) {
   const app = express();
@@ -45,6 +47,12 @@ export function erstelleApp({
   registriereAnmeldung(app, { konfig, db, gilden, sitzungen, oauth, logger });
   registriereSuche(app, { bot });
   registriereNachricht(app, { bot, konfig, gildenAnsicht });
+  if (warteschlange && versandAblage && versender) {
+    registriereVersand(app, {
+      bot, konfig, gildenAnsicht, warteschlange, versandAblage, versender,
+      pruefeEntwurf: erstellePruefung({ konfig, gildenAnsicht }),
+    });
+  }
 
   // Vorlaeufige Uebersicht. Schritt 56 baut die richtige.
   app.get('/', verlangt(STUFE.BETRACHTER), (req, res) => {

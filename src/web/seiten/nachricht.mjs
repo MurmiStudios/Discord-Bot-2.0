@@ -3,7 +3,8 @@ import { seite } from '../html/layout.mjs';
 import { verlangt } from '../mw/verlangt.mjs';
 import { STUFE } from '../../auth/rechte.mjs';
 import { csrfFeld } from '../../auth/csrf.mjs';
-import { GRENZE, ART, leeresEmbed } from '../../nachricht/modell.mjs';
+import { GRENZE, ART } from '../../nachricht/modell.mjs';
+import { entwurfAus, alsEingabe } from '../../nachricht/entwurf.mjs';
 import { embedEditor } from '../html/embed.mjs';
 import { vorschau, MODUS } from '../../nachricht/vorschau.mjs';
 import { empfaengerwahl } from '../html/empfaengerwahl.mjs';
@@ -15,6 +16,7 @@ import { PLATZHALTER } from '../../nachricht/platzhalter.mjs';
 import { fuegeEin, zerlegeKnopfwert } from '../../nachricht/platzhalterziel.mjs';
 import { platzhalterreihe } from '../html/platzhalterreihe.mjs';
 import { pruefeNachricht } from '../../nachricht/pruefen.mjs';
+import { bestaetigungsSeite } from './versand.mjs';
 
 /**
  * Der Nachrichteneditor.
@@ -31,58 +33,6 @@ import { pruefeNachricht } from '../../nachricht/pruefen.mjs';
  */
 
 const ERLAUBTE_PLATZHALTER = new Set(PLATZHALTER.map((p) => p.name));
-
-/** Ein wiederholtes Formularfeld kommt einzeln oder als Liste — immer als Liste behandeln. */
-const alsListe = (wert) => (wert === undefined ? [] : Array.isArray(wert) ? wert : [wert]);
-
-/**
- * Baut den Entwurf aus dem Formularkoerper.
- *
- * Jede Seitenaktion (Reiter wechseln, Platzhalter einfuegen, Feld hinzufuegen)
- * geht durch dieselbe Funktion. Dadurch gibt es genau einen Ort, an dem aus
- * Formulardaten ein Entwurf wird — und keine Aktion, die versehentlich etwas
- * vergisst.
- */
-function entwurfAus(koerper = {}) {
-  const namen = alsListe(koerper.embedFeldName);
-  const werte = alsListe(koerper.embedFeldWert);
-
-  return {
-    art: koerper.art === ART.KANAL ? ART.KANAL : ART.DM,
-    text: String(koerper.text ?? ''),
-    bildvorlageId: String(koerper.bildvorlageId ?? '') || null,
-    vorschauModus: koerper.vorschauModus === MODUS.ROH ? MODUS.ROH : MODUS.BEISPIEL,
-    empfaenger: parseAuswahl(koerper.empfaenger),
-    empfaengerSuche: String(koerper.empfaengerSuche ?? ''),
-    kanalId: String(koerper.kanalId ?? '') || null,
-    kanalSuche: String(koerper.kanalSuche ?? ''),
-    embedAn: koerper.embedAn === 'ja',
-    embed: {
-      ...leeresEmbed(),
-      titel: String(koerper.embedTitel ?? ''),
-      beschreibung: String(koerper.embedBeschreibung ?? ''),
-      fusszeile: String(koerper.embedFusszeile ?? ''),
-      autor: String(koerper.embedAutor ?? ''),
-      farbe: String(koerper.embedFarbe ?? '') || null,
-      felder: namen.map((name, i) => ({ name: String(name), wert: String(werte[i] ?? '') })),
-    },
-  };
-}
-
-/** Der Entwurf in der Form, die pruefeNachricht erwartet. */
-function alsEingabe(entwurf) {
-  return {
-    art: entwurf.art,
-    text: entwurf.text,
-    embedAn: entwurf.embedAn ? 'ja' : 'nein',
-    embedTitel: entwurf.embed.titel,
-    embedBeschreibung: entwurf.embed.beschreibung,
-    embedFusszeile: entwurf.embed.fusszeile,
-    embedAutor: entwurf.embed.autor,
-    embedFarbe: entwurf.embed.farbe ?? '',
-    embedFelder: entwurf.embed.felder,
-  };
-}
 
 function reiter(art) {
   const eintraege = [
@@ -223,8 +173,9 @@ function editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, fehler = [] }) 
             `}
 
         <div class="editor-fuss">
-          <button type="submit" name="pruefen" value="ja" class="knopf-haupt">Prüfen</button>
-          <span class="hinweis">Der Versand folgt in Schritt 28.</span>
+          <button type="submit" name="senden" value="ja" class="knopf-haupt">Senden …</button>
+          <button type="submit" name="pruefen" value="ja" class="knopf-leise">Nur prüfen</button>
+          <span class="hinweis">Vor dem Versand kommt eine Rückfrage.</span>
         </div>
 
         <input type="hidden" name="vorschauModus" value="${entwurf.vorschauModus}">
@@ -256,7 +207,36 @@ function editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, fehler = [] }) 
   });
 }
 
+/**
+ * Prüft einen Entwurf vollständig: Inhalt, Empfängergrenze und Schreibrecht im
+ * Kanal. Der Versandstart benutzt dieselbe Funktion — sonst könnte ein
+ * untergeschobener Aufruf die Prüfung der Editorseite umgehen.
+ */
+export function erstellePruefung({ konfig, gildenAnsicht }) {
+  return (entwurf) => {
+    const geprueft = pruefeNachricht(alsEingabe(entwurf));
+    const fehler = [...(geprueft.fehler ?? [])];
+
+    if (entwurf.art === ART.DM) {
+      const aufgeloest = loeseEmpfaengerAuf(gildenAnsicht, entwurf.empfaenger, konfig.guildId);
+      const grenze = pruefeGrenze(aufgeloest, konfig.dmMaxEmpfaenger);
+      if (!grenze.ok) fehler.push({ feld: 'empfaenger', meldung: grenze.meldung });
+    } else if (!entwurf.kanalId) {
+      fehler.push({ feld: 'kanalId', meldung: 'Wähle einen Kanal aus.' });
+    } else {
+      const urteil = darfBot(AKTION.IN_KANAL_SCHREIBEN, {
+        ansicht: gildenAnsicht,
+        kanalId: entwurf.kanalId,
+      });
+      if (!urteil.erlaubt) fehler.push({ feld: 'kanalId', meldung: urteil.grund });
+    }
+
+    return { ok: fehler.length === 0, fehler };
+  };
+}
+
 export function registriereNachricht(app, { bot, konfig, gildenAnsicht }) {
+  const pruefeEntwurf = erstellePruefung({ konfig, gildenAnsicht });
   // Alte Adressen bleiben gueltig.
   app.get('/dm', verlangt(STUFE.MODERATOR), (_req, res) => res.redirect(301, '/nachricht?art=dm'));
   app.get('/kanaele', verlangt(STUFE.MODERATOR), (_req, res) =>
@@ -341,36 +321,27 @@ export function registriereNachricht(app, { bot, konfig, gildenAnsicht }) {
       return zeigen();
     }
 
-    const geprueft = pruefeNachricht(alsEingabe(entwurf));
-
     // Das Ziel wird serverseitig geprueft, nicht nur im Formular ausgeblendet:
     // Eine untergeschobene Kanal-ID darf nicht dazu fuehren, dass der Bot
     // irgendwohin schreibt.
-    const zielfehler = [];
-    if (entwurf.art === ART.DM) {
-      const aufgeloest = loeseEmpfaengerAuf(gildenAnsicht, entwurf.empfaenger, konfig.guildId);
-      const grenze = pruefeGrenze(aufgeloest, konfig.dmMaxEmpfaenger);
-      if (!grenze.ok) zielfehler.push({ feld: 'empfaenger', meldung: grenze.meldung });
-    }
+    const geprueft = pruefeEntwurf(entwurf);
 
-    if (entwurf.art === ART.KANAL) {
-      if (!entwurf.kanalId) {
-        zielfehler.push({ feld: 'kanalId', meldung: 'Wähle einen Kanal aus.' });
-      } else {
-        const urteil = darfBot(AKTION.IN_KANAL_SCHREIBEN, {
-          ansicht: gildenAnsicht,
-          kanalId: entwurf.kanalId,
-        });
-        if (!urteil.erlaubt) zielfehler.push({ feld: 'kanalId', meldung: urteil.grund });
-      }
-    }
-
-    if (!geprueft.ok || zielfehler.length > 0) {
-      const fehler = [...(geprueft.fehler ?? []), ...zielfehler];
+    if (!geprueft.ok) {
       return res
         .status(422)
         .type('html')
-        .send(String(editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, fehler })));
+        .send(String(editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, fehler: geprueft.fehler })));
+    }
+
+    // Senden gewuenscht: erst die Rueckfrage, nie sofort.
+    if (koerper.senden !== undefined) {
+      const aufgeloest = loeseEmpfaengerAuf(gildenAnsicht, entwurf.empfaenger, konfig.guildId);
+      const kanal = gildenAnsicht.findeKanal(entwurf.kanalId, konfig.guildId);
+      return res.type('html').send(
+        String(bestaetigungsSeite({
+          req, bot, konfig, entwurf, aufgeloest, ziel: kanal?.name ?? entwurf.kanalId,
+        })),
+      );
     }
 
     return zeigen();

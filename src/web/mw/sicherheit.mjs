@@ -75,6 +75,15 @@ export function anmeldeGrenze() {
 }
 
 /**
+ * 10 Versandvorgänge je Minute. Ein Massenversand ist nichts, was jemand
+ * zehnmal in der Minute auslöst — wohl aber etwas, das ein durchgegangenes
+ * Skript teuer machen könnte.
+ */
+export function versandGrenze() {
+  return rateLimit({ ...GEMEINSAM, windowMs: 60 * 1000, limit: 10 });
+}
+
+/**
  * 60 Vorschau-Anfragen je Minute. Die Vorschau wird beim Tippen abgerufen —
  * grosszuegig genug fuer fluessiges Schreiben, eng genug, dass sie sich nicht
  * als Lastwerkzeug missbrauchen laesst.
