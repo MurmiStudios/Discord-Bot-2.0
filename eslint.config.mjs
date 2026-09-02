@@ -25,6 +25,7 @@ export default [
         structuredClone: 'readonly',
         queueMicrotask: 'readonly',
         AbortController: 'readonly',
+        AbortSignal: 'readonly',
         FormData: 'readonly',
         Blob: 'readonly',
       },

@@ -10,6 +10,7 @@ import { zerlegeKnopfwert } from '../../nachricht/platzhalterziel.mjs';
 import { PLATZHALTER } from '../../nachricht/platzhalter.mjs';
 import { FORMATE, rendere, standardVorlage } from '../../bilder/renderer.mjs';
 import { beispielDaten } from '../../bilder/beispiel.mjs';
+import { platzhalterWerte } from '../../nachricht/werte.mjs';
 import { alsGroesse, bildPfad, pruefeUpload, UploadFehler } from '../../bilder/upload.mjs';
 import {
   GRENZE_VORLAGE, FORMEN, ANPASSUNGEN, AUSRICHTUNGEN, FORMATNAMEN,
@@ -64,6 +65,10 @@ function entwurfAus(koerper = {}) {
   return {
     id: String(koerper.id ?? '') || null,
     name: String(koerper.name ?? ''),
+    // Nur für die Vorschau, nicht Teil der Vorlage: `vorlageAus` liest beides
+    // nicht, damit es auch nicht versehentlich mitgespeichert wird.
+    mitgliedId: String(koerper.vorschauMitgliedId ?? '') || null,
+    suche: String(koerper.vorschauSuche ?? ''),
     vorlage: vorlageAus(koerper),
   };
 }
@@ -75,10 +80,42 @@ function entwurfAus(koerper = {}) {
  * ausschliesslich aus einem geprüften Ablagenamen — ein Feldwert wird hier
  * nirgends zu einem Pfad.
  */
-async function vorschauBild(vorlage, bilderVerzeichnis) {
+/**
+ * Womit die Vorschau gefüllt wird.
+ *
+ * Ohne gewähltes Mitglied Beispieldaten, sonst das echte Profil aus dem
+ * Guild-Cache. Lässt sich das Profilbild nicht laden, bleibt es leer und die
+ * Seite sagt es — ein untergeschobenes Ersatzbild sähe aus, als hätte es
+ * geklappt.
+ */
+async function vorschauDaten({ mitgliedId, gildenAnsicht, konfig, avatarQuelle }) {
+  const mitglied = mitgliedId ? gildenAnsicht.findeMitglied(mitgliedId, konfig.guildId) : undefined;
+  if (!mitglied) return { daten: beispielDaten(), mitglied: undefined, avatarFehlt: false };
+
+  const rolle = gildenAnsicht
+    .rollen(konfig.guildId)
+    .find((r) => mitglied.rollenIds.includes(r.id));
+
+  const avatarBild = await avatarQuelle.fuer(mitglied.avatarUrl);
+
+  return {
+    daten: {
+      ...platzhalterWerte({
+        nutzer: mitglied,
+        gilde: gildenAnsicht.gildenInfo(konfig.guildId),
+        rolle: rolle?.name,
+      }),
+      avatarBild,
+    },
+    mitglied,
+    avatarFehlt: avatarBild === null,
+  };
+}
+
+async function vorschauBild(vorlage, bilderVerzeichnis, daten) {
   return rendere(
     { ...sichereVorlage(vorlage), hintergrundBild: bildPfad(bilderVerzeichnis, vorlage.hintergrundBild) },
-    beispielDaten(),
+    daten,
   );
 }
 
@@ -204,7 +241,64 @@ function zeilenEditor(vorlage, fehler) {
   `;
 }
 
-function editorSeite({ req, bot, entwurf, vorschau, fehler = [], hinweis = null }) {
+/**
+ * Wessen Name und Profilbild die Vorschau zeigt.
+ *
+ * Beispieldaten sind der Ausgangspunkt, weil sie ohne Server funktionieren und
+ * jeden Platzhalter abdecken. Ein echtes Profil beantwortet dafür die Frage,
+ * die Beispieldaten offenlassen: Passt das Bild auch bei diesem Namen?
+ */
+function mitgliedswahl({ entwurf, treffer, gewaehlt, avatarFehlt }) {
+  return html`
+    <div class="vorschaudaten">
+      <input type="hidden" name="vorschauMitgliedId" value="${entwurf.mitgliedId ?? ''}">
+
+      ${gewaehlt
+        ? html`
+            <p class="vorschaudaten-kopf">
+              Vorschau mit <strong>${gewaehlt.name}</strong>
+              <button type="submit" name="vorschauMitgliedLoesen" value="ja" class="knopf-leise">
+                Beispieldaten benutzen
+              </button>
+            </p>
+            ${avatarFehlt
+              ? html`<p class="hinweis-warn">
+                  Das Profilbild liess sich nicht von Discord laden. Name und Zahlen stimmen,
+                  das Bild fehlt.
+                </p>`
+              : ''}
+          `
+        : html`
+            <div class="feld feld-schmal">
+              <label for="vorschauSuche">Vorschau mit einem echten Mitglied</label>
+              <input type="search" id="vorschauSuche" name="vorschauSuche"
+                     value="${entwurf.suche}" placeholder="Name suchen">
+            </div>
+            <button type="submit" name="vorschauSuchen" value="ja" class="knopf-leise">Suchen</button>
+
+            ${entwurf.suche.trim() !== '' && treffer.length === 0
+              ? html`<p class="hinweis">Niemand gefunden.</p>`
+              : ''}
+
+            ${treffer.length > 0
+              ? html`
+                  <div class="mitgliedtreffer" role="group" aria-label="Gefundene Mitglieder">
+                    ${treffer.map(
+                      (m) => html`
+                        <button type="submit" name="vorschauMitglied" value="${m.id}" class="mitgliedknopf">
+                          ${m.name}
+                        </button>
+                      `,
+                    )}
+                  </div>
+                `
+              : ''}
+          `}
+    </div>
+  `;
+}
+
+function editorSeite({ req, bot, entwurf, vorschau, treffer = [], gewaehlt, avatarFehlt = false, fehler = [], hinweis = null }) {
   const { vorlage } = entwurf;
   const masse = FORMATE[vorlage.format] ?? { breite: vorlage.breite, hoehe: vorlage.hoehe };
 
@@ -314,6 +408,8 @@ function editorSeite({ req, bot, entwurf, vorschau, fehler = [], hinweis = null 
               Vorschau aktualisieren
             </button>
           </div>
+          ${mitgliedswahl({ entwurf, treffer, gewaehlt, avatarFehlt })}
+
           <div class="bildvorschau">
             <div class="ziehflaeche" data-ziehflaeche>
               <img id="vorlagenvorschau" src="${vorschau}" alt="Vorschau der Bildvorlage"
@@ -429,13 +525,32 @@ function nichtGefunden(req, bot, res) {
   );
 }
 
-export function registriereVorlagen(app, { bot, konfig, bildvorlagen, bilderVerzeichnis }) {
+export function registriereVorlagen(
+  app, { bot, konfig, bildvorlagen, bilderVerzeichnis, gildenAnsicht, avatarQuelle },
+) {
   const zeige = async (req, res, entwurf, { fehler = [], hinweis = null } = {}) => {
-    const png = await vorschauBild(entwurf.vorlage, bilderVerzeichnis);
+    const { daten, mitglied, avatarFehlt } = await vorschauDaten({
+      mitgliedId: entwurf.mitgliedId, gildenAnsicht, konfig, avatarQuelle,
+    });
+    const png = await vorschauBild(entwurf.vorlage, bilderVerzeichnis, daten);
+
+    // Ohne Suchbegriff wird nicht die ganze Mitgliederliste ausgeschüttet.
+    const treffer =
+      entwurf.mitgliedId || entwurf.suche.trim() === ''
+        ? []
+        : gildenAnsicht.sucheMitglieder(entwurf.suche, konfig.guildId).slice(0, 20);
+
     return res.type('html').send(
-      String(editorSeite({ req, bot, entwurf, vorschau: alsDatenAdresse(png), fehler, hinweis })),
+      String(editorSeite({
+        req, bot, entwurf, vorschau: alsDatenAdresse(png),
+        treffer, gewaehlt: mitglied, avatarFehlt, fehler, hinweis,
+      })),
     );
   };
+
+  const leererEntwurf = (vorlage, { id = null, name = '' } = {}) => ({
+    id, name, mitgliedId: null, suche: '', vorlage,
+  });
 
   app.get('/vorlagen', verlangt(STUFE.MODERATOR), (req, res) => {
     const eintraege = bildvorlagen.alle(konfig.guildId);
@@ -445,7 +560,7 @@ export function registriereVorlagen(app, { bot, konfig, bildvorlagen, bilderVerz
   // Vor `/vorlagen/:id`, sonst wäre „neu" eine Kennung.
   app.get('/vorlagen/neu', verlangt(STUFE.MODERATOR), async (req, res, next) => {
     try {
-      await zeige(req, res, { id: null, name: '', vorlage: standardVorlage() });
+      await zeige(req, res, leererEntwurf(standardVorlage()));
     } catch (fehler) {
       next(fehler);
     }
@@ -478,7 +593,7 @@ export function registriereVorlagen(app, { bot, konfig, bildvorlagen, bilderVerz
     try {
       return await zeige(
         req, res,
-        { id: String(eintrag.id), name: eintrag.name, vorlage: eintrag.vorlage },
+        leererEntwurf(eintrag.vorlage, { id: String(eintrag.id), name: eintrag.name }),
         eintrag.beschaedigt
           ? { hinweis: 'Die gespeicherten Einstellungen waren nicht lesbar — hier steht die Grundeinstellung.' }
           : {},
@@ -491,7 +606,12 @@ export function registriereVorlagen(app, { bot, konfig, bildvorlagen, bilderVerz
   // Dasselbe Bild wie auf der Seite, nur als eigene Antwort — für vorlagen.js.
   app.post('/vorlagen/vorschau.png', verlangt(STUFE.MODERATOR), vorschauGrenze(), async (req, res, next) => {
     try {
-      const png = await vorschauBild(vorlageAus(req.body ?? {}), bilderVerzeichnis);
+      const koerper = req.body ?? {};
+      const { daten } = await vorschauDaten({
+        mitgliedId: String(koerper.vorschauMitgliedId ?? '') || null,
+        gildenAnsicht, konfig, avatarQuelle,
+      });
+      const png = await vorschauBild(vorlageAus(koerper), bilderVerzeichnis, daten);
       res.type('png').set('Cache-Control', 'no-store').send(png);
     } catch (fehler) {
       next(fehler);
@@ -533,6 +653,21 @@ export function registriereVorlagen(app, { bot, konfig, bildvorlagen, bilderVerz
         entwurf.vorlage.hintergrundBild = null;
         hinweis = 'Hintergrundbild entfernt.';
       }
+
+      if (koerper.vorschauMitglied !== undefined) {
+        // Geprüft wird beim Anzeigen: Eine Kennung, die es nicht gibt, führt
+        // zurück zu den Beispieldaten statt zu einem Fehler.
+        entwurf.mitgliedId = String(koerper.vorschauMitglied);
+        entwurf.suche = '';
+        return await zeige(req, res, entwurf, { fehler, hinweis });
+      }
+
+      if (koerper.vorschauMitgliedLoesen !== undefined) {
+        entwurf.mitgliedId = null;
+        return await zeige(req, res, entwurf, { fehler, hinweis });
+      }
+
+      if (koerper.vorschauSuchen !== undefined) return await zeige(req, res, entwurf, { fehler, hinweis });
 
       if (koerper.zeileHinzufuegen !== undefined) {
         if (entwurf.vorlage.zeilen.length < GRENZE_VORLAGE.ZEILEN) {

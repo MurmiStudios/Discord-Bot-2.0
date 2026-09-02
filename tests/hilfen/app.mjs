@@ -14,6 +14,8 @@ import { erstelleBot } from '../../src/discord/bot.mjs';
 import { erstelleGildenAnsicht } from '../../src/discord/gilde.mjs';
 import { erstelleVersandAblage } from '../../src/daten/versand.mjs';
 import { erstelleBildvorlagen } from '../../src/daten/bildvorlagen.mjs';
+import { erstelleAvatarQuelle } from '../../src/bilder/avatar.mjs';
+import { testBild } from './bild.mjs';
 import { erstelleVersender } from '../../src/discord/versender.mjs';
 import { erstelleWarteschlange } from '../../src/versand/warteschlange.mjs';
 import { erstelleProtokoll } from '../../src/protokoll/protokoll.mjs';
@@ -44,7 +46,13 @@ export const TEST_KONFIG = Object.freeze({
  */
 export async function mitApp(
   fn,
-  { konfig = {}, discord = {}, rollen, zugriffsregeln = [], discordServer = {}, botVerbunden = true } = {},
+  {
+    konfig = {}, discord = {}, rollen, zugriffsregeln = [], discordServer = {},
+    botVerbunden = true,
+    // Kein Netz im Test: Profilbilder kommen aus einem erfundenen Abruf. Wer
+    // den Fehlerfall braucht, gibt eine Funktion mit `ok: false` mit.
+    avatarHolen = async () => ({ ok: true, arrayBuffer: async () => testBild('#5865f2', 128) }),
+  } = {},
 ) {
   return mitTempVerzeichnis(async (dir) => {
     const db = oeffneDatenbank(join(dir, 'panel.db'));
@@ -85,6 +93,7 @@ export async function mitApp(
     const versandAblage = erstelleVersandAblage(db);
     const bildvorlagen = erstelleBildvorlagen(db);
     const bilderVerzeichnis = join(dir, 'bilder');
+    const avatarQuelle = erstelleAvatarQuelle({ hole: avatarHolen });
     const versender = erstelleVersender({ bot, konfig: vollKonfig });
     const warteschlange = erstelleWarteschlange({
       ablage: versandAblage,
@@ -100,7 +109,7 @@ export async function mitApp(
     const app = erstelleApp({
       konfig: vollKonfig, db, gilden, sitzungen, oauth, logger, zugriff,
       mitgliedschaft, bot, gildenAnsicht, warteschlange, versandAblage, versender,
-      bildvorlagen, bilderVerzeichnis,
+      bildvorlagen, bilderVerzeichnis, avatarQuelle,
     });
     const server = app.listen(0, '127.0.0.1');
     await new Promise((fertig, fehler) => {

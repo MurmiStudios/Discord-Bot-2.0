@@ -11,6 +11,7 @@ import { html } from './html/html.mjs';
 import { sicherheitsKoepfe, allgemeineGrenze, anmeldeGrenze } from './mw/sicherheit.mjs';
 import { registriereStatisch } from './statisch.mjs';
 import { hochladen } from './mw/hochladen.mjs';
+import { erstelleAvatarQuelle } from '../bilder/avatar.mjs';
 import { STUFE } from '../auth/rechte.mjs';
 
 /**
@@ -20,6 +21,7 @@ import { STUFE } from '../auth/rechte.mjs';
 export function erstelleApp({
   konfig, db, gilden, sitzungen, oauth, logger, zugriff, mitgliedschaft, gildenAnsicht,
   warteschlange, versandAblage, versender, bildvorlagen, bilderVerzeichnis,
+  avatarQuelle = erstelleAvatarQuelle(),
   bot = { status: () => ({ verbunden: false, grund: 'Der Bot ist nicht eingerichtet.' }) },
 }) {
   const app = express();
@@ -53,7 +55,9 @@ export function erstelleApp({
   registriereAnmeldung(app, { konfig, db, gilden, sitzungen, oauth, logger });
   registriereSuche(app, { bot });
   registriereNachricht(app, { bot, konfig, gildenAnsicht });
-  registriereVorlagen(app, { bot, konfig, bildvorlagen, bilderVerzeichnis });
+  registriereVorlagen(app, {
+    bot, konfig, bildvorlagen, bilderVerzeichnis, gildenAnsicht, avatarQuelle,
+  });
   if (warteschlange && versandAblage && versender) {
     registriereVersand(app, {
       bot, konfig, gildenAnsicht, warteschlange, versandAblage, versender,

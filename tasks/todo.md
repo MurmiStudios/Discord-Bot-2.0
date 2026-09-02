@@ -368,7 +368,7 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/web/oeffentlich/ziehen.js`, `src/web/seiten/vorlagen.mjs`,
     `tests/integration/position.test.mjs`
 
-- [ ] **33 · Vorschau mit echten Mitgliedern** — S · hängt ab von: 31, 12
+- [x] **33 · Vorschau mit echten Mitgliedern** — S · hängt ab von: 31, 12
   - **Abnahme:** Statt Beispieldaten ein tatsächliches Profil aus dem Guild-Cache,
     wählbar über eine Mitgliedersuche.
   - **Prüfen:** Test gegen das Doppel mit einem sehr langen Anzeigenamen.

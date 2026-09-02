@@ -132,10 +132,24 @@ export function erstelleGildenAnsicht({ bot, konfig }) {
         .map((m) => ({
           id: m.id,
           name: m.displayName,
-          avatarUrl: m.user?.displayAvatarURL?.() ?? null,
+          tag: m.user?.username ?? m.displayName,
+          // Feste Grösse und festes Format: Der Renderer bekommt so immer ein
+          // PNG, das gross genug und klein genug ist.
+          avatarUrl: m.user?.displayAvatarURL?.({ extension: 'png', size: 256 }) ?? null,
           rollenIds: [...m.roles.cache.keys()],
         }))
         .sort((a, b) => a.name.localeCompare(b.name, 'de'));
+    },
+
+    /** Name und Mitgliederzahl — die Werte hinter {guild} und {count}. */
+    gildenInfo(guildId) {
+      const gilde = holeGilde(guildId);
+      if (!gilde) return null;
+      return { name: gilde.name, mitglieder: gilde.members.cache.size };
+    },
+
+    findeMitglied(discordUserId, guildId) {
+      return this.sucheMitglieder('', guildId).find((m) => m.id === discordUserId);
     },
 
     findeKanal(kanalId, guildId) {

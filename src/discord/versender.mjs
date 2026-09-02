@@ -1,4 +1,5 @@
 import { alsDiscordNachricht } from '../nachricht/nutzlast.mjs';
+import { platzhalterWerte } from '../nachricht/werte.mjs';
 
 /**
  * Der eigentliche Versand an Discord.
@@ -14,11 +15,10 @@ export function erstelleVersender({ bot, konfig }) {
   function werteFuer(empfaenger, zusatz = {}) {
     const gilde = bot.gilde(konfig.guildId);
     return {
-      user: empfaenger?.name ?? '',
-      tag: empfaenger?.tag ?? empfaenger?.name ?? '',
-      guild: gilde?.name ?? '',
-      count: gilde?.members?.cache?.size ?? 0,
-      role: '',
+      ...platzhalterWerte({
+        nutzer: empfaenger,
+        gilde: gilde && { name: gilde.name, mitglieder: gilde.members?.cache?.size ?? 0 },
+      }),
       ...zusatz,
     };
   }

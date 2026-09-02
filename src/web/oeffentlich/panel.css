@@ -1134,3 +1134,37 @@ p { max-width: 68ch; }
   .zahlenfeld { flex: 1 1 120px; }
   .zeilenschalter .knopf-leise { margin-left: 0; }
 }
+
+/* ── Vorschau mit einem echten Mitglied ───────────────────────────── */
+
+.vorschaudaten {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px 14px;
+  margin-bottom: 12px;
+}
+.vorschaudaten .feld { flex: 0 1 260px; }
+/* Bewusst kein Flex: Ein sehr langer Anzeigename soll als Satz umbrechen und
+   den Knopf nicht in eine eigene Zeile drängen. */
+.vorschaudaten-kopf { flex: 1 1 100%; margin: 0; line-height: 1.7; }
+.vorschaudaten-kopf .knopf-leise { margin-left: 10px; vertical-align: baseline; }
+.vorschaudaten .hinweis-warn { flex: 1 0 100%; }
+
+.mitgliedtreffer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1 0 100%;
+}
+.mitgliedknopf {
+  padding: 6px 12px;
+  border: 1px solid var(--linie);
+  border-radius: 999px;
+  background: var(--flaeche);
+  color: var(--tinte);
+  font: inherit;
+  font-size: .86rem;
+  cursor: pointer;
+}
+.mitgliedknopf:hover { border-color: var(--akzent); background: var(--akzent-flaeche); }
