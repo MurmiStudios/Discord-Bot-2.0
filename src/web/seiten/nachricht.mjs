@@ -12,7 +12,8 @@ import { darfBot, AKTION } from '../../discord/rechte.mjs';
 import { loeseEmpfaengerAuf, parseAuswahl, alsAuswahlWert } from '../../versand/empfaenger.mjs';
 import { vorschauGrenze } from '../mw/sicherheit.mjs';
 import { PLATZHALTER } from '../../nachricht/platzhalter.mjs';
-import { moeglicheZiele, fuegeEin } from '../../nachricht/platzhalterziel.mjs';
+import { fuegeEin, zerlegeKnopfwert } from '../../nachricht/platzhalterziel.mjs';
+import { platzhalterreihe } from '../html/platzhalterreihe.mjs';
 import { pruefeNachricht } from '../../nachricht/pruefen.mjs';
 
 /**
@@ -55,7 +56,6 @@ function entwurfAus(koerper = {}) {
     empfaengerSuche: String(koerper.empfaengerSuche ?? ''),
     kanalId: String(koerper.kanalId ?? '') || null,
     kanalSuche: String(koerper.kanalSuche ?? ''),
-    platzhalterZiel: String(koerper.platzhalterZiel ?? 'text'),
     embedAn: koerper.embedAn === 'ja',
     embed: {
       ...leeresEmbed(),
@@ -184,29 +184,7 @@ function editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, fehler = [] }) 
           ${fehlerZu(fehler, 'text')}
         </div>
 
-        <div class="platzhalterreihe">
-          <label class="platzhalter-titel" for="platzhalterZiel">Platzhalter einfügen in</label>
-          <select id="platzhalterZiel" name="platzhalterZiel" class="platzhalter-ziel">
-            ${moeglicheZiele(entwurf).map(
-              (ziel) => html`
-                <option value="${ziel.wert}"${ziel.wert === entwurf.platzhalterZiel ? html` selected` : ''}>
-                  ${ziel.name}
-                </option>
-              `,
-            )}
-          </select>
-          ${PLATZHALTER.map(
-            (platzhalter) => html`
-              <button
-                type="submit"
-                name="platzhalterEinfuegen"
-                value="${platzhalter.name}"
-                class="platzhalter-knopf"
-                title="${platzhalter.erklaerung}"
-              >${platzhalter.name}</button>
-            `,
-          )}
-        </div>
+        ${platzhalterreihe('text', { beschriftung: 'Variablen einfügen' })}
 
         ${entwurf.art === ART.DM
           ? empfaengerwahl({
@@ -355,9 +333,9 @@ export function registriereNachricht(app, { bot, konfig, gildenAnsicht }) {
     // mit JavaScript setzt editor.js ihn an die Schreibmarke, bevor es hierher
     // kommt.
     if (koerper.platzhalterEinfuegen !== undefined) {
-      const platzhalter = String(koerper.platzhalterEinfuegen);
-      if (ERLAUBTE_PLATZHALTER.has(platzhalter)) {
-        fuegeEin(entwurf, entwurf.platzhalterZiel, platzhalter);
+      const geklickt = zerlegeKnopfwert(koerper.platzhalterEinfuegen);
+      if (geklickt && ERLAUBTE_PLATZHALTER.has(geklickt.platzhalter)) {
+        fuegeEin(entwurf, geklickt.ziel, geklickt.platzhalter);
       }
       return zeigen();
     }

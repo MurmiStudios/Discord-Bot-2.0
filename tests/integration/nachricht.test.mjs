@@ -89,7 +89,7 @@ test('die Platzhalter-Knopfreihe nennt alle Platzhalter', async () => {
   });
 });
 
-test('ohne JavaScript hängt ein Platzhalter-Knopf den Platzhalter an den Text an', async () => {
+test('ohne JavaScript hängt ein Variablen-Knopf die Variable an sein Feld an', async () => {
   await mitApp(async (u) => {
     const { cookie, csrfToken } = alsOwner(u);
 
@@ -98,7 +98,7 @@ test('ohne JavaScript hängt ein Platzhalter-Knopf den Platzhalter an den Text a
         _csrf: csrfToken,
         art: 'dm',
         text: 'Hallo ',
-        platzhalterEinfuegen: '{user}',
+        platzhalterEinfuegen: 'text|{user}',
       })
     ).text();
 
@@ -115,7 +115,7 @@ test('ein untergeschobener Platzhalter wird nicht eingefügt', async () => {
         _csrf: csrfToken,
         art: 'dm',
         text: 'Hallo ',
-        platzhalterEinfuegen: '{gibtesnicht}',
+        platzhalterEinfuegen: 'text|{gibtesnicht}',
       })
     ).text();
 

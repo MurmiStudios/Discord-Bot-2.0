@@ -511,8 +511,11 @@ p { max-width: 68ch; }
   font-weight: 600;
 }
 
-.embedfeld { display: flex; flex-wrap: wrap; gap: 8px; }
-.embedfeld input { flex: 1 1 180px; min-width: 0; }
+.embedfeld { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
+/* Jedes Eingabefeld trägt seine Variablenreihe direkt unter sich — dieselbe
+   Anordnung wie beim Nachrichtentext, nur kleiner. */
+.embedfeld-teil { flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.embedfeld input { width: 100%; min-width: 0; }
 .embedfeld input,
 .embedkasten input[type="text"],
 .embedkasten textarea {
@@ -557,7 +560,7 @@ p { max-width: 68ch; }
 
 @media (max-width: 900px) {
   .knopf-leise { min-height: 44px; }
-  .embedfeld input { flex: 1 0 100%; }
+  .embedfeld-teil { flex: 1 0 100%; }
 }
 
 /* ── Vorschau in Discord-Optik ────────────────────────────────────── */
@@ -848,18 +851,21 @@ p { max-width: 68ch; }
   .kanal-grund { margin-left: 0; white-space: normal; }
 }
 
-.platzhalter-ziel {
-  padding: 5px 8px;
-  border: 1px solid var(--linie);
-  border-radius: 8px;
-  background: var(--flaeche);
-  color: var(--tinte);
-  font: inherit;
-  font-size: .82rem;
-  max-width: 260px;
+/* Die kleine Reihe steht unter jedem Feld des Embeds. Sie muss ruhig bleiben:
+   Bei sechs Feldern stehen sechs davon auf der Seite, und keine davon ist der
+   Inhalt — sie sind Werkzeug. */
+.platzhalterreihe-klein { gap: 4px; margin-top: 2px; }
+.platzhalterreihe-klein .platzhalter-titel { font-size: .74rem; }
+.platzhalterreihe-klein .platzhalter-knopf {
+  padding: 3px 8px;
+  font-size: .76rem;
+  border-color: var(--linie-zart);
+  color: var(--tinte-leise);
+  opacity: .75;
 }
+.platzhalterreihe-klein .platzhalter-knopf:hover { opacity: 1; }
 
 @media (max-width: 900px) {
-  .platzhalter-ziel { min-height: 44px; flex: 1 0 100%; max-width: none; }
   .platzhalterreihe .platzhalter-titel { flex: 1 0 100%; }
+  .platzhalterreihe-klein .platzhalter-knopf { min-height: 36px; }
 }

@@ -28,66 +28,98 @@ const MIT_EMBED = [
   ['embedFusszeile', 'Fuss'], ['embedAutor', 'Autor'],
 ];
 
-test('die Knopfreihe hat eine Zielwahl, damit der Platzhalter weiss, wohin', async () => {
+async function seiteMitEmbed(u, cookie, csrfToken, extra = []) {
+  return (await sende(u.basis, cookie, [['_csrf', csrfToken], ...MIT_EMBED, ...extra, ['suchen', 'ja']])).text();
+}
+
+test('unter dem Textfeld steht eine Reihe mit allen Variablen', async () => {
   await mitApp(async (u) => {
     const { cookie } = alsOwner(u);
 
     const text = await (await fetch(`${u.basis}/nachricht`, { headers: { cookie } })).text();
 
-    assert.match(text, /name="platzhalterZiel"/);
-    assert.match(text, /value="text"/);
-  });
-});
-
-test('ohne Embed bietet die Zielwahl nur den Text an', async () => {
-  await mitApp(async (u) => {
-    const { cookie } = alsOwner(u);
-
-    const text = await (await fetch(`${u.basis}/nachricht`, { headers: { cookie } })).text();
-    const wahl = text.slice(text.indexOf('name="platzhalterZiel"'), text.indexOf('</select>'));
-
-    assert.ok(!wahl.includes('embedBeschreibung'), 'Ein Embed-Ziel steht zur Wahl, obwohl es keins gibt');
-  });
-});
-
-test('mit Embed stehen alle seine Textteile zur Wahl', async () => {
-  await mitApp(async (u) => {
-    const { cookie, csrfToken } = alsOwner(u);
-
-    const text = await (
-      await sende(u.basis, cookie, [['_csrf', csrfToken], ...MIT_EMBED, ['suchen', 'ja']])
-    ).text();
-    const wahl = text.slice(text.indexOf('name="platzhalterZiel"'), text.indexOf('</select>'));
-
-    for (const ziel of ['embedTitel', 'embedBeschreibung', 'embedFusszeile', 'embedAutor']) {
-      assert.ok(wahl.includes(`value="${ziel}"`), `${ziel} fehlt in der Zielwahl`);
+    for (const variable of ['{user}', '{tag}', '{guild}', '{role}', '{count}']) {
+      assert.ok(text.includes(`value="text|${variable}"`), `${variable} fehlt unter dem Textfeld`);
     }
   });
 });
 
-test('der Platzhalter landet im gewählten Embed-Teil, nicht im Text', async () => {
+test('es gibt keine Zielwahl mehr — jede Reihe kennt ihr eigenes Feld', async () => {
+  await mitApp(async (u) => {
+    const { cookie } = alsOwner(u);
+
+    const text = await (await fetch(`${u.basis}/nachricht`, { headers: { cookie } })).text();
+
+    assert.ok(!text.includes('name="platzhalterZiel"'), 'Die Zielwahl steht noch da');
+  });
+});
+
+test('jedes Textfeld des Embeds hat seine eigene Reihe', async () => {
+  await mitApp(async (u) => {
+    const { cookie, csrfToken } = alsOwner(u);
+
+    const text = await seiteMitEmbed(u, cookie, csrfToken);
+
+    for (const ziel of ['embedTitel', 'embedBeschreibung', 'embedFusszeile', 'embedAutor']) {
+      assert.ok(text.includes(`value="${ziel}|{user}"`), `${ziel} hat keine eigene Reihe`);
+    }
+  });
+});
+
+test('die Reihe steht direkt hinter ihrem Feld, nicht irgendwo auf der Seite', async () => {
+  await mitApp(async (u) => {
+    const { cookie, csrfToken } = alsOwner(u);
+    const text = await seiteMitEmbed(u, cookie, csrfToken);
+
+    const feld = text.indexOf('name="embedBeschreibung"');
+    const reihe = text.indexOf('value="embedBeschreibung|{user}"');
+    const naechstesFeld = text.indexOf('name="embedFeldName"', feld);
+
+    assert.ok(reihe > feld, 'Die Reihe steht vor ihrem Feld');
+    assert.ok(
+      naechstesFeld === -1 || reihe < naechstesFeld,
+      'Die Reihe steht hinter einem anderen Feld',
+    );
+  });
+});
+
+test('auch Name und Wert eines Embed-Feldes haben je eine Reihe', async () => {
+  await mitApp(async (u) => {
+    const { cookie, csrfToken } = alsOwner(u);
+
+    const text = await seiteMitEmbed(u, cookie, csrfToken, [
+      ['embedFeldName', 'Regeln'], ['embedFeldWert', 'siehe #regeln'],
+    ]);
+
+    assert.ok(text.includes('value="embedFeldName:0|{user}"'));
+    assert.ok(text.includes('value="embedFeldWert:0|{user}"'));
+  });
+});
+
+test('ein Klick fügt genau in das Feld ein, unter dem die Reihe steht', async () => {
   await mitApp(async (u) => {
     const { cookie, csrfToken } = alsOwner(u);
 
     const text = await (
       await sende(u.basis, cookie, [
         ['_csrf', csrfToken], ...MIT_EMBED,
-        ['platzhalterZiel', 'embedBeschreibung'], ['platzhalterEinfuegen', '{user}'],
+        ['platzhalterEinfuegen', 'embedBeschreibung|{user}'],
       ])
     ).text();
 
     assert.match(text, /Beschreibung\{user\}<\/textarea>/);
     assert.ok(!text.includes('Hallo{user}'), 'Der Platzhalter landete zusätzlich im Text');
+    assert.ok(!text.includes('value="Titel{user}"'), 'Der Platzhalter landete im Titel');
   });
 });
 
-test('der Text bleibt das Ziel, wenn nichts anderes gewählt ist', async () => {
+test('die Reihe unter dem Nachrichtentext trifft den Nachrichtentext', async () => {
   await mitApp(async (u) => {
     const { cookie, csrfToken } = alsOwner(u);
 
     const text = await (
       await sende(u.basis, cookie, [
-        ['_csrf', csrfToken], ...MIT_EMBED, ['platzhalterEinfuegen', '{guild}'],
+        ['_csrf', csrfToken], ...MIT_EMBED, ['platzhalterEinfuegen', 'text|{guild}'],
       ])
     ).text();
 
@@ -95,7 +127,7 @@ test('der Text bleibt das Ziel, wenn nichts anderes gewählt ist', async () => {
   });
 });
 
-test('auch ein einzelnes Embed-Feld lässt sich als Ziel wählen', async () => {
+test('ein einzelnes Embed-Feld wird nach seinem Index getroffen', async () => {
   await mitApp(async (u) => {
     const { cookie, csrfToken } = alsOwner(u);
 
@@ -104,7 +136,7 @@ test('auch ein einzelnes Embed-Feld lässt sich als Ziel wählen', async () => {
         ['_csrf', csrfToken], ...MIT_EMBED,
         ['embedFeldName', 'Rolle'], ['embedFeldWert', 'noch leer'],
         ['embedFeldName', 'Zweites'], ['embedFeldWert', 'auch leer'],
-        ['platzhalterZiel', 'embedFeldWert:1'], ['platzhalterEinfuegen', '{role}'],
+        ['platzhalterEinfuegen', 'embedFeldWert:1|{role}'],
       ])
     ).text();
 
@@ -119,28 +151,50 @@ test('ein erfundenes Ziel wird verworfen, statt irgendwohin zu schreiben', async
 
     const text = await (
       await sende(u.basis, cookie, [
-        ['_csrf', csrfToken], ...MIT_EMBED,
-        ['platzhalterZiel', 'embedFeldWert:99'], ['platzhalterEinfuegen', '{user}'],
+        ['_csrf', csrfToken], ...MIT_EMBED, ['platzhalterEinfuegen', 'embedFeldWert:99|{user}'],
       ])
     ).text();
 
-    assert.ok(!text.includes('{user}</textarea>'), 'Es wurde in den Text ausgewichen');
-    assert.ok(!text.includes('Titel{user}'), 'Es wurde in den Titel ausgewichen');
+    assert.ok(!text.includes('Hallo{user}'), 'Es wurde in den Text ausgewichen');
+    assert.ok(!text.includes('value="Titel{user}"'), 'Es wurde in den Titel ausgewichen');
   });
 });
 
-test('das gewählte Ziel bleibt nach dem Einfügen stehen', async () => {
+test('eine erfundene Variable wird verworfen', async () => {
   await mitApp(async (u) => {
     const { cookie, csrfToken } = alsOwner(u);
 
     const text = await (
       await sende(u.basis, cookie, [
-        ['_csrf', csrfToken], ...MIT_EMBED,
-        ['platzhalterZiel', 'embedTitel'], ['platzhalterEinfuegen', '{guild}'],
+        ['_csrf', csrfToken], ...MIT_EMBED, ['platzhalterEinfuegen', 'text|{gibtesnicht}'],
       ])
     ).text();
 
-    assert.match(text, /value="embedTitel"\s+selected/);
+    assert.ok(!text.includes('{gibtesnicht}'), 'Eine erfundene Variable wurde übernommen');
+  });
+});
+
+test('ein Wert ohne Trenner richtet keinen Schaden an', async () => {
+  await mitApp(async (u) => {
+    const { cookie, csrfToken } = alsOwner(u);
+
+    const antwort = await sende(u.basis, cookie, [
+      ['_csrf', csrfToken], ...MIT_EMBED, ['platzhalterEinfuegen', 'kaputt'],
+    ]);
+
+    assert.equal(antwort.status, 200);
+    assert.ok(!(await antwort.text()).includes('kaputt<'), 'Der Rohwert wurde eingefügt');
+  });
+});
+
+test('ohne Embed gibt es nur die Reihe unter dem Nachrichtentext', async () => {
+  await mitApp(async (u) => {
+    const { cookie } = alsOwner(u);
+
+    const text = await (await fetch(`${u.basis}/nachricht`, { headers: { cookie } })).text();
+
+    assert.ok(text.includes('value="text|{user}"'));
+    assert.ok(!text.includes('value="embedBeschreibung|{user}"'), 'Eine Embed-Reihe ohne Embed');
   });
 });
 

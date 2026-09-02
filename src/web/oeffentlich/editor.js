@@ -47,47 +47,36 @@
     zaehleEmbed();
   }
 
-  // ── Platzhalter einfügen ───────────────────────────────────────────
+  // ── Variablen einfügen ─────────────────────────────────────────────
   //
-  // Ohne JavaScript sagt die Zielwahl, in welches Feld der Platzhalter soll.
-  // Mit JavaScript stellt sie sich auf das zuletzt benutzte Feld — dieselbe
-  // Angabe, nur bequemer erhoben. Eingefügt wird dann an der Schreibmarke
-  // statt am Ende.
-  const zielwahl = document.getElementById('platzhalterZiel');
-  const zielfelder = document.querySelectorAll('[data-platzhalter-ziel]');
+  // Jeder Knopf trägt sein Ziel im eigenen Wert (`embedTitel|{user}`). Ohne
+  // JavaScript erledigt der Server das Anhängen; hier kommt nur dazu, dass die
+  // Variable an der Schreibmarke landet statt am Feldende.
+  const feldZu = (ziel) => document.querySelector(`[data-platzhalter-ziel="${CSS.escape(ziel)}"]`);
 
-  const feldZu = (wert) =>
-    document.querySelector(`[data-platzhalter-ziel="${CSS.escape(wert)}"]`);
-
-  for (const feld of zielfelder) {
-    feld.addEventListener('focus', () => {
-      if (!zielwahl) return;
-      const wert = feld.getAttribute('data-platzhalter-ziel');
-      // Nur setzen, wenn es die Option auch gibt — sonst stünde dort nichts.
-      if ([...zielwahl.options].some((o) => o.value === wert)) zielwahl.value = wert;
-    });
-  }
-
-  for (const knopf of zielfelder.length > 0 ? document.querySelectorAll('.platzhalter-knopf') : []) {
+  for (const knopf of document.querySelectorAll('.platzhalter-knopf')) {
     knopf.addEventListener('click', (ereignis) => {
-      const ziel = zielwahl ? feldZu(zielwahl.value) : document.getElementById('text');
-      // Kein Ziel gefunden: den Knopf normal absenden lassen, dann erledigt es
+      const trenner = knopf.value.indexOf('|');
+      if (trenner < 1) return;
+
+      const ziel = feldZu(knopf.value.slice(0, trenner));
+      const variable = knopf.value.slice(trenner + 1);
+
+      // Kein Feld gefunden: den Knopf normal absenden lassen, dann erledigt es
       // der Server.
       if (!ziel) return;
 
       ereignis.preventDefault();
 
-      const platzhalter = knopf.value;
       const start = ziel.selectionStart ?? ziel.value.length;
       const ende = ziel.selectionEnd ?? ziel.value.length;
+      ziel.value = ziel.value.slice(0, start) + variable + ziel.value.slice(ende);
 
-      ziel.value = ziel.value.slice(0, start) + platzhalter + ziel.value.slice(ende);
-
-      // Schreibmarke hinter den eingefügten Platzhalter setzen, damit man
-      // einfach weitertippen kann.
-      const neu = start + platzhalter.length;
+      // Schreibmarke hinter die eingefügte Variable setzen, damit man einfach
+      // weitertippen kann.
+      const neuePosition = start + variable.length;
       ziel.focus();
-      ziel.setSelectionRange?.(neu, neu);
+      ziel.setSelectionRange?.(neuePosition, neuePosition);
       ziel.dispatchEvent(new Event('input', { bubbles: true }));
     });
   }

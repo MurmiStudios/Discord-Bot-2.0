@@ -1,5 +1,6 @@
 import { html } from './html.mjs';
 import { GRENZE, embedZeichen } from '../../nachricht/modell.mjs';
+import { platzhalterreihe } from './platzhalterreihe.mjs';
 
 /**
  * Der Embed-Editor.
@@ -30,6 +31,7 @@ export function embedEditor({ embed, fehlerZu }) {
         <input type="text" id="embedTitel" name="embedTitel" value="${embed.titel}"
                data-embed-teil data-platzhalter-ziel="embedTitel">
         ${fehlerZu('embedTitel')}
+        ${platzhalterreihe('embedTitel')}
       </div>
 
       <div class="feld">
@@ -37,6 +39,7 @@ export function embedEditor({ embed, fehlerZu }) {
         <textarea id="embedBeschreibung" name="embedBeschreibung" rows="5"
                   data-embed-teil data-platzhalter-ziel="embedBeschreibung">${embed.beschreibung}</textarea>
         ${fehlerZu('embedBeschreibung')}
+        ${platzhalterreihe('embedBeschreibung')}
       </div>
 
       <div class="embedfelder">
@@ -45,16 +48,22 @@ export function embedEditor({ embed, fehlerZu }) {
         ${embed.felder.map(
           (feld, i) => html`
             <div class="embedfeld">
-              <input
-                type="text" name="embedFeldName" value="${feld.name}"
-                aria-label="Name von Feld ${i + 1}" placeholder="Name"
-                data-embed-teil data-platzhalter-ziel="embedFeldName:${i}"
-              >
-              <input
-                type="text" name="embedFeldWert" value="${feld.wert}"
-                aria-label="Wert von Feld ${i + 1}" placeholder="Wert"
-                data-embed-teil data-platzhalter-ziel="embedFeldWert:${i}"
-              >
+              <div class="embedfeld-teil">
+                <input
+                  type="text" name="embedFeldName" value="${feld.name}"
+                  aria-label="Name von Feld ${i + 1}" placeholder="Name"
+                  data-embed-teil data-platzhalter-ziel="embedFeldName:${i}"
+                >
+                ${platzhalterreihe(`embedFeldName:${i}`)}
+              </div>
+              <div class="embedfeld-teil">
+                <input
+                  type="text" name="embedFeldWert" value="${feld.wert}"
+                  aria-label="Wert von Feld ${i + 1}" placeholder="Wert"
+                  data-embed-teil data-platzhalter-ziel="embedFeldWert:${i}"
+                >
+                ${platzhalterreihe(`embedFeldWert:${i}`)}
+              </div>
               <button type="submit" name="feldEntfernen" value="${i}" class="knopf-leise"
                       title="Feld ${i + 1} entfernen">Entfernen</button>
             </div>
@@ -71,12 +80,14 @@ export function embedEditor({ embed, fehlerZu }) {
           <input type="text" id="embedFusszeile" name="embedFusszeile" value="${embed.fusszeile}"
                  data-embed-teil data-platzhalter-ziel="embedFusszeile">
           ${fehlerZu('embedFusszeile')}
+          ${platzhalterreihe('embedFusszeile')}
         </div>
         <div class="feld">
           <label for="embedAutor">Autor</label>
           <input type="text" id="embedAutor" name="embedAutor" value="${embed.autor}"
                  data-embed-teil data-platzhalter-ziel="embedAutor">
           ${fehlerZu('embedAutor')}
+          ${platzhalterreihe('embedAutor')}
         </div>
       </div>
 

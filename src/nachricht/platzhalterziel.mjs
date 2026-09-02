@@ -1,43 +1,33 @@
 /**
  * Wohin ein Platzhalter eingefügt wird.
  *
- * Ohne JavaScript kann die Seite nicht wissen, in welchem Feld die Schreibmarke
- * gerade steht. Deshalb sagt eine Zielwahl neben der Knopfreihe es ausdrücklich.
- * Mit JavaScript stellt `editor.js` sie automatisch auf das zuletzt benutzte
- * Feld — dieselbe Angabe, nur bequemer erhoben.
- *
- * Die Namen der Embed-Felder tragen ihren Index (`embedFeldWert:1`), weil es
- * mehrere davon gibt.
+ * Jede Variablen-Reihe steht unter ihrem Feld und trägt dessen Namen im Wert
+ * ihrer Knöpfe. Die Namen der Embed-Felder tragen zusätzlich ihren Index
+ * (`embedFeldWert:1`), weil es mehrere davon gibt.
  */
 
 const EINFACHE_ZIELE = new Map([
-  ['text', { name: 'Text', ausEmbed: false }],
-  ['embedTitel', { name: 'Embed: Titel', ausEmbed: true }],
-  ['embedBeschreibung', { name: 'Embed: Beschreibung', ausEmbed: true }],
-  ['embedFusszeile', { name: 'Embed: Fußzeile', ausEmbed: true }],
-  ['embedAutor', { name: 'Embed: Autor', ausEmbed: true }],
+  ['text', { ausEmbed: false }],
+  ['embedTitel', { ausEmbed: true }],
+  ['embedBeschreibung', { ausEmbed: true }],
+  ['embedFusszeile', { ausEmbed: true }],
+  ['embedAutor', { ausEmbed: true }],
 ]);
 
 const FELD_ZIEL = /^(embedFeldName|embedFeldWert):(\d+)$/;
 
-/** Die Ziele, die es bei diesem Entwurf tatsächlich gibt. */
-export function moeglicheZiele(entwurf) {
-  const ziele = [];
-
-  for (const [wert, eintrag] of EINFACHE_ZIELE) {
-    if (eintrag.ausEmbed && !entwurf.embedAn) continue;
-    ziele.push({ wert, name: eintrag.name });
-  }
-
-  if (entwurf.embedAn) {
-    entwurf.embed.felder.forEach((feld, i) => {
-      const bezeichnung = feld.name.trim() === '' ? `Feld ${i + 1}` : feld.name.trim();
-      ziele.push({ wert: `embedFeldName:${i}`, name: `Embed: ${bezeichnung} — Name` });
-      ziele.push({ wert: `embedFeldWert:${i}`, name: `Embed: ${bezeichnung} — Wert` });
-    });
-  }
-
-  return ziele;
+/**
+ * Zerlegt den Wert eines Variablen-Knopfes: `embedTitel|{user}`.
+ *
+ * Ziel und Variable stecken im selben Wert, weil der Browser beim Absenden nur
+ * den geklickten Knopf mitschickt. Damit braucht die Seite keinen Zustand
+ * darüber, welches Feld gerade gemeint ist.
+ */
+export function zerlegeKnopfwert(wert) {
+  const roh = String(wert ?? '');
+  const trenner = roh.indexOf('|');
+  if (trenner < 1) return null;
+  return { ziel: roh.slice(0, trenner), platzhalter: roh.slice(trenner + 1) };
 }
 
 /**
