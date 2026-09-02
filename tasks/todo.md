@@ -359,7 +359,7 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/web/seiten/vorlagen.mjs`, `src/daten/bildvorlagen.mjs`,
     `tests/integration/vorlagen.test.mjs`
 
-- [ ] **32 · Ziehen in der Vorschau** — S · hängt ab von: 31
+- [x] **32 · Ziehen in der Vorschau** — S · hängt ab von: 31
   - **Abnahme:** Profilbild und Textzeilen lassen sich in der Vorschau verschieben;
     die Zahlenfelder aktualisieren sich mit.
   - **Abnahme:** Ohne JavaScript bleiben die Zahlenfelder der vollwertige Eingabeweg.

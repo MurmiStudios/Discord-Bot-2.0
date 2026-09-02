@@ -30,6 +30,10 @@ import {
  * Formular überein, und es gibt keinen Zwischenspeicher, der veralten kann.
  * `vorlagen.js` benutzt zusätzlich den POST-Weg, um beim Tippen nachzuziehen.
  *
+ * Verschieben in der Vorschau (`ziehen.js`) ist eine Zugabe, kein Eingabeweg:
+ * Die Zahlenfelder bleiben vollwertig, und ohne JavaScript entstehen die Griffe
+ * gar nicht erst.
+ *
  * Das Namensfeld trägt bewusst kein `required`: Die Browserprüfung blockiert
  * nicht nur „Speichern", sondern jeden Absende-Knopf des Formulars. Eine Zeile
  * hinzufügen oder ein Hintergrundbild hochladen ginge dann erst, nachdem ein
@@ -311,9 +315,15 @@ function editorSeite({ req, bot, entwurf, vorschau, fehler = [], hinweis = null 
             </button>
           </div>
           <div class="bildvorschau">
-            <img id="vorlagenvorschau" src="${vorschau}" alt="Vorschau der Bildvorlage"
-                 width="${masse.breite}" height="${masse.hoehe}">
+            <div class="ziehflaeche" data-ziehflaeche>
+              <img id="vorlagenvorschau" src="${vorschau}" alt="Vorschau der Bildvorlage"
+                   width="${masse.breite}" height="${masse.hoehe}">
+            </div>
           </div>
+          <p class="hinweis" data-nur-mit-js>
+            Profilbild und Textzeilen lassen sich in der Vorschau verschieben. Mit den
+            Pfeiltasten geht es Pixel für Pixel, mit Umschalt in Zehnerschritten.
+          </p>
         </section>
 
         <div class="editorknoepfe">
@@ -322,7 +332,7 @@ function editorSeite({ req, bot, entwurf, vorschau, fehler = [], hinweis = null 
         </div>
       </form>
     `,
-    skripte: ['/editor.js', '/vorlagen.js'],
+    skripte: ['/editor.js', '/vorlagen.js', '/ziehen.js'],
   });
 }
 

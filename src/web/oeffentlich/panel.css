@@ -682,6 +682,9 @@ p { max-width: 68ch; }
 
 /* editor.js blendet den Knopf aus, sobald es laeuft — ohne JavaScript bleibt er. */
 .js-an [data-nur-ohne-js] { display: none; }
+/* Umgekehrt: Ein Hinweis, der ohne JavaScript falsch waere, steht dann auch nicht da. */
+[data-nur-mit-js] { display: none; }
+.js-an [data-nur-mit-js] { display: block; }
 
 /* ── Empfängerauswahl ─────────────────────────────────────────────── */
 
@@ -1067,6 +1070,55 @@ p { max-width: 68ch; }
   border-radius: 6px;
   box-shadow: var(--schatten);
 }
+
+/* Traegt die Ziehgriffe. Sie muss genau so gross sein wie das Bild, sonst
+   liegen die Griffe daneben — daher line-height 0 und inline-block. */
+.ziehflaeche {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  line-height: 0;
+}
+
+/* Die Griffe entstehen erst durch ziehen.js; ihre Lage setzt es ueber die
+   CSSOM, nicht ueber ein style-Attribut im HTML. */
+.ziehgriff {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: inherit;
+  font-size: .75rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: grab;
+  /* Sonst scrollt die Seite mit, statt dass der Griff dem Finger folgt. */
+  touch-action: none;
+}
+.ziehgriff-aktiv { cursor: grabbing; }
+
+.ziehgriff-zeile {
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--flaeche);
+  border-radius: 999px;
+  background: var(--akzent);
+  color: var(--akzent-tinte);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .45);
+}
+
+.ziehgriff-avatar {
+  border: 2px dashed var(--akzent);
+  border-radius: 8px;
+  background: transparent;
+  color: transparent;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .35);
+}
+.ziehgriff-avatar:hover,
+.ziehgriff-avatar:focus-visible { background: rgba(75, 87, 232, .18); }
 
 .editorknoepfe {
   display: flex;
