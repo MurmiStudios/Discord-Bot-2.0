@@ -340,7 +340,7 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/bilder/renderer.mjs`, `src/bilder/schrift.mjs`,
     `assets/fonts/`, `tests/integration/renderer.test.mjs`
 
-- [ ] **30 · Upload-Prüfung** — S · hängt ab von: 29
+- [x] **30 · Upload-Prüfung** — S · hängt ab von: 29
   - **Abnahme:** Nur PNG, JPEG, WebP — geprüft **am Inhalt**, nicht an der Endung.
     `UPLOAD_MAX_BYTES` und `UPLOAD_MAX_EDGE` werden erzwungen, bevor geschrieben wird.
   - **Abnahme:** Dateiname wird vom Server vergeben; kein Ausbruch aus
