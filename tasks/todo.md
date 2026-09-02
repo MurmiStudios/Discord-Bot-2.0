@@ -327,7 +327,7 @@ Grundlage: `docs/SPEC.md`.
 
 ## Phase 5 — Bildvorlagen
 
-- [ ] **29 · Renderer** — M · hängt ab von: 3
+- [x] **29 · Renderer** — M · hängt ab von: 3
   - **Abnahme:** `@napi-rs/canvas` mit der mitgelieferten Schrift; Formate breit,
     quadratisch, Banner, eigene Grösse mit korrektem Seitenverhältnis.
   - **Abnahme:** Hintergrundbild oder Grundfarbe, Bildanpassung, Abdunklung;
