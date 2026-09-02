@@ -13,6 +13,7 @@ import { erstelleClientDoppel } from './discord-doppel.mjs';
 import { erstelleBot } from '../../src/discord/bot.mjs';
 import { erstelleGildenAnsicht } from '../../src/discord/gilde.mjs';
 import { erstelleVersandAblage } from '../../src/daten/versand.mjs';
+import { erstelleBildvorlagen } from '../../src/daten/bildvorlagen.mjs';
 import { erstelleVersender } from '../../src/discord/versender.mjs';
 import { erstelleWarteschlange } from '../../src/versand/warteschlange.mjs';
 import { erstelleProtokoll } from '../../src/protokoll/protokoll.mjs';
@@ -82,6 +83,8 @@ export async function mitApp(
       rollen === undefined ? gildenAnsicht : { rollenVon: (_guildId, userId) => rollen[userId] };
 
     const versandAblage = erstelleVersandAblage(db);
+    const bildvorlagen = erstelleBildvorlagen(db);
+    const bilderVerzeichnis = join(dir, 'bilder');
     const versender = erstelleVersender({ bot, konfig: vollKonfig });
     const warteschlange = erstelleWarteschlange({
       ablage: versandAblage,
@@ -97,6 +100,7 @@ export async function mitApp(
     const app = erstelleApp({
       konfig: vollKonfig, db, gilden, sitzungen, oauth, logger, zugriff,
       mitgliedschaft, bot, gildenAnsicht, warteschlange, versandAblage, versender,
+      bildvorlagen, bilderVerzeichnis,
     });
     const server = app.listen(0, '127.0.0.1');
     await new Promise((fertig, fehler) => {
@@ -109,6 +113,7 @@ export async function mitApp(
       return await fn({
         app, basis, db, gilden, sitzungen, zugriff, konfig: vollKonfig, doppel,
         logzeilen: zeilen, bot, gildenAnsicht, doppelServer, versandAblage,
+        bildvorlagen, bilderVerzeichnis,
         warteAufVersand: () => warteschlange.letzterLauf(),
       });
     } finally {

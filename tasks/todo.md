@@ -349,7 +349,7 @@ Grundlage: `docs/SPEC.md`.
     Dateiname mit `../` und mit Null-Byte.
   - **Dateien:** `src/bilder/upload.mjs`, `tests/integration/upload.test.mjs`
 
-- [ ] **31 · Seite /vorlagen mit serverseitiger Vorschau** — M · hängt ab von: 30, 16
+- [x] **31 · Seite /vorlagen mit serverseitiger Vorschau** — M · hängt ab von: 30, 16
   - **Abnahme:** Editor für alle Einstellungen aus Schritt 29; die Vorschau wird
     vom Server mit demselben Renderer erzeugt, der später die echten Bilder baut.
   - **Abnahme:** 60 Vorschau-Anfragen je Minute. Anlegen, bearbeiten, löschen

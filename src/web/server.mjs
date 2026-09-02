@@ -3,12 +3,14 @@ import { registriereAnmeldung, sitzungsMiddleware } from './seiten/anmeldung.mjs
 import { registriereSuche } from './seiten/suche.mjs';
 import { registriereNachricht, erstellePruefung } from './seiten/nachricht.mjs';
 import { registriereVersand } from './seiten/versand.mjs';
+import { registriereVorlagen } from './seiten/vorlagen.mjs';
 import { stufenMiddleware, verlangt } from './mw/verlangt.mjs';
 import { csrfSchutz } from '../auth/csrf.mjs';
 import { seite } from './html/layout.mjs';
 import { html } from './html/html.mjs';
 import { sicherheitsKoepfe, allgemeineGrenze, anmeldeGrenze } from './mw/sicherheit.mjs';
 import { registriereStatisch } from './statisch.mjs';
+import { hochladen } from './mw/hochladen.mjs';
 import { STUFE } from '../auth/rechte.mjs';
 
 /**
@@ -17,7 +19,7 @@ import { STUFE } from '../auth/rechte.mjs';
  */
 export function erstelleApp({
   konfig, db, gilden, sitzungen, oauth, logger, zugriff, mitgliedschaft, gildenAnsicht,
-  warteschlange, versandAblage, versender,
+  warteschlange, versandAblage, versender, bildvorlagen, bilderVerzeichnis,
   bot = { status: () => ({ verbunden: false, grund: 'Der Bot ist nicht eingerichtet.' }) },
 }) {
   const app = express();
@@ -40,6 +42,10 @@ export function erstelleApp({
   app.use(['/login', '/auth'], anmeldeGrenze());
 
   app.use(express.urlencoded({ extended: false, limit: '1mb' }));
+  // Formulare mit Dateianhang. Steht hier und nicht an einzelnen Routen, weil
+  // der CSRF-Schutz sein Token aus dem Koerper liest — der muss vorher gelesen
+  // sein. Ein Formular ohne Anhang geht unberuehrt durch.
+  app.use(hochladen({ maxBytes: konfig.uploadMaxBytes }));
   app.use(sitzungsMiddleware(sitzungen));
   app.use(stufenMiddleware({ konfig, zugriff, mitgliedschaft }));
   app.use(csrfSchutz);
@@ -47,6 +53,7 @@ export function erstelleApp({
   registriereAnmeldung(app, { konfig, db, gilden, sitzungen, oauth, logger });
   registriereSuche(app, { bot });
   registriereNachricht(app, { bot, konfig, gildenAnsicht });
+  registriereVorlagen(app, { bot, konfig, bildvorlagen, bilderVerzeichnis });
   if (warteschlange && versandAblage && versender) {
     registriereVersand(app, {
       bot, konfig, gildenAnsicht, warteschlange, versandAblage, versender,

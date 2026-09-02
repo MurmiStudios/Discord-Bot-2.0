@@ -9,6 +9,7 @@ import { erstelleOauth } from './auth/oauth.mjs';
 import { erstelleBot } from './discord/bot.mjs';
 import { erstelleGildenAnsicht } from './discord/gilde.mjs';
 import { erstelleVersandAblage } from './daten/versand.mjs';
+import { erstelleBildvorlagen } from './daten/bildvorlagen.mjs';
 import { erstelleVersender } from './discord/versender.mjs';
 import { erstelleWarteschlange } from './versand/warteschlange.mjs';
 import { erstelleProtokoll } from './protokoll/protokoll.mjs';
@@ -62,6 +63,10 @@ const protokoll = erstelleProtokoll(db, {
   geheimnisse: [konfig.token, konfig.clientSecret, konfig.sessionSecret],
 });
 const versandAblage = erstelleVersandAblage(db);
+const bildvorlagen = erstelleBildvorlagen(db);
+// Hochgeladene Hintergrundbilder liegen neben der Datenbank — beides gehoert
+// zum Bestand, den eine Sicherung mitnehmen muss.
+const bilderVerzeichnis = new URL('../speicher/bilder/', import.meta.url).pathname;
 const versender = erstelleVersender({ bot, konfig });
 const warteschlange = erstelleWarteschlange({
   ablage: versandAblage,
@@ -78,7 +83,7 @@ warteschlange.brichLaufendeAb(konfig.guildId);
 erstelleApp({
   konfig, db, gilden, sitzungen, oauth, logger, zugriff,
   bot, gildenAnsicht, mitgliedschaft: gildenAnsicht,
-  warteschlange, versandAblage, versender,
+  warteschlange, versandAblage, versender, bildvorlagen, bilderVerzeichnis,
 })
   .listen(konfig.port, () => {
     logger.info('start', 'Panel läuft', {

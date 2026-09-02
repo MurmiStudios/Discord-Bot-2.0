@@ -941,3 +941,144 @@ p { max-width: 68ch; }
 .fehlerliste li + li { margin-top: 6px; }
 .fehler-name { font-weight: 600; }
 .fehler-grund { color: var(--tinte-leise); font-size: .9rem; }
+
+/* ── Bildvorlagen ─────────────────────────────────────────────────── */
+
+.leer {
+  padding: 14px 18px;
+  border: 1px dashed var(--linie);
+  border-radius: var(--radius);
+  color: var(--tinte-leise);
+}
+
+.vorlagenliste { margin: 22px 0 0; padding: 0; list-style: none; max-width: 720px; }
+.vorlagenliste li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 16px;
+  border: 1px solid var(--linie);
+  border-radius: 8px;
+  background: var(--flaeche);
+}
+.vorlagenliste li + li { margin-top: 6px; }
+
+/* Name und Angaben umbrechen miteinander; der Loeschverweis bleibt aussen und
+   rutscht nicht in eine zweite Zeile, sobald der Name laenger wird. */
+.vorlagentext { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; min-width: 0; }
+.vorlagenname { font-weight: 600; }
+.vorlagenmasse { color: var(--tinte-leise); font-size: .88rem; }
+.vorlagenliste li > .knopf-leise { flex: none; }
+
+/* Der Editor ist breiter als der Nachrichteneditor: Die Zahlenfelder einer
+   Zeile sollen nebeneinander passen, sonst wird jede Zeile ein Turm. */
+.vorlageneditor { max-width: 900px; }
+
+.zeilenwerte {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  align-items: flex-end;
+}
+
+.zahlenfeld {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: .82rem;
+  font-weight: 600;
+}
+.zahlenfeld > span { color: var(--tinte-leise); }
+.zahlenfeld input[type="number"] { width: 110px; }
+
+.vorlageneditor input[type="number"],
+.vorlageneditor select {
+  padding: 8px 10px;
+  border: 1px solid var(--linie);
+  border-radius: 8px;
+  background: var(--flaeche);
+  color: var(--tinte);
+  font: inherit;
+  font-weight: 400;
+}
+.vorlageneditor input[type="color"] {
+  width: 52px;
+  height: 38px;
+  padding: 2px;
+  border: 1px solid var(--linie);
+  border-radius: 8px;
+  background: var(--flaeche);
+}
+.vorlageneditor input[type="file"] {
+  padding: 8px 0;
+  font: inherit;
+  color: var(--tinte-leise);
+}
+
+.haken {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .88rem;
+  font-weight: 600;
+}
+
+.zeile {
+  margin: 0;
+  padding: 14px 18px 16px;
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  background: var(--flaeche);
+}
+.zeile legend {
+  padding: 0 6px;
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--tinte-leise);
+}
+.zeile + .zeile { margin-top: 12px; }
+.zeile .feld input[type="text"] { width: 100%; }
+
+.zeilenschalter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+}
+.zeilenschalter .knopf-leise { margin-left: auto; }
+
+/* Die Vorschau bekommt ein Karomuster: Ohne Hintergrundbild sieht man so, wo
+   das Bild aufhört und die Seite anfängt. */
+.bildvorschau {
+  padding: 14px;
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  background: var(--flaeche-tief);
+  overflow-x: auto;
+}
+.bildvorschau img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  box-shadow: var(--schatten);
+}
+
+.editorknoepfe {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 18px;
+  border-top: 1px solid var(--linie);
+}
+
+@media (max-width: 900px) {
+  .zahlenfeld input[type="number"] { width: 100%; min-width: 90px; }
+  .zahlenfeld { flex: 1 1 120px; }
+  .zeilenschalter .knopf-leise { margin-left: 0; }
+}

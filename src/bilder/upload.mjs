@@ -3,6 +3,13 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { loadImage } from '@napi-rs/canvas';
 
+/** Eine Grössenangabe, die auch unter einem Megabyte noch etwas aussagt. */
+export function alsGroesse(bytes) {
+  return bytes >= 1024 * 1024
+    ? `${Math.round((bytes / 1024 / 1024) * 10) / 10} MB`
+    : `${Math.round(bytes / 1024)} KB`;
+}
+
 export class UploadFehler extends Error {
   constructor(meldung) {
     super(meldung);
@@ -44,10 +51,9 @@ export async function pruefeUpload(puffer, _gelieferterName, { uploadMaxBytes, u
   }
 
   if (puffer.length > uploadMaxBytes) {
-    const grenzeMb = Math.round(uploadMaxBytes / 1024 / 1024);
     throw new UploadFehler(
-      `Das Bild ist zu gross (${Math.round(puffer.length / 1024)} KB). Erlaubt sind ${grenzeMb} MB — ` +
-        'die Grenze steht als UPLOAD_MAX_BYTES in der .env.',
+      `Das Bild ist zu gross (${alsGroesse(puffer.length)}). Erlaubt sind ` +
+        `${alsGroesse(uploadMaxBytes)} — die Grenze steht als UPLOAD_MAX_BYTES in der .env.`,
     );
   }
 
@@ -78,4 +84,24 @@ export async function pruefeUpload(puffer, _gelieferterName, { uploadMaxBytes, u
   writeFileSync(join(verzeichnis, dateiname), puffer);
 
   return { dateiname, breite: bild.width, hoehe: bild.height, bytes: puffer.length };
+}
+
+/**
+ * Ist das ein Name, den `pruefeUpload` vergeben hat?
+ *
+ * Wer eine Vorlage speichert, schickt den Namen des Hintergrundbildes als
+ * Formularfeld mit — also als etwas, das jemand ändern kann. Bevor daraus ein
+ * Dateipfad wird, muss er genau der Form entsprechen, die hier vergeben wird.
+ * Ein Name mit `..` oder einem Schrägstrich scheitert an diesem Muster; damit
+ * gibt es keinen Weg aus dem Verzeichnis heraus.
+ */
+const ABLAGENAME = /^[0-9a-f]{32}\.(png|jpg|webp)$/;
+
+export function istAblagename(name) {
+  return typeof name === 'string' && ABLAGENAME.test(name);
+}
+
+/** Der volle Pfad zu einem abgelegten Bild — oder null, wenn der Name nicht passt. */
+export function bildPfad(verzeichnis, name) {
+  return istAblagename(name) ? join(verzeichnis, name) : null;
 }

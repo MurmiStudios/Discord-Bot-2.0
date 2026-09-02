@@ -25,6 +25,8 @@ export default [
         structuredClone: 'readonly',
         queueMicrotask: 'readonly',
         AbortController: 'readonly',
+        FormData: 'readonly',
+        Blob: 'readonly',
       },
     },
     rules: {
@@ -57,6 +59,7 @@ export default [
         Event: 'readonly',
         CSS: 'readonly',
         DOMParser: 'readonly',
+        FileReader: 'readonly',
         setInterval: 'readonly',
         clearInterval: 'readonly',
         CustomEvent: 'readonly',
