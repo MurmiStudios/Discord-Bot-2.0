@@ -1,14 +1,18 @@
-# Vorab-Installation (Stand: nach Schritt 10)
+# Vorab-Installation auf Oracle Cloud (geschrieben nach Schritt 10)
 
-Diese Anleitung ist ein Zwischenstand, damit du das **Login** schon jetzt auf
+Diese Anleitung ist ein Zwischenstand, damit du das Panel schon jetzt auf
 deinem Oracle-Server ausprobieren kannst. Das bequeme `npm run setup` kommt in
 Schritt 57 — bis dahin schreibst du die `.env` einmal von Hand.
 
-**Was heute geht:** Anmelden mit Discord, Abweisung fremder Konten,
-Sicherheitsköpfe, Ratenbegrenzung, Abmelden.
-**Was heute noch nicht geht:** alles andere. Der Bot verbindet sich noch nicht
-(Schritt 11), es gibt noch keine Rollenerkennung (Schritt 12) und kein Layout
-(Schritt 15/16). Die Übersicht ist eine Platzhalterseite.
+Für Hetzner gibt es dieselbe Anleitung mit anderem Abschnitt 1 bis 3:
+[`installation-vorab-hetzner.md`](installation-vorab-hetzner.md).
+
+> **Hinweis:** Der Text unten stammt aus der Zeit nach Schritt 10, als nur das
+> Login stand. Die Schritte selbst stimmen weiterhin — es funktioniert
+> inzwischen aber deutlich mehr als hier beschrieben. Welche Seiten heute
+> gehen und welche noch 404 antworten, steht in Abschnitt 8 der
+> Hetzner-Anleitung; für den Bot brauchst du zusätzlich die Einladung und den
+> Server Members Intent aus deren Abschnitt 2.
 
 ---
 
