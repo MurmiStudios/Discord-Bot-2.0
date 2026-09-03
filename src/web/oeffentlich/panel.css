@@ -1435,3 +1435,73 @@ a.reiter-knopf { text-decoration: none; display: inline-flex; align-items: cente
 .rollenpunkt-aktiv { background: var(--gut); border-color: var(--gut); }
 .rollenpunkt-ruht { background: transparent; border-color: var(--tinte-leise); }
 .rollenpunkt-leer { background: transparent; }
+
+/* ── Rollenregeln ─────────────────────────────────────────────────── */
+
+.pillenfeld { margin: 0; padding: 0; border: 0; }
+.pillenfeld legend {
+  padding: 0;
+  margin-bottom: 8px;
+  font-size: .88rem;
+  font-weight: 600;
+}
+
+.pillen { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Echte Radios und Kontrollkästchen, nur anders angezogen: Tastatur und
+   Vorlesesoftware bekommen dadurch ihr gewohntes Verhalten geschenkt. */
+.pille {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border: 1px solid var(--linie);
+  border-radius: 999px;
+  background: var(--flaeche);
+  font-size: .9rem;
+  cursor: pointer;
+}
+.pille:hover { border-color: var(--akzent); }
+/* Der Fokusring gehört an die Pille, nicht an das kleine Kästchen darin. */
+.pille:focus-within { outline: 2px solid var(--akzent); outline-offset: 2px; }
+.pille:has(input:checked) {
+  border-color: var(--akzent);
+  background: var(--akzent-flaeche);
+  color: var(--akzent);
+  font-weight: 600;
+}
+
+.pille-gesperrt {
+  border-style: dashed;
+  color: var(--tinte-leise);
+  cursor: not-allowed;
+  background: var(--flaeche-tief);
+}
+.pille-gesperrt:hover { border-color: var(--linie); }
+
+.pillengrund {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--warn-flaeche);
+  color: var(--warn);
+  font-size: .72rem;
+}
+
+.regelsatz { margin: 0; font-size: 1rem; }
+.regelsatz-vorschau {
+  padding: 12px 16px;
+  border: 1px solid var(--linie);
+  border-left: 3px solid var(--akzent);
+  border-radius: var(--radius);
+  background: var(--flaeche);
+}
+
+.regelliste { margin: 16px 0 28px; padding: 0; list-style: none; max-width: 760px; }
+.regelkarte {
+  padding: 14px 18px;
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  background: var(--flaeche);
+}
+.regelkarte + .regelkarte { margin-top: 8px; }
+.regelkarte .ablageart { margin-left: 8px; }

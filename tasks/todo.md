@@ -478,7 +478,7 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/automatik/rollen-nachricht.mjs`, `src/discord/ereignisse.mjs`,
     `tests/einheit/rollen-ereignis.test.mjs`
 
-- [ ] **44 · Rollenregeln: Seite** — M · hängt ab von: 12, 16
+- [x] **44 · Rollenregeln: Seite** — M · hängt ab von: 12, 16
   - **Abnahme:** `/rollenregeln` mit Auslöser (Radio) und Entzug (Kontrollkästchen)
     als Pillen — technisch echte Formularelemente, damit Tastatur und Screenreader
     ohne Zutun funktionieren.
