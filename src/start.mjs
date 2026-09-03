@@ -12,6 +12,8 @@ import { erstelleVersandAblage } from './daten/versand.mjs';
 import { erstelleBildvorlagen } from './daten/bildvorlagen.mjs';
 import { erstelleNachrichtenAblage } from './daten/nachrichten.mjs';
 import { erstelleWillkommen } from './daten/willkommen.mjs';
+import { erstelleWillkommensAutomatik } from './automatik/willkommen.mjs';
+import { registriereEreignisse } from './discord/ereignisse.mjs';
 import { erstelleVersender } from './discord/versender.mjs';
 import { erstelleBildAnhang } from './versand/anhang.mjs';
 import { erstelleAvatarQuelle } from './bilder/avatar.mjs';
@@ -91,6 +93,16 @@ const warteschlange = erstelleWarteschlange({
 // Ein Vorgang, der nach einem Neustart noch „laeuft", kann es nicht — der
 // Prozess, der ihn betrieb, ist weg.
 warteschlange.brichLaufendeAb(konfig.guildId);
+
+// Die Automatiken. Sie haengen am Client und nicht am Webserver: Sie laufen
+// auch dann, wenn niemand das Panel offen hat — das ist ihr ganzer Zweck.
+const willkommensAutomatik = erstelleWillkommensAutomatik({
+  willkommen, versender, protokoll, logger, konfig,
+});
+registriereEreignisse(bot.client, {
+  konfig, logger,
+  beiBeitritt: (mitglied) => willkommensAutomatik.beiBeitritt(mitglied),
+});
 
 erstelleApp({
   konfig, db, gilden, sitzungen, oauth, logger, zugriff,

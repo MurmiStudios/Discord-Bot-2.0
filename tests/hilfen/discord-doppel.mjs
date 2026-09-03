@@ -157,5 +157,26 @@ export function erstelleClientDoppel({
     client.zerstoert = true;
   };
 
-  return { client, gilde, rollenMap, kanaeleMap, mitgliederMap, gesendet };
+  /**
+   * Loest einen Beitritt aus — so, wie discord.js ihn meldet.
+   *
+   * Das Mitglied traegt seine Gilde bei sich; genau daran erkennt der Bot,
+   * dass das Ereignis ihn etwas angeht.
+   */
+  function loeseBeitrittAus({ id, name, bot: istBot = false, rollen = [] } = {}) {
+    const mitglied = {
+      id,
+      displayName: name ?? id,
+      user: { id, username: `${name ?? id}_tag`, bot: istBot },
+      roles: { cache: new Map(rollen.map((r) => [r, rollenMap.get(r) ?? { id: r, name: r }])) },
+      guild: gilde,
+    };
+    mitgliederMap.set(id, mitglied);
+    client.emit('guildMemberAdd', mitglied);
+    return mitglied;
+  }
+
+  return {
+    client, gilde, rollenMap, kanaeleMap, mitgliederMap, gesendet, loeseBeitrittAus,
+  };
 }

@@ -442,7 +442,7 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/web/seiten/willkommen.mjs`, `src/daten/willkommen.mjs`,
     `tests/integration/willkommen.test.mjs`
 
-- [ ] **40 · Beitritt löst Willkommensnachricht aus** — S · hängt ab von: 39, 27
+- [x] **40 · Beitritt löst Willkommensnachricht aus** — S · hängt ab von: 39, 27
   - **Abnahme:** `guildMemberAdd` verschickt die aktive Willkommensnachricht als DM,
     mit erzeugtem Bild und ersetzten Platzhaltern.
   - **Abnahme:** Ist sie inaktiv, passiert nichts — aber das Protokoll hält fest, dass
