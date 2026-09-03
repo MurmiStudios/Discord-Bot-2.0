@@ -20,6 +20,7 @@ export function entwurfAus(koerper = {}) {
 
   return {
     art: koerper.art === ART.KANAL ? ART.KANAL : ART.DM,
+    name: String(koerper.name ?? ''),
     text: String(koerper.text ?? ''),
     bildvorlageId: String(koerper.bildvorlageId ?? '') || null,
     vorschauModus: koerper.vorschauModus === MODUS.ROH ? MODUS.ROH : MODUS.BEISPIEL,
@@ -76,6 +77,7 @@ export function entwurfAlsFelder(entwurf) {
 
   return html`
     ${feld('art', entwurf.art)}
+    ${feld('name', entwurf.name)}
     ${feld('text', entwurf.text)}
     ${feld('bildvorlageId', entwurf.bildvorlageId)}
     ${entwurf.kanalId ? feld('kanalId', entwurf.kanalId) : ''}
@@ -94,4 +96,38 @@ export function entwurfAlsFelder(entwurf) {
         `
       : ''}
   `;
+}
+
+/**
+ * Der Entwurf, wie er in die Ablage geht.
+ *
+ * Bewusst in derselben Form, die `entwurfAus` liest — ein Formularkörper.
+ * Damit sind Speichern und Öffnen dieselbe Übersetzung in beide Richtungen,
+ * und es gibt keine dritte Darstellung einer Nachricht, die man beim nächsten
+ * Feld vergessen könnte. Die Oberflächenfelder (Suchbegriffe, Vorschaumodus)
+ * bleiben draussen: Sie sind Zustand des Augenblicks, nicht der Nachricht.
+ */
+export function alsAblage(entwurf) {
+  return {
+    art: entwurf.art,
+    text: entwurf.text,
+    bildvorlageId: entwurf.bildvorlageId ?? '',
+    kanalId: entwurf.kanalId ?? '',
+    empfaenger: entwurf.empfaenger.map(alsAuswahlWert),
+    embedAn: entwurf.embedAn ? 'ja' : 'nein',
+    embedTitel: entwurf.embed.titel,
+    embedBeschreibung: entwurf.embed.beschreibung,
+    embedFusszeile: entwurf.embed.fusszeile,
+    embedAutor: entwurf.embed.autor,
+    embedFarbe: entwurf.embed.farbe ?? '',
+    embedFeldName: entwurf.embed.felder.map((f) => f.name),
+    embedFeldWert: entwurf.embed.felder.map((f) => f.wert),
+  };
+}
+
+/** Ein kurzer Auszug für die Liste — Text, sonst Embed-Titel, sonst nichts. */
+export function auszug(entwurf, laenge = 120) {
+  const roh = entwurf.text.trim() || entwurf.embed.titel.trim() || entwurf.embed.beschreibung.trim();
+  const einzeilig = roh.replace(/\s+/g, ' ').trim();
+  return einzeilig.length > laenge ? `${einzeilig.slice(0, laenge - 1)}…` : einzeilig;
 }

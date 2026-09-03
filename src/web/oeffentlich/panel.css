@@ -1168,3 +1168,51 @@ p { max-width: 68ch; }
   cursor: pointer;
 }
 .mitgliedknopf:hover { border-color: var(--akzent); background: var(--akzent-flaeche); }
+
+/* ── Gespeicherte Nachrichten ─────────────────────────────────────── */
+
+/* Die Reiter sind hier Verweise statt Knoepfe — ein Filter, den man verlinken
+   kann. Sie sollen trotzdem genauso aussehen. */
+a.reiter-knopf { text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+
+.reiter-zahl {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--flaeche-tief);
+  color: var(--tinte-leise);
+  font-size: .78rem;
+  font-variant-numeric: tabular-nums;
+}
+.reiter-aktiv .reiter-zahl { background: var(--akzent-flaeche); color: var(--akzent); }
+
+.ablageliste { margin: 22px 0 0; padding: 0; list-style: none; max-width: 760px; }
+
+.ablagekarte {
+  padding: 14px 18px;
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  background: var(--flaeche);
+}
+.ablagekarte + .ablagekarte { margin-top: 8px; }
+
+.ablagekopf { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
+.ablagename { font-weight: 600; }
+.ablageart {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--flaeche-tief);
+  color: var(--tinte-leise);
+  font-size: .76rem;
+}
+
+.ablageauszug { margin: 6px 0 0; color: var(--tinte-leise); }
+
+.ablagefuss {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 10px 0 0;
+  font-size: .84rem;
+  color: var(--tinte-leise);
+}
+.ablageziel { font-weight: 600; }

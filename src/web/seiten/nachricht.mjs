@@ -17,6 +17,7 @@ import { fuegeEin, zerlegeKnopfwert } from '../../nachricht/platzhalterziel.mjs'
 import { platzhalterreihe } from '../html/platzhalterreihe.mjs';
 import { pruefeNachricht } from '../../nachricht/pruefen.mjs';
 import { bestaetigungsSeite } from './versand.mjs';
+import { speichereEntwurf } from './ablage.mjs';
 
 /**
  * Der Nachrichteneditor.
@@ -209,10 +210,20 @@ function editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, vorlagen = [], 
               </div>
             `}
 
+        <div class="feld feld-schmal">
+          <label for="name">Name zum Speichern</label>
+          <input type="text" id="name" name="name" value="${entwurf.name}" maxlength="80"
+                 placeholder="z. B. Willkommensgruss">
+          ${fehlerZu(fehler, 'name')}
+        </div>
+
         <div class="editor-fuss">
           <button type="submit" name="senden" value="ja" class="knopf-haupt">Senden …</button>
+          <button type="submit" name="speichern" value="ja" class="knopf-leise">Speichern</button>
           <button type="submit" name="pruefen" value="ja" class="knopf-leise">Nur prüfen</button>
-          <span class="hinweis">Vor dem Versand kommt eine Rückfrage.</span>
+          <span class="hinweis">
+            Vor dem Versand kommt eine Rückfrage. Mit Namen wird beim Senden zusätzlich gespeichert.
+          </span>
         </div>
 
         <input type="hidden" name="vorschauModus" value="${entwurf.vorschauModus}">
@@ -272,8 +283,10 @@ export function erstellePruefung({ konfig, gildenAnsicht }) {
   };
 }
 
-export function registriereNachricht(app, { bot, konfig, gildenAnsicht, bildvorlagen }) {
+export function registriereNachricht(app, { bot, konfig, gildenAnsicht, bildvorlagen, nachrichtenAblage }) {
   // Nur Name und Kennung — der Editor zeigt eine Liste, keine Vorlagen.
+  const speichere = (guildId, entwurf) => speichereEntwurf(nachrichtenAblage, guildId, entwurf);
+
   const vorlagenliste = () =>
     bildvorlagen ? bildvorlagen.alle(konfig.guildId).map((v) => ({ id: v.id, name: v.name })) : [];
 
@@ -330,6 +343,25 @@ export function registriereNachricht(app, { bot, konfig, gildenAnsicht, bildvorl
     }
 
     if (koerper.vorschauErneuern !== undefined) return zeigen();
+
+    // Speichern prüft nur den Inhalt, nicht das Ziel: Ein Entwurf darf ohne
+    // Empfänger in die Ablage, gesendet wird er dadurch ja nicht.
+    if (koerper.speichern !== undefined && nachrichtenAblage) {
+      const geprueft = pruefeNachricht(alsEingabe(entwurf));
+      const fehler = [...(geprueft.fehler ?? [])];
+      if (entwurf.name.trim() === '') {
+        fehler.push({ feld: 'name', meldung: 'Gib der Nachricht einen Namen, damit du sie wiederfindest.' });
+      }
+
+      if (fehler.length > 0) {
+        return res.status(422).type('html').send(
+          String(editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, vorlagen: vorlagenliste(), fehler })),
+        );
+      }
+
+      speichere(konfig.guildId, entwurf);
+      return res.redirect(303, `/nachrichten?art=${entwurf.art}`);
+    }
 
     if (koerper.embedUmschalten !== undefined) {
       entwurf.embedAn = !entwurf.embedAn;

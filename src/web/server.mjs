@@ -4,6 +4,7 @@ import { registriereSuche } from './seiten/suche.mjs';
 import { registriereNachricht, erstellePruefung } from './seiten/nachricht.mjs';
 import { registriereVersand } from './seiten/versand.mjs';
 import { registriereVorlagen } from './seiten/vorlagen.mjs';
+import { registriereNachrichten } from './seiten/nachrichten.mjs';
 import { stufenMiddleware, verlangt } from './mw/verlangt.mjs';
 import { csrfSchutz } from '../auth/csrf.mjs';
 import { seite } from './html/layout.mjs';
@@ -20,7 +21,7 @@ import { STUFE } from '../auth/rechte.mjs';
  */
 export function erstelleApp({
   konfig, db, gilden, sitzungen, oauth, logger, zugriff, mitgliedschaft, gildenAnsicht,
-  warteschlange, versandAblage, versender, bildvorlagen, bilderVerzeichnis,
+  warteschlange, versandAblage, versender, bildvorlagen, bilderVerzeichnis, nachrichtenAblage,
   avatarQuelle = erstelleAvatarQuelle(),
   bot = { status: () => ({ verbunden: false, grund: 'Der Bot ist nicht eingerichtet.' }) },
 }) {
@@ -54,13 +55,14 @@ export function erstelleApp({
 
   registriereAnmeldung(app, { konfig, db, gilden, sitzungen, oauth, logger });
   registriereSuche(app, { bot });
-  registriereNachricht(app, { bot, konfig, gildenAnsicht, bildvorlagen });
+  registriereNachricht(app, { bot, konfig, gildenAnsicht, bildvorlagen, nachrichtenAblage });
+  registriereNachrichten(app, { bot, konfig, nachrichtenAblage, gildenAnsicht });
   registriereVorlagen(app, {
     bot, konfig, bildvorlagen, bilderVerzeichnis, gildenAnsicht, avatarQuelle,
   });
   if (warteschlange && versandAblage && versender) {
     registriereVersand(app, {
-      bot, konfig, gildenAnsicht, warteschlange, versandAblage, versender,
+      bot, konfig, gildenAnsicht, warteschlange, versandAblage, versender, nachrichtenAblage,
       pruefeEntwurf: erstellePruefung({ konfig, gildenAnsicht }),
     });
   }

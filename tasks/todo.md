@@ -391,7 +391,7 @@ Grundlage: `docs/SPEC.md`.
 
 ## Phase 6 — Gespeicherte Nachrichten
 
-- [ ] **35 · Speichern und Liste mit Filter** — M · hängt ab von: 20
+- [x] **35 · Speichern und Liste mit Filter** — M · hängt ab von: 20
   - **Abnahme:** Speichern über das Namensfeld, mit und ohne Senden.
     Liste unter `/nachrichten` mit Auszug und Ziel.
   - **Abnahme:** Filter „Alle / Direktnachricht / Kanal" mit Zahl; der Filter steht

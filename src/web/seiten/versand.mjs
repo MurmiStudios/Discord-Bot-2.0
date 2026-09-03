@@ -6,6 +6,7 @@ import { STUFE } from '../../auth/rechte.mjs';
 import { csrfFeld } from '../../auth/csrf.mjs';
 import { ART } from '../../nachricht/modell.mjs';
 import { entwurfAus, entwurfAlsFelder, alsNachricht } from '../../nachricht/entwurf.mjs';
+import { speichereEntwurf } from './ablage.mjs';
 import { vorschau } from '../../nachricht/vorschau.mjs';
 import { loeseEmpfaengerAuf } from '../../versand/empfaenger.mjs';
 import { VORGANG, ZIEL } from '../../daten/versand.mjs';
@@ -41,6 +42,12 @@ export function bestaetigungsSeite({ req, bot, konfig, entwurf, aufgeloest, ziel
           ? html`<p class="hinweis">
               Zwischen zwei Nachrichten liegen ${konfig.dmPauseMs} ms — der Versand dauert
               rund ${dauer} Sekunden. Er läuft im Hintergrund weiter, auch wenn du die Seite verlässt.
+            </p>`
+          : ''}
+        ${entwurf.name.trim() !== ''
+          ? html`<p class="hinweis">
+              Wird ausserdem unter <strong>${entwurf.name.trim()}</strong> gespeichert und steht
+              danach unter „Gespeicherte Nachrichten".
             </p>`
           : ''}
         ${entwurf.art === ART.DM && aufgeloest.leereRollen.length > 0
@@ -138,7 +145,10 @@ function fortschrittSeite({ req, bot, vorgang, ziele }) {
   });
 }
 
-export function registriereVersand(app, { bot, konfig, gildenAnsicht, warteschlange, versandAblage, versender, pruefeEntwurf }) {
+export function registriereVersand(app, {
+  bot, konfig, gildenAnsicht, warteschlange, versandAblage, versender, pruefeEntwurf,
+  nachrichtenAblage,
+}) {
   app.post('/versand/starten', verlangt(STUFE.MODERATOR), versandGrenze(), (req, res) => {
     const entwurf = entwurfAus(req.body ?? {});
     const geprueft = pruefeEntwurf(entwurf);
@@ -183,6 +193,10 @@ export function registriereVersand(app, { bot, konfig, gildenAnsicht, warteschla
 
     const nachricht = alsNachricht(entwurf);
     const akteur = { id: req.sitzung.discordUserId, name: req.sitzung.anzeigename };
+
+    // Erst speichern, dann senden: Bricht der Versand ab, ist die Nachricht
+    // wenigstens nicht verloren. Die Rückfrage hat es angekündigt.
+    speichereEntwurf(nachrichtenAblage, konfig.guildId, entwurf);
 
     if (entwurf.art === ART.DM) {
       const aufgeloest = loeseEmpfaengerAuf(gildenAnsicht, entwurf.empfaenger, konfig.guildId);
