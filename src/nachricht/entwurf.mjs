@@ -21,6 +21,10 @@ export function entwurfAus(koerper = {}) {
   return {
     art: koerper.art === ART.KANAL ? ART.KANAL : ART.DM,
     name: String(koerper.name ?? ''),
+    // Gesetzt, wenn der Entwurf aus der Ablage kommt. „Speichern" schreibt dann
+    // dorthin zurück, statt eine zweite Fassung anzulegen — für die gibt es in
+    // der Liste den Knopf „Kopie".
+    gespeichertId: String(koerper.gespeichertId ?? '') || null,
     text: String(koerper.text ?? ''),
     bildvorlageId: String(koerper.bildvorlageId ?? '') || null,
     vorschauModus: koerper.vorschauModus === MODUS.ROH ? MODUS.ROH : MODUS.BEISPIEL,
@@ -78,6 +82,7 @@ export function entwurfAlsFelder(entwurf) {
   return html`
     ${feld('art', entwurf.art)}
     ${feld('name', entwurf.name)}
+    ${entwurf.gespeichertId ? feld('gespeichertId', entwurf.gespeichertId) : ''}
     ${feld('text', entwurf.text)}
     ${feld('bildvorlageId', entwurf.bildvorlageId)}
     ${entwurf.kanalId ? feld('kanalId', entwurf.kanalId) : ''}

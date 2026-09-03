@@ -157,6 +157,9 @@ function editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, vorlagen = [], 
       <form method="post" action="/nachricht" class="editor">
         ${csrfFeld(req)}
         <input type="hidden" name="art" value="${entwurf.art}">
+        ${entwurf.gespeichertId
+          ? html`<input type="hidden" name="gespeichertId" value="${entwurf.gespeichertId}">`
+          : ''}
 
         ${reiter(entwurf.art)}
 
@@ -222,7 +225,12 @@ function editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, vorlagen = [], 
           <button type="submit" name="speichern" value="ja" class="knopf-leise">Speichern</button>
           <button type="submit" name="pruefen" value="ja" class="knopf-leise">Nur prüfen</button>
           <span class="hinweis">
-            Vor dem Versand kommt eine Rückfrage. Mit Namen wird beim Senden zusätzlich gespeichert.
+            ${entwurf.gespeichertId
+              ? html`Vor dem Versand kommt eine Rückfrage. „Speichern" überschreibt die
+                  gespeicherte Nachricht — für eine zweite Fassung gibt es in der
+                  <a href="/nachrichten">Liste</a> den Knopf „Kopie".`
+              : html`Vor dem Versand kommt eine Rückfrage. Mit Namen wird beim Senden
+                  zusätzlich gespeichert.`}
           </span>
         </div>
 
@@ -287,6 +295,46 @@ export function registriereNachricht(app, { bot, konfig, gildenAnsicht, bildvorl
   // Nur Name und Kennung — der Editor zeigt eine Liste, keine Vorlagen.
   const speichere = (guildId, entwurf) => speichereEntwurf(nachrichtenAblage, guildId, entwurf);
 
+  /**
+   * Der Entwurf beim Aufruf der Seite: leer, oder aus der Ablage geladen.
+   *
+   * Geladen wird alles gemeinsam — Text, Embed, Bildvorlage und das gemerkte
+   * Ziel. Ein Öffnen, das die Hälfte weglässt, wäre schlimmer als keines: Man
+   * sähe es erst beim Absenden.
+   *
+   * @returns {object|undefined} undefined, wenn es die Kennung nicht gibt
+   */
+  function ausAblageOderNeu(req) {
+    if (req.query.laden === undefined) return entwurfAus({ art: req.query.art });
+
+    const kennung = Number(req.query.laden);
+    const eintrag = Number.isInteger(kennung) && nachrichtenAblage
+      ? nachrichtenAblage.lies(konfig.guildId, kennung)
+      : undefined;
+    if (!eintrag || eintrag.beschaedigt) return undefined;
+
+    return entwurfAus({ ...eintrag.daten, name: eintrag.name, gespeichertId: String(eintrag.id) });
+  }
+
+  function nichtGefunden(req, res) {
+    return res.status(404).type('html').send(
+      String(
+        seite({
+          titel: 'Nicht gefunden',
+          pfad: '/nachrichten',
+          stufe: req.stufe,
+          sitzung: req.sitzung,
+          botStatus: bot.status(),
+          inhalt: html`
+            <h1>Diese gespeicherte Nachricht gibt es nicht</h1>
+            <p>Vielleicht wurde sie gelöscht, oder ihr Inhalt ist nicht lesbar.</p>
+            <p><a href="/nachrichten">Zurück zur Liste</a></p>
+          `,
+        }),
+      ),
+    );
+  }
+
   const vorlagenliste = () =>
     bildvorlagen ? bildvorlagen.alle(konfig.guildId).map((v) => ({ id: v.id, name: v.name })) : [];
 
@@ -298,7 +346,8 @@ export function registriereNachricht(app, { bot, konfig, gildenAnsicht, bildvorl
   );
 
   app.get('/nachricht', verlangt(STUFE.MODERATOR), (req, res) => {
-    const entwurf = entwurfAus({ art: req.query.art });
+    const entwurf = ausAblageOderNeu(req);
+    if (entwurf === undefined) return nichtGefunden(req, res);
     res.type('html').send(String(editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, vorlagen: vorlagenliste() })));
   });
 

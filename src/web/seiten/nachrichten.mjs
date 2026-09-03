@@ -5,6 +5,7 @@ import { STUFE } from '../../auth/rechte.mjs';
 import { ART } from '../../nachricht/modell.mjs';
 import { entwurfAus, auszug } from '../../nachricht/entwurf.mjs';
 import { alsZeitpunkt } from '../html/zeit.mjs';
+import { csrfFeld } from '../../auth/csrf.mjs';
 
 /**
  * Die Liste der gespeicherten Nachrichten.
@@ -58,7 +59,48 @@ function zielText(eintrag, gildenAnsicht, guildId) {
   return `${anzahl} ${anzahl === 1 ? 'Eintrag' : 'Einträge'} gemerkt`;
 }
 
-function karte(eintrag, gildenAnsicht, guildId) {
+/**
+ * Umbenennen, Art wechseln, Notiz — eingeklappt.
+ *
+ * Eingeklappt, weil es die selteneren Handgriffe sind: Die Liste soll man
+ * überfliegen können. Ein `details`-Element braucht dafür kein JavaScript und
+ * bleibt ohne es genauso bedienbar.
+ */
+function kartenformular(req, eintrag) {
+  return html`
+    <details class="ablagedetails">
+      <summary>Bearbeiten</summary>
+      <form method="post" action="/nachrichten/${eintrag.id}" class="ablageform">
+        ${csrfFeld(req)}
+
+        <div class="feld feld-schmal">
+          <label for="name-${eintrag.id}">Name</label>
+          <input type="text" id="name-${eintrag.id}" name="name" value="${eintrag.name}" maxlength="80">
+        </div>
+
+        <div class="feld feld-schmal">
+          <label for="art-${eintrag.id}">Art</label>
+          <select id="art-${eintrag.id}" name="art">
+            <option value="${ART.DM}"${eintrag.art === ART.DM ? html` selected` : ''}>Direktnachricht</option>
+            <option value="${ART.KANAL}"${eintrag.art === ART.KANAL ? html` selected` : ''}>Kanal</option>
+          </select>
+        </div>
+
+        <div class="feld">
+          <label for="notiz-${eintrag.id}">Notiz</label>
+          <textarea id="notiz-${eintrag.id}" name="notiz" rows="2"
+                    placeholder="Wofür ist das? Wann benutzt du es?">${eintrag.notiz}</textarea>
+        </div>
+
+        <div class="editor-fuss">
+          <button type="submit" name="sichern" value="ja" class="knopf-leise">Übernehmen</button>
+        </div>
+      </form>
+    </details>
+  `;
+}
+
+function karte(req, eintrag, gildenAnsicht, guildId) {
   const entwurf = entwurfAus(eintrag.daten);
   const text = auszug(entwurf);
 
@@ -75,15 +117,79 @@ function karte(eintrag, gildenAnsicht, guildId) {
           </p>`
         : html`<p class="ablageauszug">${text || 'Ohne Text — nur Embed oder Bild.'}</p>`}
 
+      ${eintrag.notiz.trim() !== '' ? html`<p class="ablagenotiz">${eintrag.notiz}</p>` : ''}
+
       <p class="ablagefuss">
         <span class="ablageziel">${zielText(eintrag, gildenAnsicht, guildId)}</span>
         <span class="ablagezeit">Zuletzt geändert ${alsZeitpunkt(eintrag.geaendertAm)}</span>
       </p>
+
+      <div class="ablageknoepfe">
+        ${eintrag.beschaedigt
+          ? ''
+          : html`<a href="/nachricht?laden=${eintrag.id}" class="knopf-leise">Öffnen</a>`}
+        <form method="post" action="/nachrichten/${eintrag.id}/kopie">
+          ${csrfFeld(req)}
+          <button type="submit" class="knopf-leise">Kopie</button>
+        </form>
+        <a href="/nachrichten/${eintrag.id}/loeschen" class="knopf-leise">Löschen</a>
+      </div>
+
+      ${eintrag.beschaedigt ? '' : kartenformular(req, eintrag)}
     </li>
   `;
 }
 
+function loeschenSeite({ req, bot, eintrag }) {
+  return seite({
+    titel: 'Nachricht löschen?',
+    pfad: '/nachrichten',
+    stufe: req.stufe,
+    sitzung: req.sitzung,
+    botStatus: bot.status(),
+    inhalt: html`
+      <h1>Nachricht löschen?</h1>
+      <div class="rueckfrage">
+        <p class="rueckfrage-kern">
+          Die gespeicherte Nachricht <strong>${eintrag.name}</strong> wird gelöscht.
+        </p>
+        <p class="hinweis">
+          Das betrifft nur die Ablage — schon verschickte Nachrichten bleiben, wo sie sind.
+          Rückgängig machen lässt es sich nicht.
+        </p>
+      </div>
+
+      <form method="post" action="/nachrichten/${eintrag.id}/loeschen" class="rueckfrage-knoepfe">
+        ${csrfFeld(req)}
+        <button type="submit" name="bestaetigt" value="ja" class="knopf-haupt">Ja, löschen</button>
+        <a href="/nachrichten" class="knopf-abbrechen">Abbrechen</a>
+      </form>
+    `,
+  });
+}
+
+function nichtGefunden(req, bot, res) {
+  return res.status(404).type('html').send(
+    String(
+      seite({
+        titel: 'Nicht gefunden',
+        pfad: '/nachrichten',
+        stufe: req.stufe,
+        sitzung: req.sitzung,
+        botStatus: bot.status(),
+        inhalt: html`
+          <h1>Diese gespeicherte Nachricht gibt es nicht</h1>
+          <p>Vielleicht gehört sie zu einem anderen Server, oder sie wurde gelöscht.</p>
+          <p><a href="/nachrichten">Zurück zur Liste</a></p>
+        `,
+      }),
+    ),
+  );
+}
+
 export function registriereNachrichten(app, { bot, konfig, nachrichtenAblage, gildenAnsicht }) {
+  registriereKartenaktionen(app, { bot, konfig, nachrichtenAblage });
+
   app.get('/nachrichten', verlangt(STUFE.MODERATOR), (req, res) => {
     const aktiv = filterAus(req.query.art);
     const eintraege = nachrichtenAblage.alle(
@@ -116,11 +222,72 @@ export function registriereNachrichten(app, { bot, konfig, nachrichtenAblage, gi
                     : 'Zu diesem Filter gibt es nichts. Die anderen Reiter haben etwas.'}
                 </p>`
               : html`<ul class="ablageliste">
-                  ${eintraege.map((e) => karte(e, gildenAnsicht, konfig.guildId))}
+                  ${eintraege.map((e) => karte(req, e, gildenAnsicht, konfig.guildId))}
                 </ul>`}
           `,
         }),
       ),
     );
+  });
+}
+
+/** Die Routen, die eine einzelne Karte braucht. */
+function registriereKartenaktionen(app, { bot, konfig, nachrichtenAblage }) {
+  const lies = (req) => {
+    const kennung = Number(req.params.id);
+    return Number.isInteger(kennung)
+      ? nachrichtenAblage.lies(konfig.guildId, kennung)
+      : undefined;
+  };
+
+  app.post('/nachrichten/:id/kopie', verlangt(STUFE.MODERATOR), (req, res) => {
+    const eintrag = lies(req);
+    if (!eintrag) return nichtGefunden(req, bot, res);
+
+    // Eine echte Kopie, kein Verweis: Wer sie ändert, ändert das Original nicht.
+    nachrichtenAblage.lege(konfig.guildId, {
+      name: `${eintrag.name} (Kopie)`.slice(0, 80),
+      art: eintrag.art,
+      notiz: eintrag.notiz,
+      daten: eintrag.daten,
+    });
+    return res.redirect(303, `/nachrichten?art=${eintrag.art}`);
+  });
+
+  app.get('/nachrichten/:id/loeschen', verlangt(STUFE.MODERATOR), (req, res) => {
+    const eintrag = lies(req);
+    if (!eintrag) return nichtGefunden(req, bot, res);
+    return res.type('html').send(String(loeschenSeite({ req, bot, eintrag })));
+  });
+
+  app.post('/nachrichten/:id/loeschen', verlangt(STUFE.MODERATOR), (req, res) => {
+    const eintrag = lies(req);
+    if (!eintrag) return nichtGefunden(req, bot, res);
+
+    if (req.body?.bestaetigt !== 'ja') {
+      return res.status(422).type('html').send(String(loeschenSeite({ req, bot, eintrag })));
+    }
+
+    nachrichtenAblage.loesche(konfig.guildId, eintrag.id);
+    return res.redirect(303, '/nachrichten');
+  });
+
+  app.post('/nachrichten/:id', verlangt(STUFE.MODERATOR), (req, res) => {
+    const eintrag = lies(req);
+    if (!eintrag) return nichtGefunden(req, bot, res);
+
+    const koerper = req.body ?? {};
+    const name = String(koerper.name ?? '').trim() || eintrag.name;
+    const art = koerper.art === ART.KANAL ? ART.KANAL : ART.DM;
+
+    // Die Art steht in der Spalte und im Inhalt. Nur eins von beidem zu ändern
+    // hiesse: Die Liste sagt „Kanal", der Editor öffnet eine Direktnachricht.
+    nachrichtenAblage.aendere(konfig.guildId, eintrag.id, {
+      name,
+      art,
+      notiz: String(koerper.notiz ?? ''),
+      daten: { ...eintrag.daten, art },
+    });
+    return res.redirect(303, `/nachrichten?art=${art}`);
   });
 }

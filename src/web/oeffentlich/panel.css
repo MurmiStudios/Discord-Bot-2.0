@@ -1216,3 +1216,50 @@ a.reiter-knopf { text-decoration: none; display: inline-flex; align-items: cente
   color: var(--tinte-leise);
 }
 .ablageziel { font-weight: 600; }
+
+.ablagenotiz {
+  margin: 8px 0 0;
+  padding-left: 10px;
+  border-left: 2px solid var(--linie);
+  color: var(--tinte-leise);
+  font-size: .88rem;
+}
+
+.ablageknoepfe {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+/* Die Kopie ist ein Formular, damit sie nicht per Verweis auslösbar ist —
+   sie ändert etwas, und dafür gibt es das CSRF-Token. */
+.ablageknoepfe form { margin: 0; }
+
+.ablagedetails { margin-top: 10px; }
+.ablagedetails summary {
+  cursor: pointer;
+  color: var(--tinte-leise);
+  font-size: .86rem;
+}
+.ablagedetails summary:hover { color: var(--tinte); }
+
+.ablageform {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--linie-zart);
+}
+.ablageform textarea,
+.ablageform input[type="text"],
+.ablageform select {
+  padding: 8px 10px;
+  border: 1px solid var(--linie);
+  border-radius: 8px;
+  background: var(--flaeche);
+  color: var(--tinte);
+  font: inherit;
+}
+.ablageform .editor-fuss { margin: 0; }

@@ -400,7 +400,7 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/daten/nachrichten.mjs`, `src/web/seiten/nachrichten.mjs`,
     `tests/integration/ablage.test.mjs`
 
-- [ ] **36 · Öffnen, Kopie, Löschen, Umbenennen, Art ändern, Notiz** — M · hängt ab von: 35
+- [x] **36 · Öffnen, Kopie, Löschen, Umbenennen, Art ändern, Notiz** — M · hängt ab von: 35
   - **Abnahme:** Öffnen lädt Text, Embed, Bildvorlage, Buttons und das gemerkte
     Ziel gemeinsam in den Editor.
   - **Abnahme:** Kopie anlegen; löschen mit Rückfrage; umbenennen, Art ändern und
