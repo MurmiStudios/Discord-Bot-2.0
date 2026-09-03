@@ -19,12 +19,68 @@ const NOCH_NICHT = 'Der Bot hat sich noch nicht verbunden.';
 
 export function erstelleBot({ konfig, logger, erzeugeClient = standardClient }) {
   const client = erzeugeClient();
-  let zustand = { verbunden: false, grund: NOCH_NICHT, seit: undefined };
+  let zustand = {
+    verbunden: false, grund: NOCH_NICHT, seit: undefined,
+    mitglieder: null, mitgliederGrund: null,
+  };
 
   const bereit = () => {
-    zustand = { verbunden: true, grund: undefined, seit: new Date().toISOString() };
+    zustand = {
+      ...zustand,
+      verbunden: true,
+      grund: undefined,
+      seit: new Date().toISOString(),
+    };
     logger.info('discord', 'Bot verbunden', { konto: client.user?.tag });
+
+    // Bewusst ohne await: Der Zuhoerer soll nicht warten. Fehler faengt
+    // `ladeMitglieder` selbst ab.
+    ladeMitglieder();
   };
+
+  /**
+   * Die Mitgliederliste einmal holen.
+   *
+   * Der Grund, warum das hier stehen muss: Discord schickt sie nicht von
+   * selbst. Der Intent `GuildMembers` *erlaubt* das Abrufen, er erledigt es
+   * nicht — der Cache enthaelt sonst nur den Bot und wen man zufaellig in einem
+   * Ereignis gesehen hat. Genau so sah es auf dem ersten echten Server aus:
+   * Rollen da, Mitglieder leer.
+   *
+   * Ohne die Liste findet die Empfaengersuche niemanden, kein Profilbild kommt
+   * ins Bild, und eine Rollenaenderung meldet Discord ohne den Stand davor.
+   */
+  async function ladeMitglieder() {
+    const gilde = client.guilds.cache.get(konfig.guildId);
+
+    if (!gilde) {
+      zustand = {
+        ...zustand,
+        mitglieder: null,
+        mitgliederGrund:
+          `Der Bot ist nicht auf dem Server ${konfig.guildId}. Lade ihn ein — ` +
+          'oder prüfe GUILD_ID in der .env.',
+      };
+      logger.warn('discord', 'Gilde nicht gefunden', { guildId: konfig.guildId });
+      return;
+    }
+
+    try {
+      const geladen = await gilde.members.fetch();
+      zustand = { ...zustand, mitglieder: geladen.size, mitgliederGrund: null };
+      logger.info('discord', 'Mitglieder geladen', { anzahl: geladen.size });
+    } catch (fehler) {
+      zustand = {
+        ...zustand,
+        mitglieder: null,
+        mitgliederGrund:
+          'Die Mitgliederliste liess sich nicht laden. Meist fehlt der ' +
+          '„Server Members Intent“ im Entwicklerportal unter Bot → Privileged ' +
+          'Gateway Intents. Ohne sie findet die Empfängersuche niemanden.',
+      };
+      logger.fehler('discord', 'Mitgliederliste nicht geladen', fehler);
+    }
+  }
 
   // Nur `clientReady`, nicht `ready`.
   //

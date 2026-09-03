@@ -201,6 +201,10 @@ a { color: var(--akzent); }
 .bot-an { color: var(--gut); }
 .bot-an .punkt { background: var(--gut); }
 .bot-aus { color: var(--warn); flex-wrap: wrap; }
+
+/* Verbunden, aber ohne Mitgliederliste — weder gut noch aus. */
+.bot-halb { color: var(--warn); flex-wrap: wrap; }
+.bot-halb .punkt { background: var(--warn); }
 .bot-aus .punkt { background: var(--warn); }
 .bot-grund { color: var(--tinte-leise); font-size: .85em; }
 

@@ -48,6 +48,16 @@ function navigation(stufe, pfad) {
 
 function botAnzeige(botStatus) {
   if (botStatus?.verbunden) {
+    // Verbunden heisst noch nicht brauchbar: Ohne Mitgliederliste findet die
+    // Empfaengersuche niemanden, und das sieht man der Kopfzeile sonst nicht an.
+    if (botStatus.mitgliederGrund) {
+      return html`
+        <span class="bot bot-halb">
+          <span class="punkt"></span>Bot verbunden, aber unvollständig
+          <span class="bot-grund">${botStatus.mitgliederGrund}</span>
+        </span>
+      `;
+    }
     return html`<span class="bot bot-an"><span class="punkt"></span>Bot verbunden</span>`;
   }
   return html`

@@ -47,6 +47,7 @@ export function erstelleClientDoppel({
   dmFehler = {},
   kanalFehler = {},
   rollenFehler = {},
+  mitgliederFehler = null,
 } = {}) {
   const client = new EventEmitter();
   client.zerstoert = false;
@@ -127,7 +128,11 @@ export function erstelleClientDoppel({
       cache: mitgliederMap,
       me: ich,
       async fetch(id) {
-        if (id === undefined) return mitgliederMap;
+        // Wie bei discord.js: ohne Kennung kommt die ganze Liste.
+        if (id === undefined) {
+          if (mitgliederFehler) throw mitgliederFehler;
+          return mitgliederMap;
+        }
         const gefunden = mitgliederMap.get(id);
         if (!gefunden) throw Object.assign(new Error('Unknown Member'), { code: 10007 });
         return gefunden;

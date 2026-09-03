@@ -142,3 +142,55 @@ test('„Bot verbunden“ steht genau einmal im Log', async () => {
   assert.equal(verbunden.length, 1, `„Bot verbunden“ steht ${verbunden.length}-mal im Log`);
   assert.equal(bot.status().verbunden, true);
 });
+
+test('beim Verbinden wird die Mitgliederliste geholt', async () => {
+  // Discord schickt sie nicht von selbst: Der Intent erlaubt das Abrufen, er
+  // erledigt es nicht. Ohne diesen Aufruf ist der Cache praktisch leer — genau
+  // so sah es auf dem ersten echten Server aus.
+  const zeilen = [];
+  const logger = erstelleLogger({ schreibe: (zeile) => zeilen.push(zeile) });
+  const { client } = erstelleClientDoppel({
+    guildId: KONFIG.guildId,
+    mitglieder: [
+      { id: 'm1', name: 'Anna', rollen: [] },
+      { id: 'm2', name: 'Bert', rollen: [] },
+    ],
+  });
+  const bot = erstelleBot({ konfig: KONFIG, logger, erzeugeClient: () => client });
+
+  await bot.verbinde();
+  await new Promise((fertig) => setTimeout(fertig, 0));
+
+  assert.equal(bot.status().mitglieder, 2);
+  assert.equal(bot.status().mitgliederGrund, null);
+  assert.ok(zeilen.some((z) => z.includes('Mitglieder geladen')));
+});
+
+test('lässt sich die Mitgliederliste nicht holen, steht der Grund im Status', async () => {
+  const zeilen = [];
+  const logger = erstelleLogger({ schreibe: (zeile) => zeilen.push(zeile) });
+  const { client } = erstelleClientDoppel({
+    guildId: KONFIG.guildId,
+    mitgliederFehler: new Error('Members did not arrive in time.'),
+  });
+  const bot = erstelleBot({ konfig: KONFIG, logger, erzeugeClient: () => client });
+
+  await bot.verbinde();
+  await new Promise((fertig) => setTimeout(fertig, 0));
+
+  // Verbunden ist er trotzdem — nur eben unvollständig.
+  assert.equal(bot.status().verbunden, true);
+  assert.equal(bot.status().mitglieder, null);
+  assert.match(bot.status().mitgliederGrund, /Server Members Intent/);
+});
+
+test('ist der Bot gar nicht auf dem Server, sagt der Status das', async () => {
+  const logger = erstelleLogger({ schreibe: () => {} });
+  const { client } = erstelleClientDoppel({ guildId: '999999999999999999' });
+  const bot = erstelleBot({ konfig: KONFIG, logger, erzeugeClient: () => client });
+
+  await bot.verbinde();
+  await new Promise((fertig) => setTimeout(fertig, 0));
+
+  assert.match(bot.status().mitgliederGrund, /nicht auf dem Server/);
+});
