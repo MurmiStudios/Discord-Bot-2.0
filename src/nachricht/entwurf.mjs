@@ -27,6 +27,10 @@ export function entwurfAus(koerper = {}) {
     gespeichertId: String(koerper.gespeichertId ?? '') || null,
     text: String(koerper.text ?? ''),
     bildvorlageId: String(koerper.bildvorlageId ?? '') || null,
+    // Für „Jetzt an alle“ einer Rollen-Nachricht: Damit weiss der Versand,
+    // wofür {role} steht. Gehört zum einen Versand, nicht zur Nachricht —
+    // deshalb ist es in `alsAblage` nicht dabei.
+    rollenKontext: String(koerper.rollenKontext ?? '') || null,
     vorschauModus: koerper.vorschauModus === MODUS.ROH ? MODUS.ROH : MODUS.BEISPIEL,
     empfaenger: parseAuswahl(koerper.empfaenger),
     empfaengerSuche: String(koerper.empfaengerSuche ?? ''),
@@ -83,6 +87,7 @@ export function entwurfAlsFelder(entwurf) {
     ${feld('art', entwurf.art)}
     ${feld('name', entwurf.name)}
     ${entwurf.gespeichertId ? feld('gespeichertId', entwurf.gespeichertId) : ''}
+    ${entwurf.rollenKontext ? feld('rollenKontext', entwurf.rollenKontext) : ''}
     ${feld('text', entwurf.text)}
     ${feld('bildvorlageId', entwurf.bildvorlageId)}
     ${entwurf.kanalId ? feld('kanalId', entwurf.kanalId) : ''}

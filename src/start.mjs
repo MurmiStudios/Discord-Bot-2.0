@@ -14,6 +14,7 @@ import { erstelleNachrichtenAblage } from './daten/nachrichten.mjs';
 import { erstelleWillkommen } from './daten/willkommen.mjs';
 import { erstelleRollenNachrichten } from './daten/rollen_nachrichten.mjs';
 import { erstelleWillkommensAutomatik } from './automatik/willkommen.mjs';
+import { erstelleRollenAutomatik } from './automatik/rollen-nachricht.mjs';
 import { registriereEreignisse } from './discord/ereignisse.mjs';
 import { erstelleVersender } from './discord/versender.mjs';
 import { erstelleBildAnhang } from './versand/anhang.mjs';
@@ -101,9 +102,13 @@ warteschlange.brichLaufendeAb(konfig.guildId);
 const willkommensAutomatik = erstelleWillkommensAutomatik({
   willkommen, versender, protokoll, logger, konfig,
 });
+const rollenAutomatik = erstelleRollenAutomatik({
+  rollenNachrichten, gildenAnsicht, versender, protokoll, logger, konfig,
+});
 registriereEreignisse(bot.client, {
   konfig, logger,
   beiBeitritt: (mitglied) => willkommensAutomatik.beiBeitritt(mitglied),
+  beiRollenerhalt: (mitglied, rollen) => rollenAutomatik.beiRollenerhalt(mitglied, rollen),
 });
 
 erstelleApp({

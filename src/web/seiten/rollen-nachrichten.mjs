@@ -9,6 +9,8 @@ import { pruefeNachricht } from '../../nachricht/pruefen.mjs';
 import { textfeld, embedteil, bildwahl, vorschauteil, fehlerZu } from '../html/baukasten.mjs';
 import { zwischenschritt, aktivAus } from './zwischenschritt.mjs';
 import { alsZeitpunkt } from '../html/zeit.mjs';
+import { bestaetigungsSeite } from './versand.mjs';
+import { loeseEmpfaengerAuf, parseAuswahl } from '../../versand/empfaenger.mjs';
 
 /**
  * Nachrichten, die am Erhalt einer Rolle hängen.
@@ -114,6 +116,13 @@ function editorSeite({ req, bot, rollen, stand, rolle, entwurf, aktiv, eintrag, 
 
               <div class="editor-fuss">
                 <button type="submit" name="sichern" value="ja" class="knopf-haupt">Speichern</button>
+                <button type="submit" name="anAlle" value="ja" class="knopf-leise">
+                  Jetzt an alle mit dieser Rolle …
+                </button>
+                <span class="hinweis">
+                  „Jetzt an alle“ speichert zuerst und fragt dann nach. Es ist einmalig —
+                  die Automatik läuft davon unabhängig weiter.
+                </span>
                 ${eintrag?.geaendertAm
                   ? html`<span class="hinweis">
                       Zuletzt geändert ${alsZeitpunkt(eintrag.geaendertAm)}.
@@ -227,6 +236,32 @@ export function registriereRollenNachrichten(
     }
 
     rollenNachrichten.sichere(konfig.guildId, rolle.id, { aktiv, daten: alsAblage(entwurf) });
+
+    // „Jetzt an alle“ speichert zuerst: Sonst ginge eine andere Fassung raus,
+    // als auf dem Bildschirm steht.
+    if (koerper.anAlle !== undefined) {
+      const anAlle = entwurfAus({
+        ...alsAblage(entwurf),
+        art: 'dm',
+        empfaenger: [`rolle:${rolle.id}`],
+        rollenKontext: rolle.id,
+      });
+      const aufgeloest = loeseEmpfaengerAuf(gildenAnsicht, parseAuswahl([`rolle:${rolle.id}`]), konfig.guildId);
+
+      if (aufgeloest.anzahl === 0) {
+        return zeige(req, res, {
+          rolle, entwurf, aktiv, eintrag, lage: 422,
+          fehler: [{
+            feld: 'aktiv',
+            meldung: `Gespeichert — aber „${rolle.name}“ hat niemanden. Es gäbe nichts zu verschicken.`,
+          }],
+        });
+      }
+
+      return res.type('html').send(
+        String(bestaetigungsSeite({ req, bot, konfig, entwurf: anAlle, aufgeloest, ziel: rolle.name })),
+      );
+    }
 
     return zeige(req, res, {
       rolle, entwurf, aktiv,

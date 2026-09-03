@@ -21,7 +21,21 @@ export function alsMitglied(mitglied) {
   };
 }
 
-export function registriereEreignisse(client, { konfig, logger, beiBeitritt }) {
+/**
+ * Welche Rollen zwischen zwei Ständen dazugekommen sind.
+ *
+ * Discord meldet jede Änderung am Mitglied als dasselbe Ereignis — auch einen
+ * Namenswechsel. Ohne diesen Vergleich löste jede davon die Rollen-Nachrichten
+ * erneut aus.
+ */
+export function neueRollen(vorher, nachher) {
+  const alt = new Set(vorher ?? []);
+  return (nachher ?? []).filter((id) => !alt.has(id));
+}
+
+export function registriereEreignisse(
+  client, { konfig, logger, beiBeitritt, beiRollenerhalt },
+) {
   client.on('guildMemberAdd', (roh) => {
     if (roh?.guild?.id !== konfig.guildId) return;
 
@@ -33,6 +47,20 @@ export function registriereEreignisse(client, { konfig, logger, beiBeitritt }) {
     // Automatik selbst ab — hier bleibt nur das letzte Netz.
     Promise.resolve(beiBeitritt?.(mitglied)).catch((fehler) => {
       logger.fehler('automatik', 'Beitritt konnte nicht verarbeitet werden', fehler);
+    });
+  });
+
+  client.on('guildMemberUpdate', (vorher, nachher) => {
+    if (nachher?.guild?.id !== konfig.guildId) return;
+
+    const mitglied = alsMitglied(nachher);
+    if (mitglied.istBot) return;
+
+    const hinzugekommen = neueRollen(alsMitglied(vorher).rollenIds, mitglied.rollenIds);
+    if (hinzugekommen.length === 0) return;
+
+    Promise.resolve(beiRollenerhalt?.(mitglied, hinzugekommen)).catch((fehler) => {
+      logger.fehler('automatik', 'Rollenänderung konnte nicht verarbeitet werden', fehler);
     });
   });
 }

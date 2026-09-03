@@ -225,3 +225,89 @@ test('ein Betrachter kommt nicht an die Rollen-Nachrichten', async () => {
     { discordServer: SERVER, rollen: { m1: ['r-schau'] }, zugriffsregeln: [['r-schau', 'BETRACHTER']] },
   );
 });
+
+// ── „Jetzt an alle“ ──────────────────────────────────────────────────
+
+test('„Jetzt an alle“ fragt zurück, bevor etwas rausgeht', async () => {
+  await mitApp(
+    async (u) => {
+      const { cookie, csrfToken } = alsOwner(u);
+
+      const antwort = await post(u.basis, cookie, [
+        ['_csrf', csrfToken], ['rollenId', 'r-neu'], ['aktiv', 'nein'], ['aktiv', 'ja'],
+        ['text', 'Du hast jetzt {role}!'], ['anAlle', 'ja'],
+      ]);
+      const text = await antwort.text();
+
+      assert.equal(antwort.status, 200);
+      assert.match(text, /Wirklich senden\?/);
+      assert.match(text, /<strong>2 Empfänger<\/strong>/);
+      assert.match(text, /hinterlegte Rollen-Nachricht/);
+      assert.equal(u.doppelServer.gesendet.length, 0, 'Es ging ohne Rückfrage etwas raus');
+
+      // Und gespeichert wurde vorher — sonst ginge eine andere Fassung raus.
+      assert.equal(u.rollenNachrichten.fuerRolle(GILDE, 'r-neu').daten.text, 'Du hast jetzt {role}!');
+    },
+    {
+      discordServer: {
+        ...SERVER,
+        mitglieder: [
+          { id: '4242', name: 'Owner', rollen: [] },
+          { id: 'm1', name: 'Anna', rollen: ['r-neu'] },
+          { id: 'm2', name: 'Bert', rollen: ['r-neu'] },
+        ],
+      },
+    },
+  );
+});
+
+test('nach der Bestätigung geht sie an alle mit dieser Rolle, mit {role}', async () => {
+  await mitApp(
+    async (u) => {
+      const { cookie, csrfToken } = alsOwner(u);
+
+      const koerper = new URLSearchParams();
+      for (const [n, v] of [
+        ['_csrf', csrfToken], ['art', 'dm'], ['text', 'Du hast jetzt {role}!'],
+        ['empfaenger', 'rolle:r-neu'], ['rollenKontext', 'r-neu'], ['bestaetigt', 'ja'],
+      ]) koerper.append(n, v);
+
+      await fetch(`${u.basis}/versand/starten`, {
+        method: 'POST', redirect: 'manual',
+        headers: { cookie, 'content-type': 'application/x-www-form-urlencoded' },
+        body: koerper.toString(),
+      });
+      await u.warteAufVersand();
+
+      assert.equal(u.doppelServer.gesendet.length, 2);
+      for (const gesendet of u.doppelServer.gesendet) {
+        assert.equal(gesendet.nutzlast.content, 'Du hast jetzt Neu!');
+      }
+    },
+    {
+      discordServer: {
+        ...SERVER,
+        mitglieder: [
+          { id: '4242', name: 'Owner', rollen: [] },
+          { id: 'm1', name: 'Anna', rollen: ['r-neu'] },
+          { id: 'm2', name: 'Bert', rollen: ['r-neu'] },
+        ],
+      },
+    },
+  );
+});
+
+test('„Jetzt an alle“ bei einer leeren Rolle sagt es, statt nichts zu tun', async () => {
+  await mitServer(async (u) => {
+    const { cookie, csrfToken } = alsOwner(u);
+
+    const antwort = await post(u.basis, cookie, [
+      ['_csrf', csrfToken], ['rollenId', 'r-neu'], ['aktiv', 'nein'],
+      ['text', 'Hallo'], ['anAlle', 'ja'],
+    ]);
+
+    assert.equal(antwort.status, 422);
+    assert.match(await antwort.text(), /„Neu“ hat niemanden/);
+    assert.equal(u.doppelServer.gesendet.length, 0);
+  });
+});

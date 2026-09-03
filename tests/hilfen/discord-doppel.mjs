@@ -176,7 +176,24 @@ export function erstelleClientDoppel({
     return mitglied;
   }
 
+  /** Meldet eine Änderung am Mitglied — so, wie discord.js sie liefert: vorher und nachher. */
+  function loeseRollenaenderungAus({ id, name, vorher = [], nachher = [], bot: istBot = false } = {}) {
+    const bauen = (rollen) => ({
+      id,
+      displayName: name ?? id,
+      user: { id, username: `${name ?? id}_tag`, bot: istBot },
+      roles: { cache: new Map(rollen.map((r) => [r, rollenMap.get(r) ?? { id: r, name: r }])) },
+      guild: gilde,
+    });
+
+    const neu = bauen(nachher);
+    mitgliederMap.set(id, neu);
+    client.emit('guildMemberUpdate', bauen(vorher), neu);
+    return neu;
+  }
+
   return {
-    client, gilde, rollenMap, kanaeleMap, mitgliederMap, gesendet, loeseBeitrittAus,
+    client, gilde, rollenMap, kanaeleMap, mitgliederMap, gesendet,
+    loeseBeitrittAus, loeseRollenaenderungAus,
   };
 }

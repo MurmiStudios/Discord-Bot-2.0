@@ -44,6 +44,12 @@ export function bestaetigungsSeite({ req, bot, konfig, entwurf, aufgeloest, ziel
               rund ${dauer} Sekunden. Er läuft im Hintergrund weiter, auch wenn du die Seite verlässt.
             </p>`
           : ''}
+        ${entwurf.rollenKontext
+          ? html`<p class="hinweis">
+              Das ist die hinterlegte Rollen-Nachricht. Sie geht jetzt einmalig an alle,
+              die die Rolle schon haben — automatisch läuft sie davon unabhängig weiter.
+            </p>`
+          : ''}
         ${entwurf.name.trim() !== ''
           ? html`<p class="hinweis">
               Wird ausserdem unter <strong>${entwurf.name.trim()}</strong> gespeichert und steht
@@ -203,12 +209,23 @@ export function registriereVersand(app, {
 
     if (entwurf.art === ART.DM) {
       const aufgeloest = loeseEmpfaengerAuf(gildenAnsicht, entwurf.empfaenger, konfig.guildId);
+
+      // Kam der Versand von einer Rollen-Nachricht, steht {role} für genau die
+      // Rolle — sonst bliebe der Platzhalter leer und der Text unvollständig.
+      const rolle = entwurf.rollenKontext
+        ? gildenAnsicht.findeRolle(entwurf.rollenKontext, konfig.guildId)
+        : undefined;
+      const zusatz = rolle ? { role: rolle.name } : undefined;
+
       const { vorgangId } = warteschlange.starte(konfig.guildId, {
         nachricht,
         empfaenger: aufgeloest.empfaenger,
         akteur,
-        betreff: `Direktnachricht an ${aufgeloest.anzahl}`,
+        betreff: rolle
+          ? `Rollen-Nachricht „${rolle.name}“ an ${aufgeloest.anzahl}`
+          : `Direktnachricht an ${aufgeloest.anzahl}`,
         art: ART.DM,
+        ...(zusatz ? { senden: (ziel, inhalt) => versender.sendeDm(ziel, inhalt, zusatz) } : {}),
       });
       return res.redirect(303, `/versand/${vorgangId}`);
     }

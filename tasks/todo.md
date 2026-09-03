@@ -468,7 +468,7 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/web/seiten/rollen-nachrichten.mjs`,
     `src/daten/rollen_nachrichten.mjs`, `tests/integration/rollen-nachrichten.test.mjs`
 
-- [ ] **43 · Rollenerhalt löst aus · „Jetzt an alle"** — M · hängt ab von: 42, 27
+- [x] **43 · Rollenerhalt löst aus · „Jetzt an alle"** — M · hängt ab von: 42, 27
   - **Abnahme:** `guildMemberUpdate` erkennt eine hinzugekommene Rolle und
     verschickt die zugehörige aktive Nachricht.
   - **Abnahme:** „Jetzt an alle" schickt an alle Mitglieder der Rolle, mit Rückfrage
