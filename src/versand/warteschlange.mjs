@@ -122,7 +122,7 @@ export function erstelleWarteschlange({
     },
 
     /**
-     * Beim Start aufzurufen: Ein Vorgang, der noch „läuft", kann es nicht —
+     * Beim Start aufzurufen: Ein Vorgang, der noch „läuft“, kann es nicht —
      * der Prozess, der ihn betrieb, ist weg. Er wird als abgebrochen markiert
      * und behält seinen Zählerstand, damit sichtbar bleibt, wie weit er kam.
      */

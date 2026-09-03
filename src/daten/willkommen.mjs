@@ -5,7 +5,7 @@ import { verlangtGildenId, jetzt } from './repository.mjs';
  *
  * `lies` gibt auch dann etwas zurück, wenn noch nie etwas gespeichert wurde:
  * eine leere, inaktive Nachricht. Damit muss keine aufrufende Stelle den Fall
- * „gibt es noch nicht" von „ist leer" unterscheiden — es ist derselbe.
+ * „gibt es noch nicht“ von „ist leer“ unterscheiden — es ist derselbe.
  */
 export function erstelleWillkommen(db) {
   const lesen = db.prepare('SELECT * FROM willkommen WHERE guild_id = ?');

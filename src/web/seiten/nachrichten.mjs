@@ -22,7 +22,7 @@ const FILTER = Object.freeze([
   { wert: ART.KANAL, name: 'Kanal' },
 ]);
 
-/** Ein unbekannter Wert in der Adresse ist kein Fehler — er heisst „alle". */
+/** Ein unbekannter Wert in der Adresse ist kein Fehler — er heisst „alle“. */
 export function filterAus(roh) {
   const wert = String(roh ?? 'alle');
   return FILTER.some((f) => f.wert === wert) ? wert : 'alle';
@@ -333,7 +333,7 @@ function registriereKartenaktionen(app, { bot, konfig, nachrichtenAblage }) {
     const art = koerper.art === ART.KANAL ? ART.KANAL : ART.DM;
 
     // Die Art steht in der Spalte und im Inhalt. Nur eins von beidem zu ändern
-    // hiesse: Die Liste sagt „Kanal", der Editor öffnet eine Direktnachricht.
+    // hiesse: Die Liste sagt „Kanal“, der Editor öffnet eine Direktnachricht.
     nachrichtenAblage.aendere(konfig.guildId, eintrag.id, {
       name,
       art,

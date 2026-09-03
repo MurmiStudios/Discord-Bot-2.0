@@ -4,7 +4,7 @@
  * Drei Dinge, die hier entschieden werden und die man später nicht mehr sieht:
  *
  * - Wer über zwei gewählte Rollen erfasst wird, bekommt trotzdem eine
- *   Nachricht. Sonst schickt ein Versand an „Neu" und „Alt" manchen Leuten
+ *   Nachricht. Sonst schickt ein Versand an „Neu“ und „Alt“ manchen Leuten
  *   dasselbe zweimal.
  * - Bots bekommen keine Direktnachricht. Discord nimmt sie nicht an, und ein
  *   Fehlschlag je Bot in der Ergebnisliste verdeckt die echten Probleme.

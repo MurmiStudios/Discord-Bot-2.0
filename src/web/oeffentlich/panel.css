@@ -1379,3 +1379,59 @@ a.reiter-knopf { text-decoration: none; display: inline-flex; align-items: cente
   color: var(--gut);
   font-size: .9rem;
 }
+
+/* ── Rollen-Nachrichten ───────────────────────────────────────────── */
+
+/* Nur für Vorlesesoftware: Der Punkt sagt Sehenden den Zustand, dieser Text
+   sagt ihn allen anderen. */
+.nur-fuer-vorleser {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.rollenpillen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 20px 0 8px;
+}
+
+.rollenpille {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border: 1px solid var(--linie);
+  border-radius: 999px;
+  background: var(--flaeche);
+  color: var(--tinte);
+  font-size: .9rem;
+  text-decoration: none;
+}
+.rollenpille:hover { border-color: var(--akzent); background: var(--akzent-flaeche); }
+.rollenpille-aktiv {
+  border-color: var(--akzent);
+  background: var(--akzent-flaeche);
+  color: var(--akzent);
+  font-weight: 600;
+}
+
+/* Gefüllt heisst aktiv, hohl heisst hinterlegt aber aus, kein Punkt heisst
+   nichts hinterlegt — deshalb bleibt der Platz auch dann frei. */
+.rollenpunkt {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  flex: none;
+}
+.rollenpunkt-aktiv { background: var(--gut); border-color: var(--gut); }
+.rollenpunkt-ruht { background: transparent; border-color: var(--tinte-leise); }
+.rollenpunkt-leer { background: transparent; }

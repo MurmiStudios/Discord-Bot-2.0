@@ -22,7 +22,7 @@ export class VorlagenFehler extends Error {
   }
 }
 
-/** Aus „Willkommen auf dem Server!" wird „willkommen-auf-dem-server.png". */
+/** Aus „Willkommen auf dem Server!“ wird „willkommen-auf-dem-server.png“. */
 function dateiname(name) {
   const sauber = String(name ?? '')
     .toLowerCase()

@@ -26,7 +26,7 @@ export function leeresEmbed() {
 /**
  * Discord rechnet Titel, Beschreibung, alle Feldnamen und -werte, Fusszeile und
  * Autor gegen ein gemeinsames Limit von 6000. Genau so wird hier gezählt —
- * sonst meldet das Panel „passt" und Discord lehnt danach ab.
+ * sonst meldet das Panel „passt“ und Discord lehnt danach ab.
  */
 export function embedZeichen(embed) {
   if (!embed) return 0;

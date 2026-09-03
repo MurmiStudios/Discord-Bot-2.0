@@ -2,7 +2,7 @@ import { createCanvas, loadImage } from '@napi-rs/canvas';
 import { registriereSchriften, schriftFuer } from './schrift.mjs';
 import { ersetze } from '../nachricht/platzhalter.mjs';
 
-/** Die vorgegebenen Formate. „eigen" nimmt Breite und Höhe aus der Vorlage. */
+/** Die vorgegebenen Formate. „eigen“ nimmt Breite und Höhe aus der Vorlage. */
 export const FORMATE = Object.freeze({
   breit: { breite: 1200, hoehe: 400 },
   quadratisch: { breite: 600, hoehe: 600 },
@@ -69,7 +69,7 @@ function avatarPfad(stift, x, y, groesse, form) {
  * weiter verkleinert — darunter wäre er ohnehin nicht mehr lesbar.
  *
  * Passt es dann immer noch nicht, wird gekürzt und mit einem Auslassungszeichen
- * versehen. Das ist der Fall bei absurd langen Namen; „bis er passt" heisst
+ * versehen. Das ist der Fall bei absurd langen Namen; „bis er passt“ heisst
  * eben passt, und ein mikroskopischer Name hilft niemandem.
  */
 function passendeGroesse(stift, text, wunsch, maxBreite, fett) {
@@ -120,7 +120,7 @@ async function zeichneHintergrund(stift, vorlage, breite, hoehe) {
     return;
   }
 
-  // „fuellen" schneidet über, „einpassen" lässt Rand — beides ohne Verzerrung.
+  // „fuellen“ schneidet über, „einpassen“ lässt Rand — beides ohne Verzerrung.
   const verhaeltnis =
     vorlage.hintergrundAnpassung === 'einpassen'
       ? Math.min(breite / bild.width, hoehe / bild.height)

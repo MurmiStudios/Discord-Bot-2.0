@@ -108,8 +108,8 @@ export function erstelleGildenAnsicht({ bot, konfig }) {
 
     /**
      * @returns {string[]|undefined} Rollen-IDs, oder undefined wenn die Person
-     * kein Mitglied ist. Der Unterschied ist wichtig: „keine Rollen" heisst
-     * Mitglied ohne Zuordnung, „kein Mitglied" heisst gar kein Zugriff.
+     * kein Mitglied ist. Der Unterschied ist wichtig: „keine Rollen“ heisst
+     * Mitglied ohne Zuordnung, „kein Mitglied“ heisst gar kein Zugriff.
      */
     rollenVon(guildId, discordUserId) {
       const gilde = holeGilde(guildId);

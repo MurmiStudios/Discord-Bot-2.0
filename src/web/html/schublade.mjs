@@ -12,7 +12,7 @@ import { ART } from '../../nachricht/modell.mjs';
  * Schublade hereinfahren lässt.
  *
  * Der Inhalt steht dabei schon in der Seite und wird nicht nachgeladen. Das
- * spart nicht nur eine Anfrage — es gibt auch keinen Zustand „lädt noch" und
+ * spart nicht nur eine Anfrage — es gibt auch keinen Zustand „lädt noch“ und
  * keinen Fall, in dem die Schublade leer bleibt, weil das Netz weg ist.
  */
 

@@ -1,7 +1,7 @@
 /**
  * Discord-Fehlercodes in Sätze übersetzen, die jemandem etwas sagen.
  *
- * „Fehler 50007" beantwortet keine Frage. „Empfänger nimmt keine
+ * „Fehler 50007“ beantwortet keine Frage. „Empfänger nimmt keine
  * Direktnachrichten von Servermitgliedern an" sagt, dass niemand etwas falsch
  * gemacht hat und dass es auch beim nächsten Versuch nicht klappen wird.
  */

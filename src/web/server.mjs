@@ -6,6 +6,7 @@ import { registriereVersand } from './seiten/versand.mjs';
 import { registriereVorlagen } from './seiten/vorlagen.mjs';
 import { registriereNachrichten } from './seiten/nachrichten.mjs';
 import { registriereWillkommen } from './seiten/willkommen.mjs';
+import { registriereRollenNachrichten } from './seiten/rollen-nachrichten.mjs';
 import { stufenMiddleware, verlangt } from './mw/verlangt.mjs';
 import { csrfSchutz } from '../auth/csrf.mjs';
 import { seite } from './html/layout.mjs';
@@ -23,7 +24,7 @@ import { STUFE } from '../auth/rechte.mjs';
 export function erstelleApp({
   konfig, db, gilden, sitzungen, oauth, logger, zugriff, mitgliedschaft, gildenAnsicht,
   warteschlange, versandAblage, versender, bildvorlagen, bilderVerzeichnis, nachrichtenAblage,
-  willkommen,
+  willkommen, rollenNachrichten,
   avatarQuelle = erstelleAvatarQuelle(),
   bot = { status: () => ({ verbunden: false, grund: 'Der Bot ist nicht eingerichtet.' }) },
 }) {
@@ -61,6 +62,11 @@ export function erstelleApp({
   registriereNachrichten(app, { bot, konfig, nachrichtenAblage, gildenAnsicht });
   if (willkommen) {
     registriereWillkommen(app, { bot, konfig, willkommen, bildvorlagen, versender });
+  }
+  if (rollenNachrichten) {
+    registriereRollenNachrichten(app, {
+      bot, konfig, rollenNachrichten, gildenAnsicht, bildvorlagen,
+    });
   }
   registriereVorlagen(app, {
     bot, konfig, bildvorlagen, bilderVerzeichnis, gildenAnsicht, avatarQuelle,

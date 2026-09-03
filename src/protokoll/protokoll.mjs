@@ -2,7 +2,7 @@ import { verlangtGildenId, jetzt } from '../daten/repository.mjs';
 import { saeubere, brauchbareGeheimnisse } from '../kern/maskieren.mjs';
 
 /**
- * Vorgangsgruppen — die vier Filter neben „Alle".
+ * Vorgangsgruppen — die vier Filter neben „Alle“.
  *
  * Discord-Vorgänge lassen sich in acht Arten zerlegen, aber danach fragt
  * niemand. Gefragt wird: Ging eine Nachricht raus? Hat sich eine Rolle

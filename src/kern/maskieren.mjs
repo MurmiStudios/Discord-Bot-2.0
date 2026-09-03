@@ -15,7 +15,7 @@ const KUERZESTES_GEHEIMNIS = 8;
 /**
  * Feldnamen, deren Wert nie irgendwo landen darf, egal was drinsteht.
  *
- * Bewusst eng gefasst: Ein zu allgemeines Muster (etwa „kennung") maskiert
+ * Bewusst eng gefasst: Ein zu allgemeines Muster (etwa „kennung“) maskiert
  * harmlose Kennungen mit und macht Protokolle unbrauchbar, ohne dass es
  * jemandem auffaellt.
  */

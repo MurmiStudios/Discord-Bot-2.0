@@ -6,7 +6,7 @@ import { platzhalterWerte } from '../nachricht/werte.mjs';
  *
  * Die letzte Stelle vor Discord — und die einzige, die `send` aufruft. Fehler
  * werden hier nicht abgefangen: Die Warteschlange muss sie sehen, um zwischen
- * „Empfänger nimmt keine DMs an" und „Discord bremst" zu unterscheiden.
+ * „Empfänger nimmt keine DMs an“ und „Discord bremst“ zu unterscheiden.
  *
  * Die Platzhalterwerte entstehen hier, weil sie je Empfänger andere sind. Der
  * Servername und die Mitgliederzahl kommen dabei aus dem Guild-Cache.

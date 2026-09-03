@@ -458,7 +458,7 @@ Grundlage: `docs/SPEC.md`.
   - **Prüfen:** Test gegen das Doppel für Erfolg und für Fehler 50007.
   - **Dateien:** `src/web/seiten/willkommen.mjs`, `tests/integration/test-dm.test.mjs`
 
-- [ ] **42 · Rollen-Nachrichten: Seite und Rollenpillen** — M · hängt ab von: 39
+- [x] **42 · Rollen-Nachrichten: Seite und Rollenpillen** — M · hängt ab von: 39
   - **Abnahme:** `/rollen-nachrichten` mit Rollenauswahl als Pillen; ein Punkt zeigt,
     für welche Rolle schon etwas hinterlegt ist. Genau eine Nachricht je Rolle.
   - **Abnahme:** Aktiv-Schalter je Nachricht. Pillen sind echte Formularelemente

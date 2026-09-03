@@ -3,26 +3,25 @@ import { seite } from '../html/layout.mjs';
 import { verlangt } from '../mw/verlangt.mjs';
 import { STUFE } from '../../auth/rechte.mjs';
 import { csrfFeld } from '../../auth/csrf.mjs';
-import { GRENZE, ART } from '../../nachricht/modell.mjs';
+import { ART } from '../../nachricht/modell.mjs';
 import { entwurfAus, alsEingabe, alsNachricht } from '../../nachricht/entwurf.mjs';
 import { textfeld, embedteil, bildwahl, vorschauteil, fehlerZu } from '../html/baukasten.mjs';
-import { vorschau, MODUS } from '../../nachricht/vorschau.mjs';
+import { vorschau } from '../../nachricht/vorschau.mjs';
 import { empfaengerwahl } from '../html/empfaengerwahl.mjs';
 import { kanalwahl } from '../html/kanalwahl.mjs';
 import { darfBot, AKTION } from '../../discord/rechte.mjs';
 import { loeseEmpfaengerAuf, parseAuswahl, alsAuswahlWert, pruefeGrenze } from '../../versand/empfaenger.mjs';
 import { vorschauGrenze } from '../mw/sicherheit.mjs';
-import { PLATZHALTER } from '../../nachricht/platzhalter.mjs';
-import { fuegeEin, zerlegeKnopfwert } from '../../nachricht/platzhalterziel.mjs';
 import { schublade, schubladenSchalter } from '../html/schublade.mjs';
 import { pruefeNachricht } from '../../nachricht/pruefen.mjs';
 import { bestaetigungsSeite } from './versand.mjs';
+import { zwischenschritt } from './zwischenschritt.mjs';
 import { speichereEntwurf, zielnamenFuer } from './ablage.mjs';
 
 /**
  * Der Nachrichteneditor.
  *
- * Zum Ziel-Wechsel: Das Artifact nennt die Reiter „echte Verweise", verlangt
+ * Zum Ziel-Wechsel: Das Artifact nennt die Reiter „echte Verweise“, verlangt
  * aber im selben Atemzug, dass der Wechsel den getippten Text behält. Beides
  * zusammen geht mit einem Verweis nicht — ein Text von 2000 Zeichen passt
  * nicht verlässlich in eine Adresse.
@@ -32,8 +31,6 @@ import { speichereEntwurf, zielnamenFuer } from './ablage.mjs';
  * `/nachricht?art=kanal` funktioniert zusätzlich, damit sich ein Ziel verlinken
  * und als Lesezeichen ablegen lässt.
  */
-
-const ERLAUBTE_PLATZHALTER = new Set(PLATZHALTER.map((p) => p.name));
 
 function reiter(art) {
   const eintraege = [
@@ -169,9 +166,9 @@ function editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, vorlagen = [], 
           <button type="submit" name="pruefen" value="ja" class="knopf-leise">Nur prüfen</button>
           <span class="hinweis">
             ${entwurf.gespeichertId
-              ? html`Vor dem Versand kommt eine Rückfrage. „Speichern" überschreibt die
+              ? html`Vor dem Versand kommt eine Rückfrage. „Speichern“ überschreibt die
                   gespeicherte Nachricht — für eine zweite Fassung gibt es in der
-                  <a href="/nachrichten">Liste</a> den Knopf „Kopie".`
+                  <a href="/nachrichten">Liste</a> den Knopf „Kopie“.`
               : html`Vor dem Versand kommt eine Rückfrage. Mit Namen wird beim Senden
                   zusätzlich gespeichert.`}
           </span>
@@ -320,13 +317,6 @@ export function registriereNachricht(app, { bot, konfig, gildenAnsicht, bildvorl
 
     if (koerper.suchen !== undefined) return zeigen();
 
-    if (koerper.vorschauWechseln !== undefined) {
-      entwurf.vorschauModus = koerper.vorschauWechseln === MODUS.ROH ? MODUS.ROH : MODUS.BEISPIEL;
-      return zeigen();
-    }
-
-    if (koerper.vorschauErneuern !== undefined) return zeigen();
-
     // Speichern prüft nur den Inhalt, nicht das Ziel: Ein Entwurf darf ohne
     // Empfänger in die Ablage, gesendet wird er dadurch ja nicht.
     if (koerper.speichern !== undefined && nachrichtenAblage) {
@@ -346,36 +336,7 @@ export function registriereNachricht(app, { bot, konfig, gildenAnsicht, bildvorl
       return res.redirect(303, `/nachrichten?art=${entwurf.art}`);
     }
 
-    if (koerper.embedUmschalten !== undefined) {
-      entwurf.embedAn = !entwurf.embedAn;
-      return zeigen();
-    }
-
-    if (koerper.feldHinzufuegen !== undefined) {
-      if (entwurf.embed.felder.length < GRENZE.FELDER) {
-        entwurf.embed.felder.push({ name: '', wert: '' });
-      }
-      return zeigen();
-    }
-
-    if (koerper.feldEntfernen !== undefined) {
-      const index = Number(koerper.feldEntfernen);
-      if (Number.isInteger(index) && index >= 0 && index < entwurf.embed.felder.length) {
-        entwurf.embed.felder.splice(index, 1);
-      }
-      return zeigen();
-    }
-
-    // Platzhalter angehaengt. Ohne JavaScript ans Ende des gewaehlten Feldes —
-    // mit JavaScript setzt editor.js ihn an die Schreibmarke, bevor es hierher
-    // kommt.
-    if (koerper.platzhalterEinfuegen !== undefined) {
-      const geklickt = zerlegeKnopfwert(koerper.platzhalterEinfuegen);
-      if (geklickt && ERLAUBTE_PLATZHALTER.has(geklickt.platzhalter)) {
-        fuegeEin(entwurf, geklickt.ziel, geklickt.platzhalter);
-      }
-      return zeigen();
-    }
+    if (zwischenschritt(koerper, entwurf)) return zeigen();
 
     // Das Ziel wird serverseitig geprueft, nicht nur im Formular ausgeblendet:
     // Eine untergeschobene Kanal-ID darf nicht dazu fuehren, dass der Bot

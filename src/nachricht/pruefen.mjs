@@ -81,7 +81,7 @@ export function pruefeNachricht(eingabe, { darfLeerSein = false } = {}) {
 
   const art = text(eingabe.art);
   if (art !== ART.DM && art !== ART.KANAL) {
-    fehler.push({ feld: 'art', meldung: 'Unbekannte Art. Erlaubt sind „dm" und „kanal".' });
+    fehler.push({ feld: 'art', meldung: 'Unbekannte Art. Erlaubt sind „dm“ und „kanal“.' });
   }
 
   const nachrichtenText = text(eingabe.text);

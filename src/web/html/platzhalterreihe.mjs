@@ -11,7 +11,7 @@ import { PLATZHALTER } from '../../nachricht/platzhalter.mjs';
  *
  * Das ersetzt die frühere Zielwahl. Sie funktionierte, verlangte aber, dass man
  * erst ein Auswahlfeld bedient, bevor man auf eine Variable klickt. Eine Reihe
- * direkt unter dem Feld beantwortet die Frage „wohin?" schon durch ihre Lage.
+ * direkt unter dem Feld beantwortet die Frage „wohin?“ schon durch ihre Lage.
  */
 export function platzhalterreihe(ziel, { beschriftung } = {}) {
   return html`

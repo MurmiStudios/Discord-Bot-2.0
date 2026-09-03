@@ -47,7 +47,7 @@ export function bestaetigungsSeite({ req, bot, konfig, entwurf, aufgeloest, ziel
         ${entwurf.name.trim() !== ''
           ? html`<p class="hinweis">
               Wird ausserdem unter <strong>${entwurf.name.trim()}</strong> gespeichert und steht
-              danach unter „Gespeicherte Nachrichten".
+              danach unter „Gespeicherte Nachrichten“.
             </p>`
           : ''}
         ${entwurf.art === ART.DM && aufgeloest.leereRollen.length > 0

@@ -64,7 +64,7 @@ export function empfaengerwahl({
         : suchbegriff === ''
           ? ''
           : treffer.length === 0
-            ? html`<p class="hinweis">Zu „${suchbegriff}" wurde nichts gefunden.</p>`
+            ? html`<p class="hinweis">Zu „${suchbegriff}“ wurde nichts gefunden.</p>`
             : html`
                 <ul class="trefferwahl">
                   ${treffer.map(

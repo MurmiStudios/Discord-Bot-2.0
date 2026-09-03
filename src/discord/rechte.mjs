@@ -23,7 +23,7 @@ export function darfBot(aktion, { ansicht, rollenId, kanalId }) {
       if (!ansicht.botHatRecht(PermissionFlagsBits.KickMembers)) {
         return verboten(
           'Dem Bot fehlt das Recht, Mitglieder zu kicken. Es heißt in Discord ' +
-            '„Mitglieder entfernen" und muss seiner Rolle gegeben werden.',
+            '„Mitglieder entfernen“ und muss seiner Rolle gegeben werden.',
         );
       }
       return ERLAUBT;

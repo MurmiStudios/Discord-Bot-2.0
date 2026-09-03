@@ -35,7 +35,7 @@ const FARBE = /^#[0-9a-fA-F]{6}$/;
 const alsListe = (wert) => (wert === undefined ? [] : Array.isArray(wert) ? wert : [wert]);
 
 /** Ein Ankreuzfeld liefert nichts, wenn es nicht angekreuzt ist — daher das
- *  versteckte „nein" davor, das immer mitkommt. */
+ *  versteckte „nein“ davor, das immer mitkommt. */
 const angekreuzt = (wert) => alsListe(wert).includes('ja');
 
 const einsAus = (wert, erlaubt, vorgabe) =>
@@ -97,7 +97,7 @@ export function vorlageAus(koerper = {}) {
   };
 }
 
-/** Eine leere Zeile, wie „Zeile hinzufügen" sie anlegt. */
+/** Eine leere Zeile, wie „Zeile hinzufügen“ sie anlegt. */
 export function neueZeile(vorlage) {
   return {
     text: '',

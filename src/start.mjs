@@ -12,6 +12,7 @@ import { erstelleVersandAblage } from './daten/versand.mjs';
 import { erstelleBildvorlagen } from './daten/bildvorlagen.mjs';
 import { erstelleNachrichtenAblage } from './daten/nachrichten.mjs';
 import { erstelleWillkommen } from './daten/willkommen.mjs';
+import { erstelleRollenNachrichten } from './daten/rollen_nachrichten.mjs';
 import { erstelleWillkommensAutomatik } from './automatik/willkommen.mjs';
 import { registriereEreignisse } from './discord/ereignisse.mjs';
 import { erstelleVersender } from './discord/versender.mjs';
@@ -72,6 +73,7 @@ const versandAblage = erstelleVersandAblage(db);
 const bildvorlagen = erstelleBildvorlagen(db);
 const nachrichtenAblage = erstelleNachrichtenAblage(db);
 const willkommen = erstelleWillkommen(db);
+const rollenNachrichten = erstelleRollenNachrichten(db);
 // Hochgeladene Hintergrundbilder liegen neben der Datenbank — beides gehoert
 // zum Bestand, den eine Sicherung mitnehmen muss.
 const bilderVerzeichnis = new URL('../speicher/bilder/', import.meta.url).pathname;
@@ -90,7 +92,7 @@ const warteschlange = erstelleWarteschlange({
   konfig,
 });
 
-// Ein Vorgang, der nach einem Neustart noch „laeuft", kann es nicht — der
+// Ein Vorgang, der nach einem Neustart noch „laeuft“, kann es nicht — der
 // Prozess, der ihn betrieb, ist weg.
 warteschlange.brichLaufendeAb(konfig.guildId);
 
@@ -108,7 +110,7 @@ erstelleApp({
   konfig, db, gilden, sitzungen, oauth, logger, zugriff,
   bot, gildenAnsicht, mitgliedschaft: gildenAnsicht,
   warteschlange, versandAblage, versender, bildvorlagen, bilderVerzeichnis, avatarQuelle,
-  nachrichtenAblage, willkommen,
+  nachrichtenAblage, willkommen, rollenNachrichten,
 })
   .listen(konfig.port, () => {
     logger.info('start', 'Panel läuft', {

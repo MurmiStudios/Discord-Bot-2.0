@@ -6,7 +6,7 @@ import { html } from './html.mjs';
  *
  * Gesperrte Kanäle bleiben sichtbar und nennen den Grund, statt zu
  * verschwinden. Ein Kanal, der fehlt, wirft die Frage auf, ob man ihn falsch
- * in Erinnerung hat; ein Kanal, der „Der Bot darf hier nicht schreiben" sagt,
+ * in Erinnerung hat; ein Kanal, der „Der Bot darf hier nicht schreiben“ sagt,
  * beantwortet sie.
  *
  * Die Symbole sind SVG-Pfade und keine Emoji: Emoji sehen auf jedem System
@@ -55,7 +55,7 @@ export function kanalwahl({ kanaele, gewaehlt, suchbegriff, botVerbunden, fehler
           </p>`
         : kanaele.length === 0
           ? html`<p class="hinweis">
-              ${suchbegriff ? html`Zu „${suchbegriff}" wurde kein Kanal gefunden.` : 'Keine Kanäle gefunden.'}
+              ${suchbegriff ? html`Zu „${suchbegriff}“ wurde kein Kanal gefunden.` : 'Keine Kanäle gefunden.'}
             </p>`
           : html`
               <div class="kanalliste" role="radiogroup" aria-label="Kanal wählen">

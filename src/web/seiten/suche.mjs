@@ -21,7 +21,7 @@ export function registriereSuche(app, { bot }) {
     );
 
     // Genau ein Treffer: Wer sucht, will dorthin — nicht auf eine Liste mit
-    // einem Eintrag. Das ist der Ersatz fuer „Enter springt hin" ohne JavaScript.
+    // einem Eintrag. Das ist der Ersatz fuer „Enter springt hin“ ohne JavaScript.
     if (treffer.length === 1 && begriff !== '') {
       return res.redirect(302, treffer[0].pfad);
     }
@@ -42,7 +42,7 @@ export function registriereSuche(app, { bot }) {
               <button type="submit">Suchen</button>
             </form>
             ${treffer.length === 0
-              ? html`<p>Zu „${begriff}" wurde nichts gefunden. Es gibt keine Seite dieses Namens,
+              ? html`<p>Zu „${begriff}“ wurde nichts gefunden. Es gibt keine Seite dieses Namens,
                      oder sie ist für deine Zugriffsstufe nicht freigegeben.</p>`
               : html`
                   <ul class="trefferliste">

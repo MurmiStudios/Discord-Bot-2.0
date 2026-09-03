@@ -3,13 +3,11 @@ import { seite } from '../html/layout.mjs';
 import { verlangt } from '../mw/verlangt.mjs';
 import { STUFE } from '../../auth/rechte.mjs';
 import { csrfFeld } from '../../auth/csrf.mjs';
-import { GRENZE, istLeer } from '../../nachricht/modell.mjs';
+import { istLeer } from '../../nachricht/modell.mjs';
 import { entwurfAus, alsAblage, alsEingabe, alsNachricht } from '../../nachricht/entwurf.mjs';
 import { pruefeNachricht } from '../../nachricht/pruefen.mjs';
 import { textfeld, embedteil, bildwahl, vorschauteil, fehlerZu } from '../html/baukasten.mjs';
-import { MODUS } from '../../nachricht/vorschau.mjs';
-import { zerlegeKnopfwert, fuegeEin } from '../../nachricht/platzhalterziel.mjs';
-import { PLATZHALTER } from '../../nachricht/platzhalter.mjs';
+import { zwischenschritt, aktivAus } from './zwischenschritt.mjs';
 import { klartext } from '../../discord/fehler.mjs';
 
 /**
@@ -28,8 +26,6 @@ import { klartext } from '../../discord/fehler.mjs';
  * etwas eingerichtet, und beim ersten Beitritt passierte nichts. Der Fall wird
  * benannt und abgelehnt.
  */
-
-const ERLAUBTE_PLATZHALTER = new Set(PLATZHALTER.map((p) => p.name));
 
 /** Die Vorschau soll die Lage zeigen, in der die Nachricht wirklich ankommt. */
 const HINWEIS_PLATZHALTER = html`
@@ -116,7 +112,7 @@ export function pruefeWillkommen(entwurf, aktiv) {
       feld: 'aktiv',
       meldung:
         'Ohne Text, Embed-Karte und Bildvorlage gibt es nichts zu verschicken. ' +
-        'Schreib etwas, oder nimm den Haken bei „Aktiv" heraus.',
+        'Schreib etwas, oder nimm den Haken bei „Aktiv“ heraus.',
     });
   }
 
@@ -185,40 +181,9 @@ export function registriereWillkommen(
   app.post('/willkommen', verlangt(STUFE.MODERATOR), async (req, res, next) => {
     const koerper = req.body ?? {};
     const entwurf = entwurfAus({ ...koerper, art: 'dm' });
-    const aktiv = (Array.isArray(koerper.aktiv) ? koerper.aktiv : [koerper.aktiv]).includes('ja');
+    const aktiv = aktivAus(koerper);
 
-    if (koerper.embedUmschalten !== undefined) {
-      entwurf.embedAn = !entwurf.embedAn;
-      return zeige(req, res, entwurf, aktiv);
-    }
-
-    if (koerper.feldHinzufuegen !== undefined) {
-      if (entwurf.embed.felder.length < GRENZE.FELDER) entwurf.embed.felder.push({ name: '', wert: '' });
-      return zeige(req, res, entwurf, aktiv);
-    }
-
-    if (koerper.feldEntfernen !== undefined) {
-      const index = Number(koerper.feldEntfernen);
-      if (Number.isInteger(index) && index >= 0 && index < entwurf.embed.felder.length) {
-        entwurf.embed.felder.splice(index, 1);
-      }
-      return zeige(req, res, entwurf, aktiv);
-    }
-
-    if (koerper.platzhalterEinfuegen !== undefined) {
-      const geklickt = zerlegeKnopfwert(koerper.platzhalterEinfuegen);
-      if (geklickt && ERLAUBTE_PLATZHALTER.has(geklickt.platzhalter)) {
-        fuegeEin(entwurf, geklickt.ziel, geklickt.platzhalter);
-      }
-      return zeige(req, res, entwurf, aktiv);
-    }
-
-    if (koerper.vorschauWechseln !== undefined) {
-      entwurf.vorschauModus = koerper.vorschauWechseln === MODUS.ROH ? MODUS.ROH : MODUS.BEISPIEL;
-      return zeige(req, res, entwurf, aktiv);
-    }
-
-    if (koerper.vorschauErneuern !== undefined) return zeige(req, res, entwurf, aktiv);
+    if (zwischenschritt(koerper, entwurf)) return zeige(req, res, entwurf, aktiv);
 
     const geprueft = pruefeWillkommen(entwurf, aktiv);
     if (!geprueft.ok) {
@@ -227,7 +192,7 @@ export function registriereWillkommen(
 
     willkommen.sichere(konfig.guildId, { aktiv, daten: alsAblage(entwurf) });
 
-    // Der Test speichert zuerst. „Der gespeicherte Stand" und „was ich gerade
+    // Der Test speichert zuerst. „Der gespeicherte Stand“ und „was ich gerade
     // getippt habe" sind damit dasselbe — sonst prüfte man eine alte Fassung
     // und wunderte sich.
     if (koerper.testen !== undefined) {

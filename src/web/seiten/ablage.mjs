@@ -5,7 +5,7 @@ import { ART } from '../../nachricht/modell.mjs';
 /**
  * Die Namen hinter den gemerkten Zielen, zum Zeitpunkt des Speicherns.
  *
- * Ohne sie könnte die Liste später nur sagen „ein Empfänger fehlt". Mit ihnen
+ * Ohne sie könnte die Liste später nur sagen „ein Empfänger fehlt“. Mit ihnen
  * sagt sie, wer.
  */
 export function zielnamenFuer(gildenAnsicht, guildId, entwurf) {
@@ -30,12 +30,12 @@ export function zielnamenFuer(gildenAnsicht, guildId, entwurf) {
 /**
  * Einen Entwurf in die Ablage schreiben.
  *
- * Steht für sich, weil es zwei Aufrufer gibt: den Knopf „Speichern" im Editor
+ * Steht für sich, weil es zwei Aufrufer gibt: den Knopf „Speichern“ im Editor
  * und den Versandstart, der eine benannte Nachricht mitspeichert. Zweimal
  * geschrieben liefe beides irgendwann auseinander.
  *
  * Kam der Entwurf aus der Ablage, wird dorthin zurückgeschrieben statt eine
- * zweite Fassung anzulegen. Wer beides will, nimmt in der Liste „Kopie" — sonst
+ * zweite Fassung anzulegen. Wer beides will, nimmt in der Liste „Kopie“ — sonst
  * hätte man nach dreimal Bearbeiten vier Nachrichten mit demselben Namen.
  *
  * @returns {number|null} die Kennung, oder null wenn kein Name dasteht

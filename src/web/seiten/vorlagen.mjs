@@ -36,7 +36,7 @@ import {
  * gar nicht erst.
  *
  * Das Namensfeld trägt bewusst kein `required`: Die Browserprüfung blockiert
- * nicht nur „Speichern", sondern jeden Absende-Knopf des Formulars. Eine Zeile
+ * nicht nur „Speichern“, sondern jeden Absende-Knopf des Formulars. Eine Zeile
  * hinzufügen oder ein Hintergrundbild hochladen ginge dann erst, nachdem ein
  * Name dasteht. Geprüft wird der Name auf dem Server — dort, wo die Prüfung
  * ohnehin verbindlich ist.
@@ -138,7 +138,7 @@ function auswahl(name, wert, erlaubt, namen, { id } = {}) {
  *
  * Ohne das versteckte Feld davor liesse sich ein Haken nie wieder entfernen:
  * Der Browser schickt ein leeres Ankreuzfeld gar nicht mit, und der Server
- * könnte „nicht angekreuzt" nicht von „Feld gibt es nicht" unterscheiden.
+ * könnte „nicht angekreuzt“ nicht von „Feld gibt es nicht“ unterscheiden.
  */
 function haken(name, an, beschriftung) {
   return html`
@@ -557,7 +557,7 @@ export function registriereVorlagen(
     res.type('html').send(String(listeSeite({ req, bot, eintraege })));
   });
 
-  // Vor `/vorlagen/:id`, sonst wäre „neu" eine Kennung.
+  // Vor `/vorlagen/:id`, sonst wäre „neu“ eine Kennung.
   app.get('/vorlagen/neu', verlangt(STUFE.MODERATOR), async (req, res, next) => {
     try {
       await zeige(req, res, leererEntwurf(standardVorlage()));

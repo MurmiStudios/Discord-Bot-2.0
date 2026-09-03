@@ -1,7 +1,7 @@
 /**
  * HTML zusammensetzen, ohne das Maskieren vergessen zu können.
  *
- * Der Grundgedanke: Maskieren ist die Vorgabe, „sicher" muss man ausdrücklich
+ * Der Grundgedanke: Maskieren ist die Vorgabe, „sicher“ muss man ausdrücklich
  * sagen. Bei einer Template-Engine ist es meist andersherum — dort ist ein
  * vergessenes Escape eine Lücke, hier ein bewusstes `roh()`.
  *
