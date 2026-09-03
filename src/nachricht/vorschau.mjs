@@ -39,7 +39,12 @@ function farbstreifen(farbe) {
   `;
 }
 
-function embedTeil(embed, umschreiben) {
+/** Der Platz, an dem beim Senden das erzeugte Bild steht. */
+function bildplatz() {
+  return html`<div class="v-bild">Bild wird beim Senden je Empfänger erzeugt</div>`;
+}
+
+function embedTeil(embed, umschreiben, { mitBild = false } = {}) {
   if (!embedHatInhalt(embed)) return '';
 
   return html`
@@ -67,6 +72,7 @@ function embedTeil(embed, umschreiben) {
               </div>
             `
           : ''}
+        ${mitBild ? bildplatz() : ''}
         ${embed.fusszeile ? html`<p class="v-embed-fuss">${umschreiben(embed.fusszeile)}</p>` : ''}
       </div>
     </div>
@@ -84,6 +90,11 @@ export function vorschau(nachricht, { modus = MODUS.BEISPIEL, werte } = {}) {
 
   const absender = modus === MODUS.ROH ? 'Platzhalter unverändert' : daten.user;
 
+  // Wo das Bild landet, entscheidet der Versand — hier steht dasselbe, damit
+  // die Vorschau nicht etwas anderes zeigt als das, was ankommt.
+  const hatBild = Boolean(nachricht.bildvorlageId);
+  const imEmbed = hatBild && embedHatInhalt(nachricht.embed ?? null);
+
   return html`${roh(VORSCHAU_START)}
     <div class="vorschau-nachricht">
       <div class="v-avatar" aria-hidden="true"></div>
@@ -96,10 +107,8 @@ export function vorschau(nachricht, { modus = MODUS.BEISPIEL, werte } = {}) {
         ${nachricht.text
           ? html`<p class="v-text">${text_mit_umbruechen(umschreiben(nachricht.text))}</p>`
           : html`<p class="v-leer">Kein Text</p>`}
-        ${embedTeil(nachricht.embed ?? null, umschreiben)}
-        ${nachricht.bildvorlageId
-          ? html`<div class="v-bild">Bild wird beim Senden je Empfänger erzeugt</div>`
-          : ''}
+        ${embedTeil(nachricht.embed ?? null, umschreiben, { mitBild: hatBild })}
+        ${hatBild && !imEmbed ? bildplatz() : ''}
       </div>
     </div>
     ${roh(VORSCHAU_ENDE)}`;

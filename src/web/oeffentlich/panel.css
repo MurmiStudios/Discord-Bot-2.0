@@ -673,6 +673,11 @@ p { max-width: 68ch; }
 
 .v-embed-fuss { margin: 9px 0 0; font-size: .76rem; color: #949ba4; }
 
+/* Im Embed sitzt das Bild in der Karte und richtet sich nach deren Breite. */
+.v-embed-inhalt .v-bild {
+  max-width: 100%;
+}
+
 .v-bild {
   display: flex;
   align-items: center;

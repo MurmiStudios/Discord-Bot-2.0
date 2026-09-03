@@ -24,10 +24,22 @@ export function alsDiscordNachricht(nachricht, werte, anhaenge = []) {
 
   const nutzlast = {};
   if (content.trim() !== '') nutzlast.content = content;
-  if (embed) nutzlast.embeds = [embed];
+
   if (anhaenge.length > 0) {
     nutzlast.files = anhaenge.map((anhang) => ({ attachment: anhang.daten, name: anhang.name }));
   }
+
+  // Traegt die Nachricht beides, gehoert das Bild *in* die Karte.
+  //
+  // Discord zeigt einen Anhang genau einmal: entweder unter der Nachricht oder
+  // im Embed, das ihn mit `attachment://` anspricht. Ohne diese Zeile haengt
+  // die Willkommenskarte unter der Karte statt darin — zwei Bloecke, wo einer
+  // gemeint war.
+  if (embed) {
+    if (anhaenge.length > 0) embed.image = { url: `attachment://${anhaenge[0].name}` };
+    nutzlast.embeds = [embed];
+  }
+
   return nutzlast;
 }
 

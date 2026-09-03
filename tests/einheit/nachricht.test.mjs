@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { GRENZE, embedZeichen, istLeer, leeresEmbed } from '../../src/nachricht/modell.mjs';
 import { pruefeNachricht } from '../../src/nachricht/pruefen.mjs';
+import { vorschau } from '../../src/nachricht/vorschau.mjs';
 
 const x = (anzahl) => 'x'.repeat(anzahl);
 
@@ -147,4 +148,34 @@ test('Text wird nicht stillschweigend beschnitten, sondern abgelehnt', () => {
 
   assert.equal(ergebnis.ok, false);
   assert.equal(ergebnis.wert, undefined, 'Es wurde trotzdem ein Wert geliefert');
+});
+
+test('die Vorschau zeigt das Bild in der Karte, wenn die Nachricht ein Embed hat', () => {
+  // Sie muss zeigen, was ankommt: Bei einem Embed steckt der Anhang darin.
+  const mitEmbed = String(vorschau({
+    text: '', bildvorlageId: 7,
+    embed: { titel: 'Willkommen', felder: [], fusszeile: 'unten' },
+  }));
+
+  const embedAnfang = mitEmbed.indexOf('v-embed-inhalt');
+  const bild = mitEmbed.indexOf('v-bild');
+  const fuss = mitEmbed.indexOf('v-embed-fuss');
+
+  assert.ok(bild > embedAnfang, 'das Bild steht im Embed');
+  assert.ok(bild < fuss, 'und über der Fusszeile, wie bei Discord');
+  assert.equal(mitEmbed.split('v-bild').length - 1, 1, 'nur einmal, nicht zweimal');
+});
+
+test('ohne Embed steht das Bild unter der Nachricht', () => {
+  const ohneEmbed = String(vorschau({ text: 'Hallo', bildvorlageId: 7, embed: null }));
+
+  assert.ok(ohneEmbed.includes('v-bild'));
+  assert.equal(ohneEmbed.includes('v-embed'), false);
+});
+
+test('ein leeres Embed schiebt das Bild nicht in eine Karte, die es nicht gibt', () => {
+  const leer = String(vorschau({ text: 'Hallo', bildvorlageId: 7, embed: { titel: '', felder: [] } }));
+
+  assert.equal(leer.includes('v-embed'), false);
+  assert.equal(leer.split('v-bild').length - 1, 1);
 });

@@ -96,3 +96,34 @@ test('ein Embed ganz ohne Inhalt wird weggelassen', () => {
 test('eine Nachricht ohne jeden Inhalt ergibt keine Nutzlast', () => {
   assert.equal(alsDiscordNachricht({ text: '' }, WERTE), null);
 });
+
+test('trägt die Nachricht Embed und Bild, steckt das Bild im Embed', () => {
+  // Discord zeigt einen Anhang genau einmal. Ohne die Verknüpfung hinge das
+  // Bild unter der Karte statt darin.
+  const nutzlast = alsDiscordNachricht(
+    { text: '', embed: { titel: 'Willkommen', felder: [] } },
+    {},
+    [{ name: 'karte.png', daten: Buffer.from('x') }],
+  );
+
+  assert.deepEqual(nutzlast.embeds[0].image, { url: 'attachment://karte.png' });
+  assert.equal(nutzlast.files.length, 1, 'die Datei geht trotzdem mit');
+  assert.equal(nutzlast.files[0].name, 'karte.png');
+});
+
+test('ohne Embed bleibt das Bild ein gewöhnlicher Anhang', () => {
+  const nutzlast = alsDiscordNachricht(
+    { text: 'Hallo', embed: null },
+    {},
+    [{ name: 'karte.png', daten: Buffer.from('x') }],
+  );
+
+  assert.equal(nutzlast.embeds, undefined);
+  assert.equal(nutzlast.files[0].name, 'karte.png');
+});
+
+test('ein Embed ohne Bild bekommt kein leeres Bildfeld', () => {
+  const nutzlast = alsDiscordNachricht({ text: '', embed: { titel: 'Nur Text', felder: [] } }, {});
+
+  assert.equal('image' in nutzlast.embeds[0], false);
+});

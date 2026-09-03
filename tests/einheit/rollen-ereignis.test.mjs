@@ -240,3 +240,44 @@ test('eine Änderung auf einem anderen Server wird nicht beachtet', async () => 
     assert.equal(u.doppel.gesendet.length, 0);
   });
 });
+
+test('dieselbe Rolle zweimal kurz hintereinander sendet nur einmal', async () => {
+  // Das Gateway spielt nach einem Verbindungsabriss verpasste Ereignisse nach.
+  // Der Vergleich von vorher und nachher fängt das nicht ab: Beide Male sieht
+  // die Änderung gleich aus, und beide Male ist die Rolle neu.
+  await mitBot(async (u) => {
+    u.rollenNachrichten.sichere(GILDE, 'r-verifiziert', {
+      aktiv: true, daten: { art: 'dm', text: 'Hallo' },
+    });
+
+    const aenderung = { id: 'm1', name: 'Anna', vorher: [], nachher: ['r-verifiziert'] };
+    await u.aendere(aenderung);
+    await u.aendere(aenderung);
+
+    assert.equal(u.doppel.gesendet.length, 1);
+    assert.equal(eintraege(u.protokoll).length, 1);
+    assert.ok(u.logzeilen.some((z) => z.includes('doppelt gemeldet')));
+  });
+});
+
+test('eine zweite, andere Rolle kommt trotz der Sperre durch', async () => {
+  // Gegenprobe: Die Sperre gilt je Mitglied und Rolle, nicht pauschal.
+  await mitBot(async (u) => {
+    u.rollenNachrichten.sichere(GILDE, 'r-verifiziert', {
+      aktiv: true, daten: { art: 'dm', text: 'Verifiziert!' },
+    });
+    u.rollenNachrichten.sichere(GILDE, 'r-team', {
+      aktiv: true, daten: { art: 'dm', text: 'Team!' },
+    });
+
+    await u.aendere({ id: 'm1', name: 'Anna', vorher: [], nachher: ['r-verifiziert'] });
+    await u.aendere({
+      id: 'm1', name: 'Anna', vorher: ['r-verifiziert'], nachher: ['r-verifiziert', 'r-team'],
+    });
+
+    assert.deepEqual(
+      u.doppel.gesendet.map((g) => g.nutzlast.content),
+      ['Verifiziert!', 'Team!'],
+    );
+  });
+});
