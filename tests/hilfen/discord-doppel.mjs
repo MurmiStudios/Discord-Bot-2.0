@@ -46,6 +46,7 @@ export function erstelleClientDoppel({
   anmeldungScheitert = false,
   dmFehler = {},
   kanalFehler = {},
+  rollenFehler = {},
 } = {}) {
   const client = new EventEmitter();
   client.zerstoert = false;
@@ -70,13 +71,23 @@ export function erstelleClientDoppel({
     });
   }
 
+  // Was der Bot tatsaechlich an Rollen weggenommen hat.
+  const entzogen = [];
+
   const mitgliederMap = new Map();
   for (const m of mitglieder) {
     mitgliederMap.set(m.id, {
       id: m.id,
       displayName: m.name ?? m.id,
       user: { id: m.id, username: m.name ?? m.id, bot: m.bot ?? false, displayAvatarURL: () => `https://cdn.discordapp.com/avatars/${m.id}/x.png` },
-      roles: { cache: new Map((m.rollen ?? []).map((r) => [r, rollenMap.get(r) ?? { id: r, name: r, position: 1 }])) },
+      roles: {
+        cache: new Map((m.rollen ?? []).map((r) => [r, rollenMap.get(r) ?? { id: r, name: r, position: 1 }])),
+        async remove(rollenId, grund) {
+          if (rollenFehler[rollenId]) throw rollenFehler[rollenId];
+          entzogen.push({ mitglied: m.id, rolle: rollenId, grund });
+          mitgliederMap.get(m.id)?.roles.cache.delete(rollenId);
+        },
+      },
     });
   }
 
@@ -168,7 +179,13 @@ export function erstelleClientDoppel({
       id,
       displayName: name ?? id,
       user: { id, username: `${name ?? id}_tag`, bot: istBot },
-      roles: { cache: new Map(rollen.map((r) => [r, rollenMap.get(r) ?? { id: r, name: r }])) },
+      roles: {
+        cache: new Map(rollen.map((r) => [r, rollenMap.get(r) ?? { id: r, name: r }])),
+        async remove(rollenId, grund) {
+          if (rollenFehler[rollenId]) throw rollenFehler[rollenId];
+          entzogen.push({ mitglied: id, rolle: rollenId, grund });
+        },
+      },
       guild: gilde,
     };
     mitgliederMap.set(id, mitglied);
@@ -182,7 +199,13 @@ export function erstelleClientDoppel({
       id,
       displayName: name ?? id,
       user: { id, username: `${name ?? id}_tag`, bot: istBot },
-      roles: { cache: new Map(rollen.map((r) => [r, rollenMap.get(r) ?? { id: r, name: r }])) },
+      roles: {
+        cache: new Map(rollen.map((r) => [r, rollenMap.get(r) ?? { id: r, name: r }])),
+        async remove(rollenId, grund) {
+          if (rollenFehler[rollenId]) throw rollenFehler[rollenId];
+          entzogen.push({ mitglied: id, rolle: rollenId, grund });
+        },
+      },
       guild: gilde,
     });
 
@@ -193,7 +216,7 @@ export function erstelleClientDoppel({
   }
 
   return {
-    client, gilde, rollenMap, kanaeleMap, mitgliederMap, gesendet,
+    client, gilde, rollenMap, kanaeleMap, mitgliederMap, gesendet, entzogen,
     loeseBeitrittAus, loeseRollenaenderungAus,
   };
 }

@@ -491,7 +491,7 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/web/seiten/rollenregeln.mjs`, `src/daten/rollenregeln.mjs`,
     `tests/integration/rollenregeln.test.mjs`
 
-- [ ] **45 · Rollenregel anwenden mit Laufzeitprüfung** — S · hängt ab von: 44, 43
+- [x] **45 · Rollenregel anwenden mit Laufzeitprüfung** — S · hängt ab von: 44, 43
   - **Abnahme:** Beim Erhalt der Auslöserrolle werden die gewählten anderen entzogen.
   - **Abnahme:** Der Bot prüft beim Anwenden erneut — eine Rolle kann inzwischen
     über die Bot-Rolle verschoben worden sein; dann wird sie übersprungen und der
@@ -501,7 +501,7 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/automatik/rollenregel.mjs`, `tests/einheit/rollenregel.test.mjs`
 
 ### Kontrollpunkt G — **Dein erster echter Nutzen**
-- [ ] Willkommensnachricht, Rollen-Nachrichten und Rollenregeln eingerichtet und aktiv.
+- [x] Willkommensnachricht, Rollen-Nachrichten und Rollenregeln eingerichtet und aktiv.
 - [ ] Ein echter Beitritt auf deinem Server löst die DM mit Bild aus.
 - [ ] **Dir zeigen:** Alle drei Automatikseiten, plus eine echte Test-DM an dich.
 

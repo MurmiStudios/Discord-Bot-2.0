@@ -16,6 +16,8 @@ import { erstelleRollenNachrichten } from './daten/rollen_nachrichten.mjs';
 import { erstelleRollenregeln } from './daten/rollenregeln.mjs';
 import { erstelleWillkommensAutomatik } from './automatik/willkommen.mjs';
 import { erstelleRollenAutomatik } from './automatik/rollen-nachricht.mjs';
+import { erstelleRollenregelAutomatik } from './automatik/rollenregel.mjs';
+import { erstelleRollenVerwalter } from './discord/rollen.mjs';
 import { registriereEreignisse } from './discord/ereignisse.mjs';
 import { erstelleVersender } from './discord/versender.mjs';
 import { erstelleBildAnhang } from './versand/anhang.mjs';
@@ -107,10 +109,24 @@ const willkommensAutomatik = erstelleWillkommensAutomatik({
 const rollenAutomatik = erstelleRollenAutomatik({
   rollenNachrichten, gildenAnsicht, versender, protokoll, logger, konfig,
 });
+const regelAutomatik = erstelleRollenregelAutomatik({
+  rollenregeln,
+  gildenAnsicht,
+  rollenVerwalter: erstelleRollenVerwalter({ bot, konfig }),
+  protokoll,
+  logger,
+  konfig,
+});
+
 registriereEreignisse(bot.client, {
   konfig, logger,
   beiBeitritt: (mitglied) => willkommensAutomatik.beiBeitritt(mitglied),
-  beiRollenerhalt: (mitglied, rollen) => rollenAutomatik.beiRollenerhalt(mitglied, rollen),
+  // Erst die Regel anwenden, dann die Nachricht: Sonst behauptete eine
+  // Nachricht wie „du bist nicht mehr neu“ etwas, das noch nicht stimmt.
+  beiRollenerhalt: async (mitglied, rollen) => {
+    await regelAutomatik.beiRollenerhalt(mitglied, rollen);
+    await rollenAutomatik.beiRollenerhalt(mitglied, rollen);
+  },
 });
 
 erstelleApp({
