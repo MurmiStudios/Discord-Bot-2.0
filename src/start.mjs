@@ -28,6 +28,7 @@ import { erstelleProtokoll } from './protokoll/protokoll.mjs';
 import { erstelleRouter } from './discord/interaktion/router.mjs';
 import { ladeBefehle, registriereBefehle } from './discord/interaktion/registrieren.mjs';
 import { erstelleApp } from './web/server.mjs';
+import { starte } from './web/starten.mjs';
 
 let konfig;
 try {
@@ -131,16 +132,11 @@ registriereEreignisse(bot.client, {
   },
 });
 
-erstelleApp({
+const app = erstelleApp({
   konfig, db, gilden, sitzungen, oauth, logger, zugriff,
   bot, gildenAnsicht, mitgliedschaft: gildenAnsicht,
   warteschlange, versandAblage, versender, bildvorlagen, bilderVerzeichnis, avatarQuelle,
   nachrichtenAblage, willkommen, rollenNachrichten, rollenregeln, aktionsleisten,
-})
-  .listen(konfig.port, () => {
-    logger.info('start', 'Panel läuft', {
-      adresse: konfig.panelUrl,
-      port: konfig.port,
-      sicheresCookie: konfig.sicheresCookie,
-    });
-  });
+});
+
+starte(app, { konfig, logger, bot });
