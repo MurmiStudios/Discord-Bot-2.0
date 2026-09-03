@@ -125,3 +125,20 @@ test('ohne Verbindung gibt es keine Gilde, aber auch keinen Absturz', () => {
 
   assert.equal(bot.gilde(), undefined);
 });
+
+test('„Bot verbunden“ steht genau einmal im Log', async () => {
+  // discord.js sendet `ready` und `clientReady` — wer auf beide horcht,
+  // protokolliert alles doppelt. Auf dem ersten echten Server stand die Zeile
+  // deshalb zweimal da.
+  const zeilen = [];
+  const logger = erstelleLogger({ schreibe: (zeile) => zeilen.push(zeile) });
+  const { client } = erstelleClientDoppel({ guildId: KONFIG.guildId });
+  const bot = erstelleBot({ konfig: KONFIG, logger, erzeugeClient: () => client });
+
+  await bot.verbinde();
+  await new Promise((fertig) => setTimeout(fertig, 0));
+
+  const verbunden = zeilen.filter((zeile) => zeile.includes('Bot verbunden'));
+  assert.equal(verbunden.length, 1, `„Bot verbunden“ steht ${verbunden.length}-mal im Log`);
+  assert.equal(bot.status().verbunden, true);
+});

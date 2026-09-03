@@ -160,8 +160,14 @@ export function erstelleClientDoppel({
       fehler.code = 'TokenInvalid';
       throw fehler;
     }
-    // discord.js meldet erst nach dem Login bereit — hier gleich im naechsten Zug.
-    queueMicrotask(() => client.emit('clientReady', client));
+    // discord.js meldet erst nach dem Login bereit — hier gleich im naechsten
+    // Zug. Und zwar zweimal, genau wie das Original: erst das alte `ready`,
+    // dann `clientReady`. Ein Doppel, das nur eins davon sendet, verschweigt
+    // die Falle, in die man beim Zuhoeren tappt.
+    queueMicrotask(() => {
+      client.emit('ready', client);
+      client.emit('clientReady', client);
+    });
     return token;
   };
   client.destroy = async () => {

@@ -26,9 +26,13 @@ export function erstelleBot({ konfig, logger, erzeugeClient = standardClient }) 
     logger.info('discord', 'Bot verbunden', { konto: client.user?.tag });
   };
 
-  // discord.js 14 meldet `ready`, ab 15 `clientReady`. Beides annehmen kostet
-  // nichts und erspart eine Ueberraschung beim naechsten Versionssprung.
-  client.on('ready', bereit);
+  // Nur `clientReady`, nicht `ready`.
+  //
+  // discord.js sendet beide — erst das alte `ready`, dann `clientReady`. Wer
+  // auf beide horcht, bekommt alles doppelt; und allein die Tatsache, dass ein
+  // Zuhoerer auf `ready` haengt, laesst discord.js eine Verfallswarnung
+  // ausgeben. Genau so stand es zuerst hier, und genau so sah es auf dem
+  // ersten echten Server aus.
   client.on('clientReady', bereit);
 
   client.on('shardDisconnect', (ereignis) => {
