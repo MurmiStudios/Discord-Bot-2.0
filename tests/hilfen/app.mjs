@@ -15,6 +15,7 @@ import { erstelleGildenAnsicht } from '../../src/discord/gilde.mjs';
 import { erstelleVersandAblage } from '../../src/daten/versand.mjs';
 import { erstelleBildvorlagen } from '../../src/daten/bildvorlagen.mjs';
 import { erstelleNachrichtenAblage } from '../../src/daten/nachrichten.mjs';
+import { erstelleWillkommen } from '../../src/daten/willkommen.mjs';
 import { erstelleAvatarQuelle } from '../../src/bilder/avatar.mjs';
 import { erstelleBildAnhang } from '../../src/versand/anhang.mjs';
 import { testBild } from './bild.mjs';
@@ -95,6 +96,7 @@ export async function mitApp(
     const versandAblage = erstelleVersandAblage(db);
     const bildvorlagen = erstelleBildvorlagen(db);
     const nachrichtenAblage = erstelleNachrichtenAblage(db);
+    const willkommen = erstelleWillkommen(db);
     const bilderVerzeichnis = join(dir, 'bilder');
     const avatarQuelle = erstelleAvatarQuelle({ hole: avatarHolen });
     const versender = erstelleVersender({
@@ -117,7 +119,7 @@ export async function mitApp(
     const app = erstelleApp({
       konfig: vollKonfig, db, gilden, sitzungen, oauth, logger, zugriff,
       mitgliedschaft, bot, gildenAnsicht, warteschlange, versandAblage, versender,
-      bildvorlagen, bilderVerzeichnis, avatarQuelle, nachrichtenAblage,
+      bildvorlagen, bilderVerzeichnis, avatarQuelle, nachrichtenAblage, willkommen,
     });
     const server = app.listen(0, '127.0.0.1');
     await new Promise((fertig, fehler) => {
@@ -130,7 +132,7 @@ export async function mitApp(
       return await fn({
         app, basis, db, gilden, sitzungen, zugriff, konfig: vollKonfig, doppel,
         logzeilen: zeilen, bot, gildenAnsicht, doppelServer, versandAblage,
-        bildvorlagen, bilderVerzeichnis, nachrichtenAblage,
+        bildvorlagen, bilderVerzeichnis, nachrichtenAblage, willkommen,
         warteAufVersand: () => warteschlange.letzterLauf(),
       });
     } finally {

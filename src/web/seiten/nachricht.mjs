@@ -4,8 +4,8 @@ import { verlangt } from '../mw/verlangt.mjs';
 import { STUFE } from '../../auth/rechte.mjs';
 import { csrfFeld } from '../../auth/csrf.mjs';
 import { GRENZE, ART } from '../../nachricht/modell.mjs';
-import { entwurfAus, alsEingabe } from '../../nachricht/entwurf.mjs';
-import { embedEditor } from '../html/embed.mjs';
+import { entwurfAus, alsEingabe, alsNachricht } from '../../nachricht/entwurf.mjs';
+import { textfeld, embedteil, bildwahl, vorschauteil, fehlerZu } from '../html/baukasten.mjs';
 import { vorschau, MODUS } from '../../nachricht/vorschau.mjs';
 import { empfaengerwahl } from '../html/empfaengerwahl.mjs';
 import { kanalwahl } from '../html/kanalwahl.mjs';
@@ -14,7 +14,6 @@ import { loeseEmpfaengerAuf, parseAuswahl, alsAuswahlWert, pruefeGrenze } from '
 import { vorschauGrenze } from '../mw/sicherheit.mjs';
 import { PLATZHALTER } from '../../nachricht/platzhalter.mjs';
 import { fuegeEin, zerlegeKnopfwert } from '../../nachricht/platzhalterziel.mjs';
-import { platzhalterreihe } from '../html/platzhalterreihe.mjs';
 import { schublade, schubladenSchalter } from '../html/schublade.mjs';
 import { pruefeNachricht } from '../../nachricht/pruefen.mjs';
 import { bestaetigungsSeite } from './versand.mjs';
@@ -60,12 +59,6 @@ function reiter(art) {
   `;
 }
 
-function fehlerZu(fehler, feld) {
-  const treffer = fehler.filter((f) => f.feld === feld);
-  if (treffer.length === 0) return '';
-  return html`<p class="feldfehler" role="alert">${treffer.map((f) => html`${f.meldung} `)}</p>`;
-}
-
 /** Treffer der Empfaengersuche: Mitglieder und Rollen gemeinsam. */
 function sucheTreffer(gildenAnsicht, guildId, begriff, auswahl) {
   if (begriff.trim() === '') return [];
@@ -89,45 +82,7 @@ function sucheTreffer(gildenAnsicht, guildId, begriff, auswahl) {
   return [...rollen, ...mitglieder].filter((t) => !gewaehlt.has(alsAuswahlWert(t))).slice(0, 20);
 }
 
-/**
- * Welche Bildvorlage die Nachricht mitschickt.
- *
- * Beim Versand entsteht daraus je Empfänger ein eigenes Bild — mit seinem
- * Namen und seinem Profilbild. Gibt es noch keine Vorlage, steht hier der Weg
- * dorthin statt eines leeren Auswahlfeldes.
- */
-function bildwahl(entwurf, vorlagen) {
-  if (vorlagen.length === 0) {
-    return html`
-      <input type="hidden" name="bildvorlageId" value="">
-      <p class="hinweis">
-        Noch keine Bildvorlage vorhanden. Unter
-        <a href="/vorlagen">Bildvorlagen</a> lässt sich eine anlegen; sie wird dann
-        je Empfänger mit dessen Namen und Profilbild gefüllt.
-      </p>
-    `;
-  }
-
-  const gewaehlt = String(entwurf.bildvorlageId ?? '');
-
-  return html`
-    <div class="feld feld-mittel">
-      <label for="bildvorlageId">Bildvorlage</label>
-      <select id="bildvorlageId" name="bildvorlageId">
-        <option value=""${gewaehlt === '' ? html` selected` : ''}>Keine</option>
-        ${vorlagen.map(
-          (v) => html`
-            <option value="${v.id}"${gewaehlt === String(v.id) ? html` selected` : ''}>${v.name}</option>
-          `,
-        )}
-      </select>
-      <p class="hinweis">Jeder Empfänger bekommt sein eigenes Bild.</p>
-    </div>
-  `;
-}
-
 function editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, vorlagen = [], gespeicherte = [], fehler = [] }) {
-  const laenge = entwurf.text.length;
   const zuFeld = (feld) => fehlerZu(fehler, feld);
 
   const aufgeloest = loeseEmpfaengerAuf(gildenAnsicht, entwurf.empfaenger, konfig.guildId);
@@ -171,19 +126,7 @@ function editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, vorlagen = [], 
 
         ${reiter(entwurf.art)}
 
-        <div class="feld">
-          <label for="text">
-            Text
-            <span class="zaehler" data-zaehler-fuer="text" data-grenze="${GRENZE.TEXT}">
-              ${laenge} / ${GRENZE.TEXT}
-            </span>
-          </label>
-          <textarea id="text" name="text" rows="8" maxlength="${GRENZE.TEXT * 2}"
-                    data-platzhalter-ziel="text">${entwurf.text}</textarea>
-          ${fehlerZu(fehler, 'text')}
-        </div>
-
-        ${platzhalterreihe('text', { beschriftung: 'Variablen einfügen' })}
+        ${textfeld(entwurf, fehler)}
 
         ${entwurf.art === ART.DM
           ? empfaengerwahl({
@@ -211,15 +154,7 @@ function editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, vorlagen = [], 
               fehler: zuFeld('kanalId'),
             })}
 
-        ${entwurf.embedAn
-          ? embedEditor({ embed: entwurf.embed, fehlerZu: zuFeld })
-          : html`
-              <div class="embed-anbieten">
-                <button type="submit" name="embedUmschalten" value="ja" class="knopf-leise">
-                  Embed-Karte anhängen
-                </button>
-              </div>
-            `}
+        ${embedteil(entwurf, fehler)}
 
         <div class="feld feld-mittel">
           <label for="name">Name zum Speichern</label>
@@ -242,29 +177,8 @@ function editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, vorlagen = [], 
           </span>
         </div>
 
-        <input type="hidden" name="vorschauModus" value="${entwurf.vorschauModus}">
         ${bildwahl(entwurf, vorlagen)}
-
-        <section class="vorschaubereich" aria-label="Vorschau">
-          <div class="vorschaukopf">
-            <h2>Vorschau</h2>
-            <div class="vorschauwahl" role="group" aria-label="Ansicht der Vorschau">
-              <button type="submit" name="vorschauWechseln" value="${MODUS.BEISPIEL}"
-                class="vorschau-knopf${entwurf.vorschauModus === MODUS.BEISPIEL ? ' vorschau-aktiv' : ''}"
-                aria-pressed="${entwurf.vorschauModus === MODUS.BEISPIEL ? 'true' : 'false'}"
-              >Mit Beispieldaten</button>
-              <button type="submit" name="vorschauWechseln" value="${MODUS.ROH}"
-                class="vorschau-knopf${entwurf.vorschauModus === MODUS.ROH ? ' vorschau-aktiv' : ''}"
-                aria-pressed="${entwurf.vorschauModus === MODUS.ROH ? 'true' : 'false'}"
-              >Rohtext</button>
-              <button type="submit" name="vorschauErneuern" value="ja" class="knopf-leise"
-                      data-nur-ohne-js>Vorschau aktualisieren</button>
-            </div>
-          </div>
-          <div class="vorschau-flaeche" id="vorschau">
-            ${vorschau(entwurf, { modus: entwurf.vorschauModus })}
-          </div>
-        </section>
+        ${vorschauteil(entwurf, { nachricht: alsNachricht(entwurf) })}
       </form>
     `,
     skripte: ['/editor.js', '/schublade.js'],
@@ -370,7 +284,11 @@ export function registriereNachricht(app, { bot, konfig, gildenAnsicht, bildvorl
   // Dieselbe Vorschau wie auf der Seite — nur das Bruchstueck, fuer editor.js.
   app.post('/nachricht/vorschau', verlangt(STUFE.MODERATOR), vorschauGrenze(), (req, res) => {
     const entwurf = entwurfAus(req.body ?? {});
-    res.type('html').send(String(vorschau(entwurf, { modus: entwurf.vorschauModus })));
+    // Dieselbe Umwandlung wie auf der Seite: Sonst zeigten der Weg mit und der
+    // ohne JavaScript irgendwann verschiedene Vorschauen.
+    res.type('html').send(
+      String(vorschau(alsNachricht(entwurf), { modus: entwurf.vorschauModus })),
+    );
   });
 
   app.post('/nachricht', verlangt(STUFE.MODERATOR), (req, res) => {

@@ -432,7 +432,7 @@ Grundlage: `docs/SPEC.md`.
 
 ## Phase 7 — Automatiken · **Dein Einrichtungstag**
 
-- [ ] **39 · Willkommensnachricht: Seite und Schalter** — M · hängt ab von: 34, 23
+- [x] **39 · Willkommensnachricht: Seite und Schalter** — M · hängt ab von: 34, 23
   - **Abnahme:** `/willkommen` mit demselben Baukasten wie `/nachricht` (Text,
     Platzhalter, Embed, Bildvorlage, Aktionsleiste) und Vorschau daneben.
   - **Abnahme:** Aktiv-Schalter: ausgeschaltet bleibt alles gespeichert, geht aber

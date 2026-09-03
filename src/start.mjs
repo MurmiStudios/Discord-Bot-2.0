@@ -11,6 +11,7 @@ import { erstelleGildenAnsicht } from './discord/gilde.mjs';
 import { erstelleVersandAblage } from './daten/versand.mjs';
 import { erstelleBildvorlagen } from './daten/bildvorlagen.mjs';
 import { erstelleNachrichtenAblage } from './daten/nachrichten.mjs';
+import { erstelleWillkommen } from './daten/willkommen.mjs';
 import { erstelleVersender } from './discord/versender.mjs';
 import { erstelleBildAnhang } from './versand/anhang.mjs';
 import { erstelleAvatarQuelle } from './bilder/avatar.mjs';
@@ -68,6 +69,7 @@ const protokoll = erstelleProtokoll(db, {
 const versandAblage = erstelleVersandAblage(db);
 const bildvorlagen = erstelleBildvorlagen(db);
 const nachrichtenAblage = erstelleNachrichtenAblage(db);
+const willkommen = erstelleWillkommen(db);
 // Hochgeladene Hintergrundbilder liegen neben der Datenbank — beides gehoert
 // zum Bestand, den eine Sicherung mitnehmen muss.
 const bilderVerzeichnis = new URL('../speicher/bilder/', import.meta.url).pathname;
@@ -94,7 +96,7 @@ erstelleApp({
   konfig, db, gilden, sitzungen, oauth, logger, zugriff,
   bot, gildenAnsicht, mitgliedschaft: gildenAnsicht,
   warteschlange, versandAblage, versender, bildvorlagen, bilderVerzeichnis, avatarQuelle,
-  nachrichtenAblage,
+  nachrichtenAblage, willkommen,
 })
   .listen(konfig.port, () => {
     logger.info('start', 'Panel läuft', {

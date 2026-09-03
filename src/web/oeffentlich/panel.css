@@ -1354,3 +1354,28 @@ a.reiter-knopf { text-decoration: none; display: inline-flex; align-items: cente
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ── Aktiv-Schalter der Automatiken ───────────────────────────────── */
+
+.schalterzeile {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 16px;
+  padding: 14px 18px;
+  border: 1px solid var(--linie);
+  border-left: 3px solid var(--linie);
+  border-radius: var(--radius);
+  background: var(--flaeche);
+}
+.schalterlage { color: var(--tinte-leise); font-size: .88rem; }
+.lage-an { color: var(--gut); font-weight: 600; }
+.lage-aus { color: var(--tinte-leise); font-weight: 600; }
+
+.hinweis-gut {
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--gut-flaeche);
+  color: var(--gut);
+  font-size: .9rem;
+}

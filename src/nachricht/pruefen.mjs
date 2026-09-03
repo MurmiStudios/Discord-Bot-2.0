@@ -76,7 +76,7 @@ function baueEmbed(eingabe, fehler) {
   return embed;
 }
 
-export function pruefeNachricht(eingabe = {}) {
+export function pruefeNachricht(eingabe, { darfLeerSein = false } = {}) {
   const fehler = [];
 
   const art = text(eingabe.art);
@@ -98,7 +98,10 @@ export function pruefeNachricht(eingabe = {}) {
     aktionsleisteId: text(eingabe.aktionsleisteId) || null,
   };
 
-  if (istLeer(wert)) {
+  // `darfLeerSein` ist fuer Entwuerfe, die noch nicht raus sollen — eine
+  // ausgeschaltete Automatik zum Beispiel. Wer sie einschaltet, bekommt die
+  // Meldung dort, wo sie hingehoert: am Schalter.
+  if (!darfLeerSein && istLeer(wert)) {
     fehler.push({
       feld: 'text',
       meldung:
