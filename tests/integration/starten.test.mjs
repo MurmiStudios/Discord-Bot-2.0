@@ -39,6 +39,13 @@ test('ist der Port belegt, bricht der zweite Start ab und trennt den Bot', async
   assert.equal(beendet, true, 'der Bot wurde vom Gateway getrennt');
   assert.deepEqual(abbrueche, [1], 'und der Prozess bricht mit Fehlercode ab');
 
+  // Express ruft den Rueckruf von `listen` auch bei belegtem Port auf. Stand
+  // die Erfolgsmeldung daran, meldete ein gescheiterter Start „Panel läuft".
+  assert.equal(
+    zeilen.filter((z) => z.includes('Panel läuft')).length, 1,
+    'nur der erste Start meldet Erfolg',
+  );
+
   const meldung = zeilen.find((z) => z.includes('belegt'));
   assert.ok(meldung, 'die Meldung nennt den belegten Port im Klartext');
   assert.ok(meldung.includes('zwei Bots'), 'und sagt, warum das gefährlich wäre');

@@ -10,7 +10,15 @@
  * und nicht nur die Meldung ausgegeben.
  */
 export function starte(app, { konfig, logger, bot, beende = (code) => process.exit(code) }) {
-  const server = app.listen(konfig.port, () => {
+  const server = app.listen(konfig.port);
+
+  // Der Erfolg haengt am Ereignis, nicht am Rueckruf von `listen`.
+  //
+  // Express ruft den Rueckruf naemlich auch dann auf, wenn der Port belegt
+  // ist — das Ereignis `listening` bleibt korrekterweise aus. „Panel läuft"
+  // stand deshalb selbst dann da, wenn gar nichts lief, und ein zweiter
+  // Prozess sah aus wie ein sauberer Start. Ein Test haelt das fest.
+  server.on('listening', () => {
     logger.info('start', 'Panel läuft', {
       adresse: konfig.panelUrl,
       port: konfig.port,
@@ -23,9 +31,9 @@ export function starte(app, { konfig, logger, bot, beende = (code) => process.ex
 
     logger.fehler('start', belegt
       ? `Port ${konfig.port} ist belegt — vermutlich läuft das Panel schon. `
-        + 'Beende den anderen Start (ps aux | grep "[n]ode src/start.mjs"), oder setze PORT '
-        + 'in der .env auf einen freien Port. Dieser Start wird abgebrochen, damit nicht '
-        + 'zwei Bots dieselben Nachrichten verschicken.'
+        + 'Wer ihn hält, zeigt: ss -ltnp | grep :' + konfig.port + ' — beende diesen Prozess, '
+        + 'oder setze PORT in der .env auf einen freien Port. Dieser Start wird abgebrochen, '
+        + 'damit nicht zwei Bots dieselben Nachrichten verschicken.'
       : 'Das Panel konnte den Port nicht belegen.', fehler);
 
     // Erst vom Gateway trennen, dann gehen: Solange der Client hängt, sieht
