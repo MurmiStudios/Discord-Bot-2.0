@@ -17,7 +17,7 @@ import { fuegeEin, zerlegeKnopfwert } from '../../nachricht/platzhalterziel.mjs'
 import { platzhalterreihe } from '../html/platzhalterreihe.mjs';
 import { pruefeNachricht } from '../../nachricht/pruefen.mjs';
 import { bestaetigungsSeite } from './versand.mjs';
-import { speichereEntwurf } from './ablage.mjs';
+import { speichereEntwurf, zielnamenFuer } from './ablage.mjs';
 
 /**
  * Der Nachrichteneditor.
@@ -293,7 +293,10 @@ export function erstellePruefung({ konfig, gildenAnsicht }) {
 
 export function registriereNachricht(app, { bot, konfig, gildenAnsicht, bildvorlagen, nachrichtenAblage }) {
   // Nur Name und Kennung — der Editor zeigt eine Liste, keine Vorlagen.
-  const speichere = (guildId, entwurf) => speichereEntwurf(nachrichtenAblage, guildId, entwurf);
+  const speichere = (guildId, entwurf) =>
+    speichereEntwurf(
+      nachrichtenAblage, guildId, entwurf, zielnamenFuer(gildenAnsicht, guildId, entwurf),
+    );
 
   /**
    * Der Entwurf beim Aufruf der Seite: leer, oder aus der Ablage geladen.

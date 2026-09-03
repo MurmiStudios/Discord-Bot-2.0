@@ -111,9 +111,18 @@ export function entwurfAlsFelder(entwurf) {
  * und es gibt keine dritte Darstellung einer Nachricht, die man beim nächsten
  * Feld vergessen könnte. Die Oberflächenfelder (Suchbegriffe, Vorschaumodus)
  * bleiben draussen: Sie sind Zustand des Augenblicks, nicht der Nachricht.
+ *
+ * `zielnamen` ist die eine Ausnahme: ein Schnappschuss der Namen zum Zeitpunkt
+ * des Speicherns. `entwurfAus` liest ihn nicht — er dient allein dazu, später
+ * sagen zu können, *wer* fehlt, und nicht nur, dass jemand fehlt. Dass er
+ * veralten kann, ist kein Mangel: Für eine Warnung ist der alte Name genau der
+ * richtige.
+ *
+ * @param {object} [zielnamen] Auswahlwert → Name, z. B. `{'mitglied:1': 'Anna'}`
  */
-export function alsAblage(entwurf) {
+export function alsAblage(entwurf, zielnamen) {
   return {
+    ...(zielnamen && Object.keys(zielnamen).length > 0 ? { zielnamen } : {}),
     art: entwurf.art,
     text: entwurf.text,
     bildvorlageId: entwurf.bildvorlageId ?? '',

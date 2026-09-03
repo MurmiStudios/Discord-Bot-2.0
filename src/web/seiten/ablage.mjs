@@ -1,4 +1,31 @@
 import { alsAblage } from '../../nachricht/entwurf.mjs';
+import { alsAuswahlWert } from '../../versand/empfaenger.mjs';
+import { ART } from '../../nachricht/modell.mjs';
+
+/**
+ * Die Namen hinter den gemerkten Zielen, zum Zeitpunkt des Speicherns.
+ *
+ * Ohne sie könnte die Liste später nur sagen „ein Empfänger fehlt". Mit ihnen
+ * sagt sie, wer.
+ */
+export function zielnamenFuer(gildenAnsicht, guildId, entwurf) {
+  const namen = {};
+  if (!gildenAnsicht) return namen;
+
+  for (const eintrag of entwurf.empfaenger) {
+    const gefunden = eintrag.art === 'rolle'
+      ? gildenAnsicht.findeRolle(eintrag.id, guildId)
+      : gildenAnsicht.findeMitglied(eintrag.id, guildId);
+    if (gefunden) namen[alsAuswahlWert(eintrag)] = gefunden.name;
+  }
+
+  if (entwurf.art === ART.KANAL && entwurf.kanalId) {
+    const kanal = gildenAnsicht.findeKanal(entwurf.kanalId, guildId);
+    if (kanal) namen[`kanal:${entwurf.kanalId}`] = kanal.name;
+  }
+
+  return namen;
+}
 
 /**
  * Einen Entwurf in die Ablage schreiben.
@@ -13,11 +40,11 @@ import { alsAblage } from '../../nachricht/entwurf.mjs';
  *
  * @returns {number|null} die Kennung, oder null wenn kein Name dasteht
  */
-export function speichereEntwurf(ablage, guildId, entwurf) {
+export function speichereEntwurf(ablage, guildId, entwurf, zielnamen) {
   const name = entwurf.name.trim();
   if (!ablage || name === '') return null;
 
-  const daten = alsAblage(entwurf);
+  const daten = alsAblage(entwurf, zielnamen);
   const kennung = Number(entwurf.gespeichertId);
   const vorhanden = Number.isInteger(kennung) ? ablage.lies(guildId, kennung) : undefined;
 

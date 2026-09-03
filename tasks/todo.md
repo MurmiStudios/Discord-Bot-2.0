@@ -409,7 +409,7 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/web/seiten/nachrichten.mjs`, `src/daten/nachrichten.mjs`,
     `tests/integration/ablage-aktionen.test.mjs`
 
-- [ ] **37 · Warnung, wenn das Ziel weg ist** — S · hängt ab von: 36, 12
+- [x] **37 · Warnung, wenn das Ziel weg ist** — S · hängt ab von: 36, 12
   - **Abnahme:** Gelöschter Kanal oder ausgetretene Empfänger werden in der Karte
     benannt, nicht stillschweigend übergangen.
   - **Prüfen:** Test entfernt Kanal und Mitglied aus dem Doppel und erwartet beide

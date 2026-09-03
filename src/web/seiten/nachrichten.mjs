@@ -4,6 +4,7 @@ import { verlangt } from '../mw/verlangt.mjs';
 import { STUFE } from '../../auth/rechte.mjs';
 import { ART } from '../../nachricht/modell.mjs';
 import { entwurfAus, auszug } from '../../nachricht/entwurf.mjs';
+import { alsAuswahlWert } from '../../versand/empfaenger.mjs';
 import { alsZeitpunkt } from '../html/zeit.mjs';
 import { csrfFeld } from '../../auth/csrf.mjs';
 
@@ -44,19 +45,66 @@ function filterleiste(aktiv, stand) {
   `;
 }
 
+/** Der beim Speichern gemerkte Name, sonst die blosse Kennung. */
+function gemerkterName(eintrag, schluessel, kennung) {
+  return eintrag.daten?.zielnamen?.[schluessel] ?? kennung;
+}
+
 /** Wohin die Nachricht geht — in Worten, nicht als Kennung. */
 function zielText(eintrag, gildenAnsicht, guildId) {
   const entwurf = entwurfAus(eintrag.daten);
 
   if (entwurf.art === ART.KANAL) {
-    const kanal = entwurf.kanalId ? gildenAnsicht.findeKanal(entwurf.kanalId, guildId) : undefined;
     if (!entwurf.kanalId) return 'Kein Kanal gemerkt';
-    return kanal ? `#${kanal.name}` : 'Kanal nicht mehr vorhanden';
+    const kanal = gildenAnsicht.findeKanal(entwurf.kanalId, guildId);
+    return `#${kanal?.name ?? gemerkterName(eintrag, `kanal:${entwurf.kanalId}`, entwurf.kanalId)}`;
   }
 
   const anzahl = entwurf.empfaenger.length;
   if (anzahl === 0) return 'Keine Empfänger gemerkt';
   return `${anzahl} ${anzahl === 1 ? 'Eintrag' : 'Einträge'} gemerkt`;
+}
+
+/**
+ * Was am gemerkten Ziel nicht mehr da ist.
+ *
+ * Benannt und nicht stillschweigend übergangen: Eine Nachricht, die beim
+ * Öffnen plötzlich einen Empfänger weniger hat, fällt sonst erst nach dem
+ * Senden auf — und dann fehlt sie jemandem.
+ */
+function zielwarnungen(eintrag, gildenAnsicht, guildId) {
+  const entwurf = entwurfAus(eintrag.daten);
+  const warnungen = [];
+
+  if (entwurf.art === ART.KANAL && entwurf.kanalId
+      && !gildenAnsicht.findeKanal(entwurf.kanalId, guildId)) {
+    const name = gemerkterName(eintrag, `kanal:${entwurf.kanalId}`, entwurf.kanalId);
+    warnungen.push(`Den Kanal #${name} gibt es nicht mehr. Wähle beim Öffnen einen anderen.`);
+  }
+
+  if (entwurf.art === ART.DM) {
+    const weg = entwurf.empfaenger
+      .filter((e) =>
+        e.art === 'rolle'
+          ? !gildenAnsicht.findeRolle(e.id, guildId)
+          : !gildenAnsicht.findeMitglied(e.id, guildId))
+      .map((e) => ({ art: e.art, name: gemerkterName(eintrag, alsAuswahlWert(e), e.id) }));
+
+    const rollen = weg.filter((e) => e.art === 'rolle').map((e) => e.name);
+    const mitglieder = weg.filter((e) => e.art === 'mitglied').map((e) => e.name);
+
+    if (rollen.length > 0) {
+      warnungen.push(`Nicht mehr vorhanden: die ${rollen.length === 1 ? 'Rolle' : 'Rollen'} ${rollen.join(', ')}.`);
+    }
+    if (mitglieder.length > 0) {
+      warnungen.push(
+        `Nicht mehr auf dem Server: ${mitglieder.join(', ')} — ` +
+        `${mitglieder.length === 1 ? 'diese Person bekommt' : 'diese Personen bekommen'} nichts.`,
+      );
+    }
+  }
+
+  return warnungen;
 }
 
 /**
@@ -123,6 +171,10 @@ function karte(req, eintrag, gildenAnsicht, guildId) {
         <span class="ablageziel">${zielText(eintrag, gildenAnsicht, guildId)}</span>
         <span class="ablagezeit">Zuletzt geändert ${alsZeitpunkt(eintrag.geaendertAm)}</span>
       </p>
+
+      ${zielwarnungen(eintrag, gildenAnsicht, guildId).map(
+        (meldung) => html`<p class="hinweis-warn">${meldung}</p>`,
+      )}
 
       <div class="ablageknoepfe">
         ${eintrag.beschaedigt

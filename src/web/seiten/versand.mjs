@@ -6,7 +6,7 @@ import { STUFE } from '../../auth/rechte.mjs';
 import { csrfFeld } from '../../auth/csrf.mjs';
 import { ART } from '../../nachricht/modell.mjs';
 import { entwurfAus, entwurfAlsFelder, alsNachricht } from '../../nachricht/entwurf.mjs';
-import { speichereEntwurf } from './ablage.mjs';
+import { speichereEntwurf, zielnamenFuer } from './ablage.mjs';
 import { vorschau } from '../../nachricht/vorschau.mjs';
 import { loeseEmpfaengerAuf } from '../../versand/empfaenger.mjs';
 import { VORGANG, ZIEL } from '../../daten/versand.mjs';
@@ -196,7 +196,10 @@ export function registriereVersand(app, {
 
     // Erst speichern, dann senden: Bricht der Versand ab, ist die Nachricht
     // wenigstens nicht verloren. Die Rückfrage hat es angekündigt.
-    speichereEntwurf(nachrichtenAblage, konfig.guildId, entwurf);
+    speichereEntwurf(
+      nachrichtenAblage, konfig.guildId, entwurf,
+      zielnamenFuer(gildenAnsicht, konfig.guildId, entwurf),
+    );
 
     if (entwurf.art === ART.DM) {
       const aufgeloest = loeseEmpfaengerAuf(gildenAnsicht, entwurf.empfaenger, konfig.guildId);
