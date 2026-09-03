@@ -260,3 +260,91 @@ test('ein Betrachter kommt nicht an die Aktionsleisten', async () => {
     { rollen: { m1: ['r-schau'] }, zugriffsregeln: [['r-schau', 'BETRACHTER']] },
   );
 });
+
+/** Eine gespeicherte Direktnachricht, die ein Knopf verschicken kann. */
+const legeNachricht = (u, name) =>
+  u.nachrichtenAblage.lege(GILDE, { name, art: 'dm', daten: { art: 'dm', text: 'Hallo {user}' } });
+
+test('eine Aktion lässt sich ohne JavaScript hinzufügen und wieder entfernen', async () => {
+  await mitApp(async (u) => {
+    const { cookie, csrfToken } = alsOwner(u);
+    legeNachricht(u, 'Serverregeln');
+
+    const mitAktion = await post(u.basis, '/aktionsleisten', cookie, [
+      ['_csrf', csrfToken], ['name', 'Willkommen'],
+      ...knoepfe(1),
+      ['neueAktionArt', 'dm'], ['aktionHinzufuegen', '0'],
+    ]);
+    const seite = await mitAktion.text();
+
+    assert.match(seite, /Direktnachricht senden/);
+    assert.match(seite, /Serverregeln/, 'die gespeicherte Nachricht steht zur Auswahl');
+
+    const wiederWeg = await post(u.basis, '/aktionsleisten', cookie, [
+      ['_csrf', csrfToken], ['name', 'Willkommen'],
+      ...knoepfe(1),
+      ['aktionKnopf', '0'], ['aktionArt', 'dm'], ['aktionNachricht', ''],
+      ['aktionEntfernen', '0:0'],
+    ]);
+
+    assert.match(await wiederWeg.text(), /Noch keine Aktion/);
+  });
+});
+
+test('eine Aktion ohne gewählte Nachricht wird nicht gespeichert', async () => {
+  // Ein Knopf, der beim Klicken nichts tut, fiele sonst erst dem Klickenden auf.
+  await mitApp(async (u) => {
+    const { cookie, csrfToken } = alsOwner(u);
+    legeNachricht(u, 'Serverregeln');
+
+    const antwort = await post(u.basis, '/aktionsleisten', cookie, [
+      ['_csrf', csrfToken], ['name', 'Willkommen'],
+      ...knoepfe(1),
+      ['aktionKnopf', '0'], ['aktionArt', 'dm'], ['aktionNachricht', ''],
+      ['sichern', 'ja'],
+    ]);
+
+    assert.equal(antwort.status, 422);
+    assert.match(await antwort.text(), /Wähle die Nachricht aus/);
+    assert.equal(u.aktionsleisten.alle(GILDE).length, 0);
+  });
+});
+
+test('die Aktion wird beim Knopf gespeichert und wieder angezeigt', async () => {
+  await mitApp(async (u) => {
+    const { cookie, csrfToken } = alsOwner(u);
+    const nachrichtId = legeNachricht(u, 'Serverregeln');
+
+    await post(u.basis, '/aktionsleisten', cookie, [
+      ['_csrf', csrfToken], ['name', 'Willkommen'],
+      ...knoepfe(2),
+      ['aktionKnopf', '1'], ['aktionArt', 'dm'], ['aktionNachricht', String(nachrichtId)],
+      ['sichern', 'ja'],
+    ]);
+
+    const [leiste] = u.aktionsleisten.alle(GILDE);
+    assert.deepEqual(leiste.knoepfe[0].aktionen, [], 'der erste Knopf bleibt ohne Aktion');
+    assert.deepEqual(leiste.knoepfe[1].aktionen, [
+      { art: 'dm', nachrichtId: String(nachrichtId) },
+    ], 'die Aktion hängt am zweiten Knopf, nicht am ersten');
+
+    const editor = await hole(u.basis, `/aktionsleisten/${leiste.id}`, cookie);
+    assert.match(editor, /Direktnachricht senden/);
+  });
+});
+
+test('ohne gespeicherte Nachricht sagt der Editor, wo eine entsteht', async () => {
+  await mitApp(async (u) => {
+    const { cookie, csrfToken } = alsOwner(u);
+
+    const antwort = await post(u.basis, '/aktionsleisten', cookie, [
+      ['_csrf', csrfToken], ['name', 'Willkommen'],
+      ...knoepfe(1),
+      ['neueAktionArt', 'dm'], ['aktionHinzufuegen', '0'],
+    ]);
+
+    const seite = await antwort.text();
+    assert.match(seite, /noch keine gespeicherte Nachricht/i);
+    assert.match(seite, /href="\/nachrichten"/);
+  });
+});

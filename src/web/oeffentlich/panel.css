@@ -1575,6 +1575,32 @@ a.reiter-knopf { text-decoration: none; display: inline-flex; align-items: cente
   background: var(--flaeche);
 }
 .knopfkasten + .knopfkasten { margin-top: 10px; }
+
+/* Was ein Knopf tut, steht eingerückt in seinem Kasten — sichtbar
+   untergeordnet, damit man Knopf und Aktion nicht verwechselt. */
+.aktionskasten {
+  margin: 12px 0 0;
+  padding: 10px 14px 12px;
+  border: 1px solid var(--linie);
+  border-left: 3px solid var(--akzent);
+  border-radius: var(--radius);
+  background: var(--grund);
+}
+.aktionskasten legend {
+  padding: 0 6px;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--tinte-leise);
+}
+.aktionszeile + .aktionszeile {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--linie);
+}
+.aktionskopf { margin: 0 0 2px; }
+.aktionszeile .hinweis { margin-top: 0; }
 .knopfkasten legend {
   padding: 0 6px;
   font-size: .8rem;

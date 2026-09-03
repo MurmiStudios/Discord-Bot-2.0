@@ -43,6 +43,35 @@ export function leererKnopf() {
 }
 
 /**
+ * Die Aktionsarten, die ein Knopf auslösen kann.
+ *
+ * Eine Liste und kein Objekt: Die Reihenfolge ist die im Auswahlfeld, und die
+ * soll nicht davon abhängen, in welcher Reihenfolge jemand Schlüssel getippt
+ * hat. Die Kette schlägt zur Laufzeit im eigenen Verzeichnis nach — hier steht
+ * nur, was die Oberfläche anbieten und prüfen muss.
+ */
+export const AKTIONSARTEN = Object.freeze([
+  {
+    wert: 'dm',
+    name: 'Direktnachricht senden',
+    beschreibung: 'Verschickt eine gespeicherte Nachricht an die Person, die geklickt hat.',
+    /** Ohne diese Angabe wüsste die Aktion nicht, was sie verschicken soll. */
+    pflichtfeld: 'nachrichtId',
+    fehlt: 'Wähle die Nachricht aus, die verschickt werden soll.',
+  },
+]);
+
+const ARTEN_KARTE = new Map(AKTIONSARTEN.map((a) => [a.wert, a]));
+
+export function aktionsart(wert) {
+  return ARTEN_KARTE.get(String(wert));
+}
+
+export function leereAktion(art) {
+  return { art: aktionsart(art)?.wert ?? AKTIONSARTEN[0].wert, nachrichtId: '' };
+}
+
+/**
  * Wie Discord die Knöpfe auf Reihen verteilt.
  *
  * Die Oberfläche zeigt dieselbe Aufteilung. Wer sechs Knöpfe baut, soll im
@@ -117,6 +146,28 @@ export function pruefeLeiste({ name, knoepfe = [] }) {
         meldung: `Die Beschriftung von Knopf ${i + 1} ist länger als ${GRENZE.BESCHRIFTUNG} Zeichen.`,
       });
     }
+
+    // Eine halb ausgefüllte Aktion wird nicht stillschweigend weggeworfen: Sonst
+    // hätte jemand einen Knopf gebaut, der beim Klicken nichts tut, und erst der
+    // Klickende merkte es.
+    (knopf.aktionen ?? []).forEach((aktion, j) => {
+      const art = aktionsart(aktion?.art);
+
+      if (!art) {
+        fehler.push({
+          feld: `knopf${i}`,
+          meldung: `Aktion ${j + 1} von Knopf ${i + 1} nennt eine Art, die das Panel nicht kennt.`,
+        });
+        return;
+      }
+
+      if (art.pflichtfeld && String(aktion[art.pflichtfeld] ?? '') === '') {
+        fehler.push({
+          feld: `knopf${i}`,
+          meldung: `Aktion ${j + 1} von Knopf ${i + 1}: ${art.fehlt}`,
+        });
+      }
+    });
   });
 
   return { ok: fehler.length === 0, name: sauber, fehler };

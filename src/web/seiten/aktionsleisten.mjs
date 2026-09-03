@@ -7,6 +7,7 @@ import { fehlerZu } from '../html/baukasten.mjs';
 import { alsZeitpunkt } from '../html/zeit.mjs';
 import {
   GRENZE, FARBEN, farbe, leererKnopf, zeilenAufteilung, verschiebe, pruefeLeiste, knopfHatInhalt,
+  AKTIONSARTEN, aktionsart, leereAktion,
 } from '../../aktionen/modell.mjs';
 
 /**
@@ -16,12 +17,57 @@ import {
  * Wer sechs baut, sieht hier, dass der sechste allein in einer zweiten Reihe
  * landet — und nicht erst, wenn die Nachricht draussen ist.
  *
- * Was ein Knopf *tut*, kommt in den nächsten Schritten dazu. Bis dahin sagt die
- * Vorschau bei jedem Knopf, dass er noch nichts tut; das ist ehrlicher, als es
- * wegzulassen und später zu ergänzen.
+ * Was ein Knopf tut, steht als Liste von Aktionen bei ihm. Die Aktionen kommen
+ * als flache Felder aus dem Formular und tragen die Nummer ihres Knopfes bei
+ * sich; deshalb braucht kein einziger Knopf JavaScript, um eine Aktion
+ * dazuzunehmen oder wegzuwerfen.
  */
 
-function knopfEditor(knopf, i, anzahl, fehler) {
+/** Eine Aktion im Editor — heute die Direktnachricht, morgen mehr. */
+function aktionEditor(aktion, knopfIndex, j, nachrichten) {
+  const art = aktionsart(aktion.art) ?? AKTIONSARTEN[0];
+  const gewaehlt = String(aktion.nachrichtId ?? '');
+
+  return html`
+    <div class="aktionszeile">
+      <input type="hidden" name="aktionKnopf" value="${knopfIndex}">
+      <input type="hidden" name="aktionArt" value="${art.wert}">
+
+      <p class="aktionskopf"><strong>${j + 1}. ${art.name}</strong></p>
+      <p class="hinweis">${art.beschreibung}</p>
+
+      ${art.wert === 'dm'
+        ? nachrichten.length === 0
+          ? html`
+              <input type="hidden" name="aktionNachricht" value="">
+              <p class="hinweis-warn">
+                Es gibt noch keine gespeicherte Nachricht. Unter
+                <a href="/nachrichten">Nachrichten</a> lässt sich eine anlegen.
+              </p>
+            `
+          : html`
+              <label class="zahlenfeld feld-mittel">
+                <span>Nachricht</span>
+                <select name="aktionNachricht">
+                  <option value=""${gewaehlt === '' ? html` selected` : ''}>Bitte auswählen</option>
+                  ${nachrichten.map(
+                    (n) => html`
+                      <option value="${n.id}"${gewaehlt === String(n.id) ? html` selected` : ''}>${n.name}</option>
+                    `,
+                  )}
+                </select>
+              </label>
+            `
+        : html`<input type="hidden" name="aktionNachricht" value="${gewaehlt}">`}
+
+      <button type="submit" name="aktionEntfernen" value="${knopfIndex}:${j}" class="knopf-leise">
+        Aktion entfernen
+      </button>
+    </div>
+  `;
+}
+
+function knopfEditor(knopf, i, anzahl, fehler, nachrichten) {
   const gewaehlt = String(knopf.farbe ?? 'grau');
 
   return html`
@@ -52,6 +98,28 @@ function knopfEditor(knopf, i, anzahl, fehler) {
           </select>
         </label>
       </div>
+
+      <fieldset class="aktionskasten">
+        <legend>Was der Knopf tut</legend>
+
+        ${(knopf.aktionen ?? []).length === 0
+          ? html`<p class="hinweis">
+              Noch keine Aktion — beim Klicken passiert nichts.
+            </p>`
+          : (knopf.aktionen ?? []).map((a, j) => aktionEditor(a, i, j, nachrichten))}
+
+        <div class="zeilenschalter">
+          <label class="zahlenfeld feld-mittel">
+            <span>Aktion hinzufügen</span>
+            <select name="neueAktionArt">
+              ${AKTIONSARTEN.map((a) => html`<option value="${a.wert}">${a.name}</option>`)}
+            </select>
+          </label>
+          <button type="submit" name="aktionHinzufuegen" value="${i}" class="knopf-leise">
+            Hinzufügen
+          </button>
+        </div>
+      </fieldset>
 
       <div class="zeilenschalter">
         <button type="submit" name="hoch" value="${i}" class="knopf-leise"
@@ -98,8 +166,7 @@ function leistenVorschau(knoepfe) {
 
     ${knoepfe.some((k) => (k.aktionen ?? []).length === 0)
       ? html`<p class="hinweis-warn">
-          Knöpfe ohne Aktion tun beim Klicken nichts. Was ein Knopf auslöst, wird in den
-          nächsten Schritten einstellbar.
+          Knöpfe ohne Aktion tun beim Klicken nichts.
         </p>`
       : ''}
   `;
@@ -166,7 +233,7 @@ function listeSeite({ req, bot, eintraege }) {
   });
 }
 
-function editorSeite({ req, bot, entwurf, fehler = [], hinweis = null }) {
+function editorSeite({ req, bot, entwurf, fehler = [], hinweis = null, nachrichten = [] }) {
   return seite({
     titel: entwurf.id ? 'Aktionsleiste bearbeiten' : 'Neue Aktionsleiste',
     pfad: '/aktionsleisten',
@@ -196,7 +263,9 @@ function editorSeite({ req, bot, entwurf, fehler = [], hinweis = null }) {
         ${leistenVorschau(entwurf.knoepfe)}
 
         <h2>Knöpfe</h2>
-        ${entwurf.knoepfe.map((knopf, i) => knopfEditor(knopf, i, entwurf.knoepfe.length, fehler))}
+        ${entwurf.knoepfe.map(
+          (knopf, i) => knopfEditor(knopf, i, entwurf.knoepfe.length, fehler, nachrichten),
+        )}
         ${fehlerZu(fehler, 'knoepfe')}
 
         ${entwurf.knoepfe.length < GRENZE.KNOEPFE
@@ -249,15 +318,33 @@ export function entwurfAus(koerper = {}) {
   const emojis = alsListe(koerper.emoji);
   const farben = alsListe(koerper.farbe);
 
+  const knoepfe = beschriftungen.slice(0, GRENZE.KNOEPFE).map((beschriftung, i) => ({
+    ...leererKnopf(),
+    beschriftung: String(beschriftung ?? ''),
+    emoji: String(emojis[i] ?? ''),
+    farbe: farbe(farben[i]).wert,
+  }));
+
+  // Die Aktionen kommen flach und tragen die Nummer ihres Knopfes bei sich.
+  // Verschachtelte Formularnamen gäbe es sonst nur mit JavaScript — und dann
+  // wäre die Seite ohne JavaScript kaputt statt bloss unbequemer.
+  const knopfNummern = alsListe(koerper.aktionKnopf);
+  const arten = alsListe(koerper.aktionArt);
+  const nachrichten = alsListe(koerper.aktionNachricht);
+
+  knopfNummern.forEach((roh, k) => {
+    const knopf = knoepfe[Number(roh)];
+    if (!knopf) return;
+    knopf.aktionen.push({
+      art: String(arten[k] ?? ''),
+      nachrichtId: String(nachrichten[k] ?? ''),
+    });
+  });
+
   return {
     id: String(koerper.id ?? '') || null,
     name: String(koerper.name ?? ''),
-    knoepfe: beschriftungen.slice(0, GRENZE.KNOEPFE).map((beschriftung, i) => ({
-      ...leererKnopf(),
-      beschriftung: String(beschriftung ?? ''),
-      emoji: String(emojis[i] ?? ''),
-      farbe: farbe(farben[i]).wert,
-    })),
+    knoepfe,
   };
 }
 
@@ -280,9 +367,15 @@ function nichtGefunden(req, bot, res) {
   );
 }
 
-export function registriereAktionsleisten(app, { bot, konfig, aktionsleisten }) {
+export function registriereAktionsleisten(app, { bot, konfig, aktionsleisten, nachrichtenAblage }) {
+  // Nur die Nachrichten, die als Direktnachricht gedacht sind: Ein Knopf
+  // schreibt der Person, die geklickt hat, und nicht in einen Kanal.
+  const dmNachrichten = () => nachrichtenAblage.alle(konfig.guildId, { art: 'dm' });
+
   const zeige = (req, res, entwurf, { fehler = [], hinweis = null, lage = 200 } = {}) =>
-    res.status(lage).type('html').send(String(editorSeite({ req, bot, entwurf, fehler, hinweis })));
+    res.status(lage).type('html').send(
+      String(editorSeite({ req, bot, entwurf, fehler, hinweis, nachrichten: dmNachrichten() })),
+    );
 
   app.get('/aktionsleisten', verlangt(STUFE.MODERATOR), (req, res) => {
     res.type('html').send(
@@ -330,6 +423,26 @@ export function registriereAktionsleisten(app, { bot, konfig, aktionsleisten }) 
 
     if (koerper.knopfHinzufuegen !== undefined) {
       if (entwurf.knoepfe.length < GRENZE.KNOEPFE) entwurf.knoepfe.push(leererKnopf());
+      return zeige(req, res, entwurf);
+    }
+
+    if (koerper.aktionHinzufuegen !== undefined) {
+      const index = Number(koerper.aktionHinzufuegen);
+      const knopf = entwurf.knoepfe[index];
+      if (knopf) {
+        // Jeder Knopf hat sein eigenes Auswahlfeld; der Browser schickt alle
+        // mit, in der Reihenfolge der Knöpfe.
+        knopf.aktionen.push(leereAktion(alsListe(koerper.neueAktionArt)[index]));
+      }
+      return zeige(req, res, entwurf);
+    }
+
+    if (koerper.aktionEntfernen !== undefined) {
+      const [i, j] = String(koerper.aktionEntfernen).split(':').map(Number);
+      const knopf = entwurf.knoepfe[i];
+      if (knopf && Number.isInteger(j) && j >= 0 && j < knopf.aktionen.length) {
+        knopf.aktionen.splice(j, 1);
+      }
       return zeige(req, res, entwurf);
     }
 

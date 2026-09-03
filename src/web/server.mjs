@@ -71,7 +71,7 @@ export function erstelleApp({
     });
   }
   if (rollenregeln) registriereRollenregeln(app, { bot, konfig, rollenregeln, gildenAnsicht });
-  if (aktionsleisten) registriereAktionsleisten(app, { bot, konfig, aktionsleisten });
+  if (aktionsleisten) registriereAktionsleisten(app, { bot, konfig, aktionsleisten, nachrichtenAblage });
   registriereVorlagen(app, {
     bot, konfig, bildvorlagen, bilderVerzeichnis, gildenAnsicht, avatarQuelle,
   });
