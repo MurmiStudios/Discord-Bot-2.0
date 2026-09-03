@@ -18,6 +18,7 @@ import { erstelleNachrichtenAblage } from '../../src/daten/nachrichten.mjs';
 import { erstelleWillkommen } from '../../src/daten/willkommen.mjs';
 import { erstelleRollenNachrichten } from '../../src/daten/rollen_nachrichten.mjs';
 import { erstelleRollenregeln } from '../../src/daten/rollenregeln.mjs';
+import { erstelleAktionsleisten } from '../../src/daten/aktionsleisten.mjs';
 import { erstelleAvatarQuelle } from '../../src/bilder/avatar.mjs';
 import { erstelleBildAnhang } from '../../src/versand/anhang.mjs';
 import { testBild } from './bild.mjs';
@@ -101,6 +102,7 @@ export async function mitApp(
     const willkommen = erstelleWillkommen(db);
     const rollenNachrichten = erstelleRollenNachrichten(db);
     const rollenregeln = erstelleRollenregeln(db);
+    const aktionsleisten = erstelleAktionsleisten(db);
     const bilderVerzeichnis = join(dir, 'bilder');
     const avatarQuelle = erstelleAvatarQuelle({ hole: avatarHolen });
     const versender = erstelleVersender({
@@ -123,7 +125,7 @@ export async function mitApp(
     const app = erstelleApp({
       konfig: vollKonfig, db, gilden, sitzungen, oauth, logger, zugriff,
       mitgliedschaft, bot, gildenAnsicht, warteschlange, versandAblage, versender,
-      bildvorlagen, bilderVerzeichnis, avatarQuelle, nachrichtenAblage, willkommen, rollenNachrichten, rollenregeln,
+      bildvorlagen, bilderVerzeichnis, avatarQuelle, nachrichtenAblage, willkommen, rollenNachrichten, rollenregeln, aktionsleisten,
     });
     const server = app.listen(0, '127.0.0.1');
     await new Promise((fertig, fehler) => {
@@ -136,7 +138,7 @@ export async function mitApp(
       return await fn({
         app, basis, db, gilden, sitzungen, zugriff, konfig: vollKonfig, doppel,
         logzeilen: zeilen, bot, gildenAnsicht, doppelServer, versandAblage,
-        bildvorlagen, bilderVerzeichnis, nachrichtenAblage, willkommen, rollenNachrichten, rollenregeln,
+        bildvorlagen, bilderVerzeichnis, nachrichtenAblage, willkommen, rollenNachrichten, rollenregeln, aktionsleisten,
         warteAufVersand: () => warteschlange.letzterLauf(),
       });
     } finally {

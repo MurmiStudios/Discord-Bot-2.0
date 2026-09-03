@@ -1505,3 +1505,84 @@ a.reiter-knopf { text-decoration: none; display: inline-flex; align-items: cente
 }
 .regelkarte + .regelkarte { margin-top: 8px; }
 .regelkarte .ablageart { margin-left: 8px; }
+
+/* ── Aktionsleisten ───────────────────────────────────────────────── */
+
+/* Breiter als der Nachrichteneditor: Fünf Knöpfe nebeneinander brauchen Platz,
+   und die Vorschau soll sie zeigen können, ohne zu schieben. */
+.leisteneditor { max-width: 940px; }
+
+/* Die Knöpfe so, wie Discord sie zeigt — inklusive Umbruch nach fünf. */
+.leistenvorschau {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  background: #313338;
+  /* Breit genug fuer fuenf uebliche Beschriftungen; laengere schieben, statt
+     umzubrechen — die Seite selbst scrollt dabei nie waagerecht. */
+  max-width: 900px;
+}
+/* Ausdruecklich kein Umbruch: Die Vorschau soll Discords Aufteilung zeigen,
+   nicht ihre eigene. Bricht sie selbst um, zeigt sie das Gegenteil dessen,
+   wofuer sie da ist — passt eine Reihe nicht, wird geschoben. */
+.knopfreihe { display: flex; flex-wrap: nowrap; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
+.reihenmarke { margin: 2px 0 0; color: #a8adb8; font-size: .72rem; }
+
+.discordknopf {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 3px;
+  color: #ffffff;
+  font-size: .875rem;
+  font-weight: 500;
+  line-height: 1.15;
+  /* Discord bricht eine Beschriftung nicht um — die Vorschau also auch nicht. */
+  white-space: nowrap;
+  flex: none;
+}
+.discordknopf-blau { background: #5865f2; }
+.discordknopf-grau { background: #4e5058; }
+.discordknopf-gruen { background: #248046; }
+.discordknopf-rot { background: #da373c; }
+.knopfemoji { font-size: 1rem; }
+
+.farbpunkte { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.farbpunkt { width: 10px; height: 10px; border-radius: 3px; }
+.farbpunkt-blau { background: #5865f2; }
+.farbpunkt-grau { background: #4e5058; }
+.farbpunkt-gruen { background: #248046; }
+.farbpunkt-rot { background: #da373c; }
+
+.knopfkasten {
+  margin: 0;
+  padding: 14px 18px 16px;
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  background: var(--flaeche);
+}
+.knopfkasten + .knopfkasten { margin-top: 10px; }
+.knopfkasten legend {
+  padding: 0 6px;
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--tinte-leise);
+}
+.knopfkasten input[type="text"],
+.knopfkasten select {
+  padding: 8px 10px;
+  border: 1px solid var(--linie);
+  border-radius: 8px;
+  background: var(--flaeche);
+  color: var(--tinte);
+  font: inherit;
+  font-weight: 400;
+}
+.emojifeld { width: 80px; text-align: center; }
+.knopfkasten .zahlenfeld.feld-mittel input { width: 260px; max-width: 100%; }

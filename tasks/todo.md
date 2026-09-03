@@ -509,7 +509,7 @@ Grundlage: `docs/SPEC.md`.
 
 ## Phase 8 — Aktionsleisten
 
-- [ ] **46 · Modell, Buttons gestalten, Reihenfolge** — M · hängt ab von: 20
+- [x] **46 · Modell, Buttons gestalten, Reihenfolge** — M · hängt ab von: 20
   - **Abnahme:** `/aktionsleisten` mit Beschriftung, Emoji, einer von vier
     Discord-Farben, Farbpunkt in der Liste.
   - **Abnahme:** Reihenfolge änderbar; die Oberfläche zeigt sichtbar, wo Discord

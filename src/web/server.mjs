@@ -8,6 +8,7 @@ import { registriereNachrichten } from './seiten/nachrichten.mjs';
 import { registriereWillkommen } from './seiten/willkommen.mjs';
 import { registriereRollenNachrichten } from './seiten/rollen-nachrichten.mjs';
 import { registriereRollenregeln } from './seiten/rollenregeln.mjs';
+import { registriereAktionsleisten } from './seiten/aktionsleisten.mjs';
 import { stufenMiddleware, verlangt } from './mw/verlangt.mjs';
 import { csrfSchutz } from '../auth/csrf.mjs';
 import { seite } from './html/layout.mjs';
@@ -25,7 +26,7 @@ import { STUFE } from '../auth/rechte.mjs';
 export function erstelleApp({
   konfig, db, gilden, sitzungen, oauth, logger, zugriff, mitgliedschaft, gildenAnsicht,
   warteschlange, versandAblage, versender, bildvorlagen, bilderVerzeichnis, nachrichtenAblage,
-  willkommen, rollenNachrichten, rollenregeln,
+  willkommen, rollenNachrichten, rollenregeln, aktionsleisten,
   avatarQuelle = erstelleAvatarQuelle(),
   bot = { status: () => ({ verbunden: false, grund: 'Der Bot ist nicht eingerichtet.' }) },
 }) {
@@ -70,6 +71,7 @@ export function erstelleApp({
     });
   }
   if (rollenregeln) registriereRollenregeln(app, { bot, konfig, rollenregeln, gildenAnsicht });
+  if (aktionsleisten) registriereAktionsleisten(app, { bot, konfig, aktionsleisten });
   registriereVorlagen(app, {
     bot, konfig, bildvorlagen, bilderVerzeichnis, gildenAnsicht, avatarQuelle,
   });

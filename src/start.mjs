@@ -14,6 +14,7 @@ import { erstelleNachrichtenAblage } from './daten/nachrichten.mjs';
 import { erstelleWillkommen } from './daten/willkommen.mjs';
 import { erstelleRollenNachrichten } from './daten/rollen_nachrichten.mjs';
 import { erstelleRollenregeln } from './daten/rollenregeln.mjs';
+import { erstelleAktionsleisten } from './daten/aktionsleisten.mjs';
 import { erstelleWillkommensAutomatik } from './automatik/willkommen.mjs';
 import { erstelleRollenAutomatik } from './automatik/rollen-nachricht.mjs';
 import { erstelleRollenregelAutomatik } from './automatik/rollenregel.mjs';
@@ -79,6 +80,7 @@ const nachrichtenAblage = erstelleNachrichtenAblage(db);
 const willkommen = erstelleWillkommen(db);
 const rollenNachrichten = erstelleRollenNachrichten(db);
 const rollenregeln = erstelleRollenregeln(db);
+const aktionsleisten = erstelleAktionsleisten(db);
 // Hochgeladene Hintergrundbilder liegen neben der Datenbank — beides gehoert
 // zum Bestand, den eine Sicherung mitnehmen muss.
 const bilderVerzeichnis = new URL('../speicher/bilder/', import.meta.url).pathname;
@@ -133,7 +135,7 @@ erstelleApp({
   konfig, db, gilden, sitzungen, oauth, logger, zugriff,
   bot, gildenAnsicht, mitgliedschaft: gildenAnsicht,
   warteschlange, versandAblage, versender, bildvorlagen, bilderVerzeichnis, avatarQuelle,
-  nachrichtenAblage, willkommen, rollenNachrichten, rollenregeln,
+  nachrichtenAblage, willkommen, rollenNachrichten, rollenregeln, aktionsleisten,
 })
   .listen(konfig.port, () => {
     logger.info('start', 'Panel läuft', {
