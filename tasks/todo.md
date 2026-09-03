@@ -518,7 +518,7 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/aktionen/modell.mjs`, `src/web/seiten/aktionsleisten.mjs`,
     `src/daten/aktionsleisten.mjs`, `tests/integration/aktionsleisten.test.mjs`
 
-- [ ] **47 · Ausführungskette** — M · hängt ab von: 46, 14 · **100 % Abdeckung**
+- [x] **47 · Ausführungskette** — M · hängt ab von: 46, 14 · **100 % Abdeckung**
   - **Abnahme:** Aktionen laufen nacheinander; jede Aktionsart ist eine Einheit mit
     gleicher Schnittstelle — die Kette kennt keine einzelne Art.
   - **Abnahme:** Bei einem Fehler bricht sie ab, protokolliert den Grund und meldet
