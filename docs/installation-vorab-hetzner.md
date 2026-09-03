@@ -1,4 +1,4 @@
-# Vorab-Installation auf Hetzner (Stand: nach Schritt 31)
+# Vorab-Installation auf Hetzner (Stand: nach Schritt 47)
 
 Zweite Anleitung neben [`installation-vorab.md`](installation-vorab.md) (Oracle
 Cloud). Beide führen zum selben Ergebnis; unterschiedlich sind nur Abschnitt 1
@@ -7,6 +7,10 @@ identisch, deshalb ist diese Anleitung vollständig und nicht nur ein Anhang.
 
 Das bequeme `npm run setup` kommt in Schritt 57. Bis dahin schreibst du die
 `.env` einmal von Hand.
+
+> **Wenn du prüfen willst, ob alles läuft:** Die
+> [Prüfliste](pruefliste.md) geht Punkt für Punkt durch, was sich nur auf einem
+> echten Server zeigt — und sagt zu jedem, was ich brauche, wenn er klemmt.
 
 ## Hetzner statt Oracle — was du dafür eintauschst
 
@@ -231,16 +235,25 @@ Im Browser `http://DEINE-IP:3000` öffnen.
 |---|---|
 | `/login` | Anmelden mit Discord. Fremde Konten sehen die Abweisungsseite. |
 | `/` | Platzhalter-Übersicht mit Bot-Status in der Kopfzeile. Die richtige kommt in Schritt 56. |
-| `/nachricht` | Direktnachricht und Kanalnachricht, mit Embed, Variablen und Vorschau. |
+| `/nachricht` | Direktnachricht und Kanalnachricht, mit Embed, Variablen, Bildvorlage und Vorschau. |
 | Senden | Rückfrage vor dem Versand, danach eine Fortschrittsseite, die auch ohne JavaScript aktuell bleibt. |
+| `/nachrichten` | Gespeicherte Nachrichten: wiederfinden, öffnen, kopieren, umbenennen, löschen. |
+| `/willkommen` | Willkommensnachricht samt Aktiv-Schalter und „Test-DM an mich“. |
+| `/rollen-nachrichten` | Eine Nachricht je Rolle, mit „Jetzt an alle“. |
+| `/rollenregeln` | „Wer X erhält, verliert Y“ — mit Sperren für unerreichbare Rollen. |
+| `/aktionsleisten` | Knopfleisten bauen (was die Knöpfe tun, kommt in den Schritten 48–52). |
 | `/vorlagen` | Bildvorlagen anlegen, bearbeiten, löschen — mit Vorschau vom Server. |
 | `/suche` | Seitensuche über die Taste `/`. |
 
-**Was heute noch nicht funktioniert:** Die Seitenleiste zeigt bereits alle
-geplanten Seiten. Acht davon gibt es noch nicht und antworten mit 404:
-Gespeicherte Nachrichten, Willkommen, Rollen-Nachrichten, Rollenregeln,
-Aktionsleisten, Rückmeldungen, Protokoll und Zugriff. Sie kommen in den
-Schritten 35 bis 56.
+**Und automatisch, ohne dass jemand das Panel offen hat:** Ein Beitritt löst die
+Willkommensnachricht aus, ein Rollenerhalt die zugehörige Rollen-Nachricht und
+die Rollenregeln.
+
+**Was heute noch nicht funktioniert:** Drei Seiten der Seitenleiste gibt es noch
+nicht und sie antworten mit 404 — **Protokoll**, **Rückmeldungen** und
+**Zugriff**. Sie kommen in den Schritten 54 bis 56. Ohne die Zugriffsseite bist
+nur du im Panel, über `OWNER_DISCORD_ID`; Moderatoren freischalten geht noch
+nicht.
 
 Ein Neustart (`Strg+C`, dann `npm start`) darf dich **nicht** abmelden — die
 Sitzung liegt in der Datenbank.

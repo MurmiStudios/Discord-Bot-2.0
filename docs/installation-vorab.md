@@ -7,6 +7,8 @@ Schritt 57 — bis dahin schreibst du die `.env` einmal von Hand.
 Für Hetzner gibt es dieselbe Anleitung mit anderem Abschnitt 1 bis 3:
 [`installation-vorab-hetzner.md`](installation-vorab-hetzner.md).
 
+Zum Prüfen danach: die [Prüfliste](pruefliste.md).
+
 > **Hinweis:** Der Text unten stammt aus der Zeit nach Schritt 10, als nur das
 > Login stand. Die Schritte selbst stimmen weiterhin — es funktioniert
 > inzwischen aber deutlich mehr als hier beschrieben. Welche Seiten heute

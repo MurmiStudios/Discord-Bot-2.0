@@ -10,13 +10,10 @@
   "scripts": {
     "start": "node --env-file-if-exists=.env src/start.mjs",
     "dev": "node --watch --env-file-if-exists=.env src/start.mjs",
-    "setup": "node setup.mjs",
     "test": "node --test \"tests/**/*.test.mjs\"",
     "test:coverage": "node --test --experimental-test-coverage \"tests/**/*.test.mjs\"",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "db:migrate": "node --env-file-if-exists=.env src/daten/migrieren-cli.mjs",
-    "einladung": "node --env-file-if-exists=.env src/kern/einladung-cli.mjs"
+    "lint:fix": "eslint . --fix"
   },
   "dependencies": {
     "@napi-rs/canvas": "^1.0.8",
