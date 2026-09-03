@@ -451,7 +451,7 @@ Grundlage: `docs/SPEC.md`.
   - **Dateien:** `src/automatik/willkommen.mjs`, `src/discord/ereignisse.mjs`,
     `tests/einheit/willkommen-ereignis.test.mjs`
 
-- [ ] **41 · Test-DM an mich** — S · hängt ab von: 40
+- [x] **41 · Test-DM an mich** — S · hängt ab von: 40
   - **Abnahme:** Knopf schickt den gespeicherten Stand an das eigene Konto, samt
     erzeugtem Bild mit eigenem Profilbild und Namen.
   - **Abnahme:** Schlägt der Versand fehl, steht der Grund im Klartext auf der Seite.

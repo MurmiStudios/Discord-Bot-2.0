@@ -10,6 +10,7 @@ import { textfeld, embedteil, bildwahl, vorschauteil, fehlerZu } from '../html/b
 import { MODUS } from '../../nachricht/vorschau.mjs';
 import { zerlegeKnopfwert, fuegeEin } from '../../nachricht/platzhalterziel.mjs';
 import { PLATZHALTER } from '../../nachricht/platzhalter.mjs';
+import { klartext } from '../../discord/fehler.mjs';
 
 /**
  * Die Willkommensnachricht.
@@ -78,15 +79,20 @@ function editorSeite({ req, bot, entwurf, aktiv, vorlagen, fehler = [], hinweis 
 
         ${embedteil(entwurf, fehler)}
 
+        ${bildwahl(entwurf, vorlagen)}
+        ${vorschauteil(entwurf, { nachricht: alsNachricht(entwurf) })}
+
+        <!-- Nach der Vorschau: Erst sehen, was rausgeht, dann speichern. -->
         <div class="editor-fuss">
           <button type="submit" name="sichern" value="ja" class="knopf-haupt">Speichern</button>
           <button type="submit" name="testen" value="ja" class="knopf-leise">
             Test-DM an mich
           </button>
+          <span class="hinweis">
+            Der Test speichert zuerst und schickt dann genau das, was beim nächsten
+            Beitritt rausginge — an dein eigenes Konto, mit deinem Profilbild.
+          </span>
         </div>
-
-        ${bildwahl(entwurf, vorlagen)}
-        ${vorschauteil(entwurf, { nachricht: alsNachricht(entwurf) })}
       </form>
     `,
     skripte: ['/editor.js'],
@@ -117,7 +123,9 @@ export function pruefeWillkommen(entwurf, aktiv) {
   return { ok: fehler.length === 0, fehler };
 }
 
-export function registriereWillkommen(app, { bot, konfig, willkommen, bildvorlagen }) {
+export function registriereWillkommen(
+  app, { bot, konfig, willkommen, bildvorlagen, versender },
+) {
   const vorlagenliste = () =>
     bildvorlagen ? bildvorlagen.alle(konfig.guildId).map((v) => ({ id: v.id, name: v.name })) : [];
 
@@ -125,6 +133,44 @@ export function registriereWillkommen(app, { bot, konfig, willkommen, bildvorlag
     res.status(lage).type('html').send(
       String(editorSeite({ req, bot, entwurf, aktiv, vorlagen: vorlagenliste(), fehler, hinweis })),
     );
+
+  /**
+   * Schickt den eben gespeicherten Stand an das eigene Konto.
+   *
+   * Über denselben Versender wie die Automatik — inklusive Bildvorlage mit dem
+   * eigenen Profilbild. Ein Test, der einen anderen Weg nähme, prüfte nicht
+   * das, was später wirklich passiert.
+   */
+  async function testeAnMich(req, res, entwurf, aktiv) {
+    const nachricht = alsNachricht(entwurf);
+
+    if (istLeer(nachricht)) {
+      return zeige(req, res, entwurf, aktiv, {
+        lage: 422,
+        fehler: [{
+          feld: 'text',
+          meldung: 'Gespeichert — aber es gibt nichts zu verschicken. Schreib erst etwas.',
+        }],
+      });
+    }
+
+    const ich = { id: req.sitzung.discordUserId, name: req.sitzung.anzeigename };
+
+    try {
+      await versender.sendeDm(ich, nachricht);
+      return zeige(req, res, entwurf, aktiv, {
+        hinweis: 'Gespeichert und als Test an dich verschickt. Sieh in deinen Direktnachrichten nach.',
+      });
+    } catch (fehler) {
+      return zeige(req, res, entwurf, aktiv, {
+        lage: 502,
+        fehler: [{
+          feld: 'aktiv',
+          meldung: `Gespeichert, aber der Test kam nicht an: ${klartext(fehler)}`,
+        }],
+      });
+    }
+  }
 
   app.get('/willkommen', verlangt(STUFE.MODERATOR), (req, res) => {
     const stand = willkommen.lies(konfig.guildId);
@@ -136,7 +182,7 @@ export function registriereWillkommen(app, { bot, konfig, willkommen, bildvorlag
     });
   });
 
-  app.post('/willkommen', verlangt(STUFE.MODERATOR), (req, res) => {
+  app.post('/willkommen', verlangt(STUFE.MODERATOR), async (req, res, next) => {
     const koerper = req.body ?? {};
     const entwurf = entwurfAus({ ...koerper, art: 'dm' });
     const aktiv = (Array.isArray(koerper.aktiv) ? koerper.aktiv : [koerper.aktiv]).includes('ja');
@@ -180,6 +226,17 @@ export function registriereWillkommen(app, { bot, konfig, willkommen, bildvorlag
     }
 
     willkommen.sichere(konfig.guildId, { aktiv, daten: alsAblage(entwurf) });
+
+    // Der Test speichert zuerst. „Der gespeicherte Stand" und „was ich gerade
+    // getippt habe" sind damit dasselbe — sonst prüfte man eine alte Fassung
+    // und wunderte sich.
+    if (koerper.testen !== undefined) {
+      try {
+        return await testeAnMich(req, res, entwurf, aktiv);
+      } catch (unerwartet) {
+        return next(unerwartet);
+      }
+    }
 
     return zeige(req, res, entwurf, aktiv, {
       hinweis: aktiv

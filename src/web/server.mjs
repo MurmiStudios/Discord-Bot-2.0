@@ -59,7 +59,9 @@ export function erstelleApp({
   registriereSuche(app, { bot });
   registriereNachricht(app, { bot, konfig, gildenAnsicht, bildvorlagen, nachrichtenAblage });
   registriereNachrichten(app, { bot, konfig, nachrichtenAblage, gildenAnsicht });
-  if (willkommen) registriereWillkommen(app, { bot, konfig, willkommen, bildvorlagen });
+  if (willkommen) {
+    registriereWillkommen(app, { bot, konfig, willkommen, bildvorlagen, versender });
+  }
   registriereVorlagen(app, {
     bot, konfig, bildvorlagen, bilderVerzeichnis, gildenAnsicht, avatarQuelle,
   });
