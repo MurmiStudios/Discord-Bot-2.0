@@ -121,7 +121,7 @@ function kartenformular(req, eintrag) {
       <form method="post" action="/nachrichten/${eintrag.id}" class="ablageform">
         ${csrfFeld(req)}
 
-        <div class="feld feld-schmal">
+        <div class="feld feld-mittel">
           <label for="name-${eintrag.id}">Name</label>
           <input type="text" id="name-${eintrag.id}" name="name" value="${eintrag.name}" maxlength="80">
         </div>

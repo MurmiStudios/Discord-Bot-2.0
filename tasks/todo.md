@@ -416,7 +416,7 @@ Grundlage: `docs/SPEC.md`.
     Warnungen mit Namen.
   - **Dateien:** `src/web/seiten/nachrichten.mjs`, `tests/integration/zielwarnung.test.mjs`
 
-- [ ] **38 · Entwurfs-Schublade im Editor** — S · hängt ab von: 36, 21
+- [x] **38 · Entwurfs-Schublade im Editor** — S · hängt ab von: 36, 21
   - **Abnahme:** Schublade von rechts mit allen gespeicherten Nachrichten samt
     Auszug; Escape schliesst sie.
   - **Abnahme:** Ohne JavaScript ist es eine eigene Seite mit derselben Liste.
@@ -425,8 +425,8 @@ Grundlage: `docs/SPEC.md`.
     `tests/integration/schublade.test.mjs`
 
 ### Kontrollpunkt F — Vorlagenbibliothek
-- [ ] Nachrichten speichern, wiederfinden, kopieren, wieder senden.
-- [ ] **Dir zeigen:** Deine ersten drei gespeicherten Nachrichten.
+- [x] Nachrichten speichern, wiederfinden, kopieren, wieder senden.
+- [x] **Dir zeigen:** Deine ersten drei gespeicherten Nachrichten.
 
 ---
 

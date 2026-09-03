@@ -269,7 +269,7 @@ function mitgliedswahl({ entwurf, treffer, gewaehlt, avatarFehlt }) {
               : ''}
           `
         : html`
-            <div class="feld feld-schmal">
+            <div class="feld feld-mittel">
               <label for="vorschauSuche">Vorschau mit einem echten Mitglied</label>
               <input type="search" id="vorschauSuche" name="vorschauSuche"
                      value="${entwurf.suche}" placeholder="Name suchen">

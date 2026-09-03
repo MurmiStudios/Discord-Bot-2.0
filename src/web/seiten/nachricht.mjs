@@ -15,6 +15,7 @@ import { vorschauGrenze } from '../mw/sicherheit.mjs';
 import { PLATZHALTER } from '../../nachricht/platzhalter.mjs';
 import { fuegeEin, zerlegeKnopfwert } from '../../nachricht/platzhalterziel.mjs';
 import { platzhalterreihe } from '../html/platzhalterreihe.mjs';
+import { schublade, schubladenSchalter } from '../html/schublade.mjs';
 import { pruefeNachricht } from '../../nachricht/pruefen.mjs';
 import { bestaetigungsSeite } from './versand.mjs';
 import { speichereEntwurf, zielnamenFuer } from './ablage.mjs';
@@ -110,7 +111,7 @@ function bildwahl(entwurf, vorlagen) {
   const gewaehlt = String(entwurf.bildvorlageId ?? '');
 
   return html`
-    <div class="feld feld-schmal">
+    <div class="feld feld-mittel">
       <label for="bildvorlageId">Bildvorlage</label>
       <select id="bildvorlageId" name="bildvorlageId">
         <option value=""${gewaehlt === '' ? html` selected` : ''}>Keine</option>
@@ -125,7 +126,7 @@ function bildwahl(entwurf, vorlagen) {
   `;
 }
 
-function editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, vorlagen = [], fehler = [] }) {
+function editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, vorlagen = [], gespeicherte = [], fehler = [] }) {
   const laenge = entwurf.text.length;
   const zuFeld = (feld) => fehlerZu(fehler, feld);
 
@@ -149,10 +150,17 @@ function editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, vorlagen = [], 
     sitzung: req.sitzung,
     botStatus: bot.status(),
     inhalt: html`
-      <h1>Nachricht</h1>
-      <p class="unterzeile">
-        Direktnachricht und Kanal auf einer Seite. Der Wechsel behält den getippten Text.
-      </p>
+      <div class="seitenkopf">
+        <div>
+          <h1>Nachricht</h1>
+          <p class="unterzeile">
+            Direktnachricht und Kanal auf einer Seite. Der Wechsel behält den getippten Text.
+          </p>
+        </div>
+        ${schubladenSchalter()}
+      </div>
+
+      ${schublade(gespeicherte)}
 
       <form method="post" action="/nachricht" class="editor">
         ${csrfFeld(req)}
@@ -213,7 +221,7 @@ function editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, vorlagen = [], 
               </div>
             `}
 
-        <div class="feld feld-schmal">
+        <div class="feld feld-mittel">
           <label for="name">Name zum Speichern</label>
           <input type="text" id="name" name="name" value="${entwurf.name}" maxlength="80"
                  placeholder="z. B. Willkommensgruss">
@@ -259,7 +267,7 @@ function editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, vorlagen = [], 
         </section>
       </form>
     `,
-    skripte: ['/editor.js'],
+    skripte: ['/editor.js', '/schublade.js'],
   });
 }
 
@@ -338,6 +346,11 @@ export function registriereNachricht(app, { bot, konfig, gildenAnsicht, bildvorl
     );
   }
 
+  // Die Schublade steht in der Seite und wird nicht nachgeladen — deshalb hier
+  // bei jedem Aufbau frisch gelesen.
+  const gespeicherteListe = () =>
+    nachrichtenAblage ? nachrichtenAblage.alle(konfig.guildId) : [];
+
   const vorlagenliste = () =>
     bildvorlagen ? bildvorlagen.alle(konfig.guildId).map((v) => ({ id: v.id, name: v.name })) : [];
 
@@ -351,7 +364,7 @@ export function registriereNachricht(app, { bot, konfig, gildenAnsicht, bildvorl
   app.get('/nachricht', verlangt(STUFE.MODERATOR), (req, res) => {
     const entwurf = ausAblageOderNeu(req);
     if (entwurf === undefined) return nichtGefunden(req, res);
-    res.type('html').send(String(editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, vorlagen: vorlagenliste() })));
+    res.type('html').send(String(editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, vorlagen: vorlagenliste(), gespeicherte: gespeicherteListe() })));
   });
 
   // Dieselbe Vorschau wie auf der Seite — nur das Bruchstueck, fuer editor.js.
@@ -364,7 +377,7 @@ export function registriereNachricht(app, { bot, konfig, gildenAnsicht, bildvorl
     const koerper = req.body ?? {};
     const entwurf = entwurfAus(koerper);
     const zeigen = () =>
-      res.type('html').send(String(editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, vorlagen: vorlagenliste() })));
+      res.type('html').send(String(editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, vorlagen: vorlagenliste(), gespeicherte: gespeicherteListe() })));
 
     // Reiter gewechselt: dasselbe Formular, anderes Ziel, gleicher Inhalt.
     if (koerper.wechselZu === ART.DM || koerper.wechselZu === ART.KANAL) {
@@ -407,7 +420,7 @@ export function registriereNachricht(app, { bot, konfig, gildenAnsicht, bildvorl
 
       if (fehler.length > 0) {
         return res.status(422).type('html').send(
-          String(editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, vorlagen: vorlagenliste(), fehler })),
+          String(editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, vorlagen: vorlagenliste(), gespeicherte: gespeicherteListe(), fehler })),
         );
       }
 
@@ -455,7 +468,7 @@ export function registriereNachricht(app, { bot, konfig, gildenAnsicht, bildvorl
       return res
         .status(422)
         .type('html')
-        .send(String(editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, vorlagen: vorlagenliste(), fehler: geprueft.fehler })));
+        .send(String(editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, vorlagen: vorlagenliste(), gespeicherte: gespeicherteListe(), fehler: geprueft.fehler })));
     }
 
     // Senden gewuenscht: erst die Rueckfrage, nie sofort.

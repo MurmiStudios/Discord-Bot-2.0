@@ -535,6 +535,9 @@ p { max-width: 68ch; }
 }
 
 .feld-schmal { max-width: 160px; }
+/* Fuer Felder mit Namen darin: 160px schneidet sie ab und zwingt die
+   Beschriftung in zwei Zeilen. */
+.feld-mittel { max-width: 340px; }
 .feld input[type="color"] {
   width: 100%;
   height: 40px;
@@ -1263,3 +1266,91 @@ a.reiter-knopf { text-decoration: none; display: inline-flex; align-items: cente
   font: inherit;
 }
 .ablageform .editor-fuss { margin: 0; }
+
+/* ── Entwurfs-Schublade ───────────────────────────────────────────── */
+
+.seitenkopf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px 24px;
+}
+.seitenkopf h1 { margin-bottom: 4px; }
+
+.schubladen-schalter {
+  flex: none;
+  padding: 8px 14px;
+  border: 1px solid var(--linie);
+  border-radius: 999px;
+  background: var(--flaeche);
+  font-size: .9rem;
+  text-decoration: none;
+  color: var(--tinte);
+}
+.schubladen-schalter:hover { border-color: var(--akzent); background: var(--akzent-flaeche); }
+
+/* Ohne JavaScript bleibt sie durch das hidden-Attribut unsichtbar und der
+   Schalter ist ein Verweis auf /nachrichten.
+   Diese Zeile ist dafuer noetig: `display: flex` weiter unten schlaegt die
+   Vorgabe `[hidden] { display: none }` des Browsers, und ohne sie laege die
+   Schublade dauerhaft ueber dem Editor. Genau so ist es einmal passiert. */
+.schublade[hidden] { display: none; }
+
+.schublade {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(380px, 92vw);
+  height: 100vh;
+  padding: 20px;
+  overflow-y: auto;
+  border-left: 1px solid var(--linie);
+  background: var(--flaeche);
+  box-shadow: -8px 0 32px rgba(22, 23, 29, .12);
+}
+
+.schubladen-kopf { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.schubladen-kopf h2 { margin: 0; font-size: 1rem; }
+
+.schublade-zu {
+  padding: 2px 10px;
+  border: 1px solid var(--linie);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--tinte-leise);
+  font: inherit;
+  font-size: 1.2rem;
+  line-height: 1.2;
+  cursor: pointer;
+}
+.schublade-zu:hover { color: var(--tinte); border-color: var(--akzent); }
+
+.schubladenliste { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+
+.schubladeneintrag {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--linie);
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--tinte);
+}
+.schubladeneintrag:hover { border-color: var(--akzent); background: var(--akzent-flaeche); }
+.schubladenname { font-weight: 600; }
+.schubladenart { color: var(--tinte-leise); font-size: .76rem; align-self: center; }
+.schubladenauszug {
+  grid-column: 1 / -1;
+  color: var(--tinte-leise);
+  font-size: .84rem;
+  /* Ein Auszug, der die halbe Schublade füllt, ist keiner mehr. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
