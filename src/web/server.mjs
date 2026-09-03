@@ -54,7 +54,7 @@ export function erstelleApp({
 
   registriereAnmeldung(app, { konfig, db, gilden, sitzungen, oauth, logger });
   registriereSuche(app, { bot });
-  registriereNachricht(app, { bot, konfig, gildenAnsicht });
+  registriereNachricht(app, { bot, konfig, gildenAnsicht, bildvorlagen });
   registriereVorlagen(app, {
     bot, konfig, bildvorlagen, bilderVerzeichnis, gildenAnsicht, avatarQuelle,
   });

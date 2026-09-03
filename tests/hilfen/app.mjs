@@ -15,6 +15,7 @@ import { erstelleGildenAnsicht } from '../../src/discord/gilde.mjs';
 import { erstelleVersandAblage } from '../../src/daten/versand.mjs';
 import { erstelleBildvorlagen } from '../../src/daten/bildvorlagen.mjs';
 import { erstelleAvatarQuelle } from '../../src/bilder/avatar.mjs';
+import { erstelleBildAnhang } from '../../src/versand/anhang.mjs';
 import { testBild } from './bild.mjs';
 import { erstelleVersender } from '../../src/discord/versender.mjs';
 import { erstelleWarteschlange } from '../../src/versand/warteschlange.mjs';
@@ -94,7 +95,12 @@ export async function mitApp(
     const bildvorlagen = erstelleBildvorlagen(db);
     const bilderVerzeichnis = join(dir, 'bilder');
     const avatarQuelle = erstelleAvatarQuelle({ hole: avatarHolen });
-    const versender = erstelleVersender({ bot, konfig: vollKonfig });
+    const versender = erstelleVersender({
+      bot, konfig: vollKonfig, gildenAnsicht,
+      anhangBauer: erstelleBildAnhang({
+        bildvorlagen, gildenAnsicht, avatarQuelle, konfig: vollKonfig, bilderVerzeichnis,
+      }),
+    });
     const warteschlange = erstelleWarteschlange({
       ablage: versandAblage,
       senden: (empfaenger, nachricht) => versender.sendeDm(empfaenger, nachricht),

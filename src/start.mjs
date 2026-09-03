@@ -11,6 +11,8 @@ import { erstelleGildenAnsicht } from './discord/gilde.mjs';
 import { erstelleVersandAblage } from './daten/versand.mjs';
 import { erstelleBildvorlagen } from './daten/bildvorlagen.mjs';
 import { erstelleVersender } from './discord/versender.mjs';
+import { erstelleBildAnhang } from './versand/anhang.mjs';
+import { erstelleAvatarQuelle } from './bilder/avatar.mjs';
 import { erstelleWarteschlange } from './versand/warteschlange.mjs';
 import { erstelleProtokoll } from './protokoll/protokoll.mjs';
 import { erstelleRouter } from './discord/interaktion/router.mjs';
@@ -67,7 +69,13 @@ const bildvorlagen = erstelleBildvorlagen(db);
 // Hochgeladene Hintergrundbilder liegen neben der Datenbank — beides gehoert
 // zum Bestand, den eine Sicherung mitnehmen muss.
 const bilderVerzeichnis = new URL('../speicher/bilder/', import.meta.url).pathname;
-const versender = erstelleVersender({ bot, konfig });
+const avatarQuelle = erstelleAvatarQuelle();
+const versender = erstelleVersender({
+  bot, konfig, gildenAnsicht,
+  anhangBauer: erstelleBildAnhang({
+    bildvorlagen, gildenAnsicht, avatarQuelle, konfig, bilderVerzeichnis,
+  }),
+});
 const warteschlange = erstelleWarteschlange({
   ablage: versandAblage,
   senden: (empfaenger, nachricht) => versender.sendeDm(empfaenger, nachricht),
@@ -83,7 +91,7 @@ warteschlange.brichLaufendeAb(konfig.guildId);
 erstelleApp({
   konfig, db, gilden, sitzungen, oauth, logger, zugriff,
   bot, gildenAnsicht, mitgliedschaft: gildenAnsicht,
-  warteschlange, versandAblage, versender, bildvorlagen, bilderVerzeichnis,
+  warteschlange, versandAblage, versender, bildvorlagen, bilderVerzeichnis, avatarQuelle,
 })
   .listen(konfig.port, () => {
     logger.info('start', 'Panel läuft', {

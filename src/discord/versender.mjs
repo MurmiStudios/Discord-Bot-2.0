@@ -11,20 +11,30 @@ import { platzhalterWerte } from '../nachricht/werte.mjs';
  * Die Platzhalterwerte entstehen hier, weil sie je Empfänger andere sind. Der
  * Servername und die Mitgliederzahl kommen dabei aus dem Guild-Cache.
  */
-export function erstelleVersender({ bot, konfig }) {
+export function erstelleVersender({ bot, konfig, gildenAnsicht, anhangBauer }) {
   function werteFuer(empfaenger, zusatz = {}) {
     const gilde = bot.gilde(konfig.guildId);
+    // Der Versandvorgang kennt nur Kennung und Namen. Den Benutzernamen holt
+    // deshalb der Guild-Cache — sonst stünde im Text der Anzeigename, im Bild
+    // aber der echte, und das fiele erst dem Empfänger auf.
+    const mitglied = gildenAnsicht?.findeMitglied?.(empfaenger?.id, konfig.guildId);
+
     return {
       ...platzhalterWerte({
-        nutzer: empfaenger,
+        nutzer: { name: empfaenger?.name ?? mitglied?.name, tag: empfaenger?.tag ?? mitglied?.tag },
         gilde: gilde && { name: gilde.name, mitglieder: gilde.members?.cache?.size ?? 0 },
       }),
       ...zusatz,
     };
   }
 
-  function baueNutzlast(nachricht, empfaenger, zusatz) {
-    const nutzlast = alsDiscordNachricht(nachricht, werteFuer(empfaenger, zusatz));
+  async function baueNutzlast(nachricht, empfaenger, zusatz) {
+    // Je Empfänger ein eigenes Bild — das ist der Zweck der Bildvorlagen.
+    const anhang = anhangBauer ? await anhangBauer.fuer(nachricht, empfaenger) : null;
+
+    const nutzlast = alsDiscordNachricht(
+      nachricht, werteFuer(empfaenger, zusatz), anhang ? [anhang] : [],
+    );
     if (!nutzlast) {
       throw new Error('Die Nachricht hat keinen Inhalt — es gibt nichts zu senden.');
     }
@@ -33,7 +43,7 @@ export function erstelleVersender({ bot, konfig }) {
 
   return {
     async sendeDm(empfaenger, nachricht, zusatz) {
-      const nutzlast = baueNutzlast(nachricht, empfaenger, zusatz);
+      const nutzlast = await baueNutzlast(nachricht, empfaenger, zusatz);
 
       if (!bot.status().verbunden) {
         throw new Error('Der Bot ist nicht mit Discord verbunden.');
@@ -44,7 +54,10 @@ export function erstelleVersender({ bot, konfig }) {
     },
 
     async sendeInKanal(kanalId, nachricht, zusatz) {
-      const nutzlast = baueNutzlast(nachricht, null, zusatz);
+      // Kein Empfänger: In einem Kanal gibt es keinen. Eine Bildvorlage wird
+      // dann mit Servernamen und Mitgliederzahl gefüllt, {user} bleibt leer —
+      // sichtbar schon in der Vorschau, bevor jemand auf Senden drückt.
+      const nutzlast = await baueNutzlast(nachricht, null, zusatz);
 
       const gilde = bot.gilde(konfig.guildId);
       if (!gilde) throw new Error('Der Bot ist nicht mit Discord verbunden.');

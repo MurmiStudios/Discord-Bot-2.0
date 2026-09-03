@@ -12,17 +12,22 @@ const HEXFARBE = /^#([0-9a-f]{6})$/i;
  *
  * @param {object} nachricht  Modell mit text, embed
  * @param {object} werte      Platzhalterwerte für diesen einen Empfänger
+ * @param {{name: string, daten: Buffer}[]} [anhaenge]  je Empfänger erzeugte Bilder
  * @returns {object|null} Nutzlast, oder null wenn nichts zu senden ist
  */
-export function alsDiscordNachricht(nachricht, werte) {
+export function alsDiscordNachricht(nachricht, werte, anhaenge = []) {
   const content = ersetze(nachricht?.text ?? '', werte);
   const embed = baueEmbed(nachricht?.embed, werte);
 
-  if (content.trim() === '' && !embed) return null;
+  // Ein Bild allein ist Inhalt: Eine Willkommenskarte braucht keinen Text.
+  if (content.trim() === '' && !embed && anhaenge.length === 0) return null;
 
   const nutzlast = {};
   if (content.trim() !== '') nutzlast.content = content;
   if (embed) nutzlast.embeds = [embed];
+  if (anhaenge.length > 0) {
+    nutzlast.files = anhaenge.map((anhang) => ({ attachment: anhang.daten, name: anhang.name }));
+  }
   return nutzlast;
 }
 

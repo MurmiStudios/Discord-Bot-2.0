@@ -87,7 +87,44 @@ function sucheTreffer(gildenAnsicht, guildId, begriff, auswahl) {
   return [...rollen, ...mitglieder].filter((t) => !gewaehlt.has(alsAuswahlWert(t))).slice(0, 20);
 }
 
-function editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, fehler = [] }) {
+/**
+ * Welche Bildvorlage die Nachricht mitschickt.
+ *
+ * Beim Versand entsteht daraus je Empfänger ein eigenes Bild — mit seinem
+ * Namen und seinem Profilbild. Gibt es noch keine Vorlage, steht hier der Weg
+ * dorthin statt eines leeren Auswahlfeldes.
+ */
+function bildwahl(entwurf, vorlagen) {
+  if (vorlagen.length === 0) {
+    return html`
+      <input type="hidden" name="bildvorlageId" value="">
+      <p class="hinweis">
+        Noch keine Bildvorlage vorhanden. Unter
+        <a href="/vorlagen">Bildvorlagen</a> lässt sich eine anlegen; sie wird dann
+        je Empfänger mit dessen Namen und Profilbild gefüllt.
+      </p>
+    `;
+  }
+
+  const gewaehlt = String(entwurf.bildvorlageId ?? '');
+
+  return html`
+    <div class="feld feld-schmal">
+      <label for="bildvorlageId">Bildvorlage</label>
+      <select id="bildvorlageId" name="bildvorlageId">
+        <option value=""${gewaehlt === '' ? html` selected` : ''}>Keine</option>
+        ${vorlagen.map(
+          (v) => html`
+            <option value="${v.id}"${gewaehlt === String(v.id) ? html` selected` : ''}>${v.name}</option>
+          `,
+        )}
+      </select>
+      <p class="hinweis">Jeder Empfänger bekommt sein eigenes Bild.</p>
+    </div>
+  `;
+}
+
+function editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, vorlagen = [], fehler = [] }) {
   const laenge = entwurf.text.length;
   const zuFeld = (feld) => fehlerZu(fehler, feld);
 
@@ -179,7 +216,7 @@ function editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, fehler = [] }) 
         </div>
 
         <input type="hidden" name="vorschauModus" value="${entwurf.vorschauModus}">
-        <input type="hidden" name="bildvorlageId" value="${entwurf.bildvorlageId ?? ''}">
+        ${bildwahl(entwurf, vorlagen)}
 
         <section class="vorschaubereich" aria-label="Vorschau">
           <div class="vorschaukopf">
@@ -235,7 +272,11 @@ export function erstellePruefung({ konfig, gildenAnsicht }) {
   };
 }
 
-export function registriereNachricht(app, { bot, konfig, gildenAnsicht }) {
+export function registriereNachricht(app, { bot, konfig, gildenAnsicht, bildvorlagen }) {
+  // Nur Name und Kennung — der Editor zeigt eine Liste, keine Vorlagen.
+  const vorlagenliste = () =>
+    bildvorlagen ? bildvorlagen.alle(konfig.guildId).map((v) => ({ id: v.id, name: v.name })) : [];
+
   const pruefeEntwurf = erstellePruefung({ konfig, gildenAnsicht });
   // Alte Adressen bleiben gueltig.
   app.get('/dm', verlangt(STUFE.MODERATOR), (_req, res) => res.redirect(301, '/nachricht?art=dm'));
@@ -245,7 +286,7 @@ export function registriereNachricht(app, { bot, konfig, gildenAnsicht }) {
 
   app.get('/nachricht', verlangt(STUFE.MODERATOR), (req, res) => {
     const entwurf = entwurfAus({ art: req.query.art });
-    res.type('html').send(String(editorSeite({ req, bot, konfig, gildenAnsicht, entwurf })));
+    res.type('html').send(String(editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, vorlagen: vorlagenliste() })));
   });
 
   // Dieselbe Vorschau wie auf der Seite — nur das Bruchstueck, fuer editor.js.
@@ -258,7 +299,7 @@ export function registriereNachricht(app, { bot, konfig, gildenAnsicht }) {
     const koerper = req.body ?? {};
     const entwurf = entwurfAus(koerper);
     const zeigen = () =>
-      res.type('html').send(String(editorSeite({ req, bot, konfig, gildenAnsicht, entwurf })));
+      res.type('html').send(String(editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, vorlagen: vorlagenliste() })));
 
     // Reiter gewechselt: dasselbe Formular, anderes Ziel, gleicher Inhalt.
     if (koerper.wechselZu === ART.DM || koerper.wechselZu === ART.KANAL) {
@@ -330,7 +371,7 @@ export function registriereNachricht(app, { bot, konfig, gildenAnsicht }) {
       return res
         .status(422)
         .type('html')
-        .send(String(editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, fehler: geprueft.fehler })));
+        .send(String(editorSeite({ req, bot, konfig, gildenAnsicht, entwurf, vorlagen: vorlagenliste(), fehler: geprueft.fehler })));
     }
 
     // Senden gewuenscht: erst die Rueckfrage, nie sofort.

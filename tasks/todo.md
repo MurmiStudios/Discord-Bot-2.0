@@ -374,7 +374,7 @@ Grundlage: `docs/SPEC.md`.
   - **Prüfen:** Test gegen das Doppel mit einem sehr langen Anzeigenamen.
   - **Dateien:** `src/web/seiten/vorlagen.mjs`, `tests/integration/vorschau-mitglied.test.mjs`
 
-- [ ] **34 · Bildvorlage an Nachricht anhängen** — S · hängt ab von: 31, 20
+- [x] **34 · Bildvorlage an Nachricht anhängen** — S · hängt ab von: 31, 20
   - **Abnahme:** Eine Nachricht kann eine Bildvorlage tragen; beim Versand wird je
     Empfänger ein eigenes Bild erzeugt und angehängt.
   - **Prüfen:** Test verschickt an zwei Empfänger und weist nach, dass zwei
@@ -383,9 +383,9 @@ Grundlage: `docs/SPEC.md`.
     `tests/integration/bild-versand.test.mjs`
 
 ### Kontrollpunkt E — Bildvorlagen
-- [ ] Bild mit deinem Profilbild und Namen wird erzeugt und verschickt.
-- [ ] Uploads sicher, Vorschau stimmt mit dem Ergebnis überein.
-- [ ] **Dir zeigen:** Eine fertige Bildvorlage, gerendert mit einem echten Profil.
+- [x] Bild mit deinem Profilbild und Namen wird erzeugt und verschickt.
+- [x] Uploads sicher, Vorschau stimmt mit dem Ergebnis überein.
+- [x] **Dir zeigen:** Eine fertige Bildvorlage, gerendert mit einem echten Profil.
 
 ---
 
