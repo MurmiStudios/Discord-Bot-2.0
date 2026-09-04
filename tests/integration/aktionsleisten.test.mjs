@@ -348,3 +348,84 @@ test('ohne gespeicherte Nachricht sagt der Editor, wo eine entsteht', async () =
     assert.match(seite, /href="\/nachrichten"/);
   });
 });
+
+const TESTROLLEN = [
+  { id: 'r-mitglied', name: 'Mitglied', position: 3 },
+  { id: 'r-chef', name: 'Chef', position: 20 },
+];
+
+test('eine Rollen-Aktion wird mit Richtung und Rolle gespeichert', async () => {
+  await mitApp(async (u) => {
+    const { cookie, csrfToken } = alsOwner(u);
+
+    await post(u.basis, '/aktionsleisten', cookie, [
+      ['_csrf', csrfToken], ['name', 'Verifizierung'],
+      ...knoepfe(1),
+      ['aktionKnopf', '0'], ['aktionArt', 'rolle'], ['aktionNachricht', ''],
+      ['aktionRolle', 'r-mitglied'], ['aktionRichtung', 'nehmen'],
+      ['sichern', 'ja'],
+    ]);
+
+    const [leiste] = u.aktionsleisten.alle(GILDE);
+    assert.deepEqual(leiste.knoepfe[0].aktionen, [
+      { art: 'rolle', rolleId: 'r-mitglied', richtung: 'nehmen' },
+    ], 'ohne nachrichtId — die gehört nicht zu dieser Art');
+  }, { discordServer: { rollen: TESTROLLEN } });
+});
+
+test('eine Rolle über der Bot-Rolle wird beim Speichern abgelehnt', async () => {
+  // Der Knopf würde beim Klicken immer scheitern. Das gehört jetzt gesagt.
+  await mitApp(async (u) => {
+    const { cookie, csrfToken } = alsOwner(u);
+
+    const antwort = await post(u.basis, '/aktionsleisten', cookie, [
+      ['_csrf', csrfToken], ['name', 'Verifizierung'],
+      ...knoepfe(1),
+      ['aktionKnopf', '0'], ['aktionArt', 'rolle'], ['aktionNachricht', ''],
+      ['aktionRolle', 'r-chef'], ['aktionRichtung', 'geben'],
+      ['sichern', 'ja'],
+    ]);
+
+    assert.equal(antwort.status, 422);
+    assert.match(await antwort.text(), /über der Rolle des Bots/);
+    assert.equal(u.aktionsleisten.alle(GILDE).length, 0);
+  }, { discordServer: { rollen: TESTROLLEN } });
+});
+
+test('gesperrte Rollen stehen mit ihrem Grund im Auswahlfeld', async () => {
+  // Wer „Chef“ sucht und nicht findet, sucht sonst am falschen Ende.
+  await mitApp(async (u) => {
+    const { cookie, csrfToken } = alsOwner(u);
+
+    const antwort = await post(u.basis, '/aktionsleisten', cookie, [
+      ['_csrf', csrfToken], ['name', 'Verifizierung'],
+      ...knoepfe(1),
+      ['neueAktionArt', 'rolle'], ['aktionHinzufuegen', '0'],
+    ]);
+
+    const seite = await antwort.text();
+    assert.match(seite, /Chef — Steht über der Rolle des Bots/);
+    assert.match(seite, /Rolle geben oder nehmen/);
+  }, { discordServer: { rollen: TESTROLLEN } });
+});
+
+test('eine Kette aus zwei Aktionen bleibt in ihrer Reihenfolge', async () => {
+  await mitApp(async (u) => {
+    const { cookie, csrfToken } = alsOwner(u);
+    const nachrichtId = legeNachricht(u, 'Willkommen');
+
+    await post(u.basis, '/aktionsleisten', cookie, [
+      ['_csrf', csrfToken], ['name', 'Verifizierung'],
+      ...knoepfe(1),
+      ['aktionKnopf', '0'], ['aktionArt', 'rolle'], ['aktionNachricht', ''],
+      ['aktionRolle', 'r-mitglied'], ['aktionRichtung', 'geben'],
+      ['aktionKnopf', '0'], ['aktionArt', 'dm'], ['aktionNachricht', String(nachrichtId)],
+      ['aktionRolle', ''], ['aktionRichtung', 'geben'],
+      ['sichern', 'ja'],
+    ]);
+
+    const [leiste] = u.aktionsleisten.alle(GILDE);
+    assert.deepEqual(leiste.knoepfe[0].aktionen.map((a) => a.art), ['rolle', 'dm'],
+      'erst die Rolle, dann die Nachricht — die kann dann {role} nennen');
+  }, { discordServer: { rollen: TESTROLLEN } });
+});

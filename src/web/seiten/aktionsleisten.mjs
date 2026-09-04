@@ -7,7 +7,7 @@ import { fehlerZu } from '../html/baukasten.mjs';
 import { alsZeitpunkt } from '../html/zeit.mjs';
 import {
   GRENZE, FARBEN, farbe, leererKnopf, zeilenAufteilung, verschiebe, pruefeLeiste, knopfHatInhalt,
-  AKTIONSARTEN, aktionsart, leereAktion,
+  AKTIONSARTEN, aktionsart, leereAktion, sichereAktion, RICHTUNGEN, richtung,
 } from '../../aktionen/modell.mjs';
 
 /**
@@ -23,10 +23,26 @@ import {
  * dazuzunehmen oder wegzuwerfen.
  */
 
-/** Eine Aktion im Editor — heute die Direktnachricht, morgen mehr. */
-function aktionEditor(aktion, knopfIndex, j, nachrichten) {
+/**
+ * Eine Rolle im Auswahlfeld.
+ *
+ * Rollen, an die der Bot nicht heranreicht, stehen mit ihrem Grund dabei statt
+ * zu fehlen. Wer „Chef“ sucht und nicht findet, sucht sonst am falschen Ende.
+ */
+function rollenoption(rolle, gewaehlt) {
+  return html`
+    <option value="${rolle.id}"${String(rolle.id) === gewaehlt ? html` selected` : ''}>
+      ${rolle.name}${rolle.vergebbar ? '' : ` — ${rolle.sperrgrund}`}
+    </option>
+  `;
+}
+
+/** Eine Aktion im Editor. */
+function aktionEditor(aktion, knopfIndex, j, { nachrichten, rollen }) {
   const art = aktionsart(aktion.art) ?? AKTIONSARTEN[0];
   const gewaehlt = String(aktion.nachrichtId ?? '');
+  const gewaehlteRolle = String(aktion.rolleId ?? '');
+  const gewaehlteRichtung = richtung(aktion.richtung);
 
   return html`
     <div class="aktionszeile">
@@ -60,6 +76,42 @@ function aktionEditor(aktion, knopfIndex, j, nachrichten) {
             `
         : html`<input type="hidden" name="aktionNachricht" value="${gewaehlt}">`}
 
+      ${art.wert === 'rolle'
+        ? rollen.length === 0
+          ? html`
+              <input type="hidden" name="aktionRolle" value="">
+              <input type="hidden" name="aktionRichtung" value="${gewaehlteRichtung}">
+              <p class="hinweis-warn">
+                Der Bot sieht keine Rollen. Meist ist er noch nicht verbunden.
+              </p>
+            `
+          : html`
+              <div class="zeilenwerte">
+                <label class="zahlenfeld">
+                  <span>Richtung</span>
+                  <select name="aktionRichtung">
+                    ${RICHTUNGEN.map(
+                      (r) => html`
+                        <option value="${r.wert}"${r.wert === gewaehlteRichtung ? html` selected` : ''}>${r.name}</option>
+                      `,
+                    )}
+                  </select>
+                </label>
+
+                <label class="zahlenfeld feld-mittel">
+                  <span>Rolle</span>
+                  <select name="aktionRolle">
+                    <option value=""${gewaehlteRolle === '' ? html` selected` : ''}>Bitte auswählen</option>
+                    ${rollen.map((r) => rollenoption(r, gewaehlteRolle))}
+                  </select>
+                </label>
+              </div>
+            `
+        : html`
+            <input type="hidden" name="aktionRolle" value="${gewaehlteRolle}">
+            <input type="hidden" name="aktionRichtung" value="${gewaehlteRichtung}">
+          `}
+
       <button type="submit" name="aktionEntfernen" value="${knopfIndex}:${j}" class="knopf-leise">
         Aktion entfernen
       </button>
@@ -67,7 +119,7 @@ function aktionEditor(aktion, knopfIndex, j, nachrichten) {
   `;
 }
 
-function knopfEditor(knopf, i, anzahl, fehler, nachrichten) {
+function knopfEditor(knopf, i, anzahl, fehler, listen) {
   const gewaehlt = String(knopf.farbe ?? 'grau');
 
   return html`
@@ -106,7 +158,7 @@ function knopfEditor(knopf, i, anzahl, fehler, nachrichten) {
           ? html`<p class="hinweis">
               Noch keine Aktion — beim Klicken passiert nichts.
             </p>`
-          : (knopf.aktionen ?? []).map((a, j) => aktionEditor(a, i, j, nachrichten))}
+          : (knopf.aktionen ?? []).map((a, j) => aktionEditor(a, i, j, listen))}
 
         <div class="zeilenschalter">
           <label class="zahlenfeld feld-mittel">
@@ -233,7 +285,7 @@ function listeSeite({ req, bot, eintraege }) {
   });
 }
 
-function editorSeite({ req, bot, entwurf, fehler = [], hinweis = null, nachrichten = [] }) {
+function editorSeite({ req, bot, entwurf, fehler = [], hinweis = null, listen }) {
   return seite({
     titel: entwurf.id ? 'Aktionsleiste bearbeiten' : 'Neue Aktionsleiste',
     pfad: '/aktionsleisten',
@@ -264,7 +316,7 @@ function editorSeite({ req, bot, entwurf, fehler = [], hinweis = null, nachricht
 
         <h2>Knöpfe</h2>
         ${entwurf.knoepfe.map(
-          (knopf, i) => knopfEditor(knopf, i, entwurf.knoepfe.length, fehler, nachrichten),
+          (knopf, i) => knopfEditor(knopf, i, entwurf.knoepfe.length, fehler, listen),
         )}
         ${fehlerZu(fehler, 'knoepfe')}
 
@@ -331,6 +383,8 @@ export function entwurfAus(koerper = {}) {
   const knopfNummern = alsListe(koerper.aktionKnopf);
   const arten = alsListe(koerper.aktionArt);
   const nachrichten = alsListe(koerper.aktionNachricht);
+  const rollen = alsListe(koerper.aktionRolle);
+  const richtungen = alsListe(koerper.aktionRichtung);
 
   knopfNummern.forEach((roh, k) => {
     const knopf = knoepfe[Number(roh)];
@@ -338,6 +392,8 @@ export function entwurfAus(koerper = {}) {
     knopf.aktionen.push({
       art: String(arten[k] ?? ''),
       nachrichtId: String(nachrichten[k] ?? ''),
+      rolleId: String(rollen[k] ?? ''),
+      richtung: richtung(richtungen[k]),
     });
   });
 
@@ -367,14 +423,17 @@ function nichtGefunden(req, bot, res) {
   );
 }
 
-export function registriereAktionsleisten(app, { bot, konfig, aktionsleisten, nachrichtenAblage }) {
+export function registriereAktionsleisten(app, { bot, konfig, aktionsleisten, nachrichtenAblage, gildenAnsicht }) {
   // Nur die Nachrichten, die als Direktnachricht gedacht sind: Ein Knopf
   // schreibt der Person, die geklickt hat, und nicht in einen Kanal.
-  const dmNachrichten = () => nachrichtenAblage.alle(konfig.guildId, { art: 'dm' });
+  const listen = () => ({
+    nachrichten: nachrichtenAblage.alle(konfig.guildId, { art: 'dm' }),
+    rollen: gildenAnsicht.rollen(konfig.guildId),
+  });
 
   const zeige = (req, res, entwurf, { fehler = [], hinweis = null, lage = 200 } = {}) =>
     res.status(lage).type('html').send(
-      String(editorSeite({ req, bot, entwurf, fehler, hinweis, nachrichten: dmNachrichten() })),
+      String(editorSeite({ req, bot, entwurf, fehler, hinweis, listen: listen() })),
     );
 
   app.get('/aktionsleisten', verlangt(STUFE.MODERATOR), (req, res) => {
@@ -461,12 +520,16 @@ export function registriereAktionsleisten(app, { bot, konfig, aktionsleisten, na
       }
     }
 
-    const geprueft = pruefeLeiste(entwurf);
+    const geprueft = pruefeLeiste(entwurf, { rollen: gildenAnsicht.rollen(konfig.guildId) });
     if (!geprueft.ok) return zeige(req, res, entwurf, { fehler: geprueft.fehler, lage: 422 });
 
     // Nur Knöpfe mit Inhalt werden gespeichert — leere sind an der Prüfung
-    // ohnehin schon gescheitert.
-    const knoepfe = entwurf.knoepfe.filter(knopfHatInhalt);
+    // ohnehin schon gescheitert. Und je Aktion nur die Felder ihrer Art: Das
+    // Formular schickt alle mit, gespeichert wird das Gemeinte.
+    const knoepfe = entwurf.knoepfe.filter(knopfHatInhalt).map((knopf) => ({
+      ...knopf,
+      aktionen: knopf.aktionen.map(sichereAktion).filter(Boolean),
+    }));
 
     if (entwurf.id) {
       const geaendert = aktionsleisten.aendere(konfig.guildId, Number(entwurf.id), {

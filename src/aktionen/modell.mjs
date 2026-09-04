@@ -55,11 +55,33 @@ export const AKTIONSARTEN = Object.freeze([
     wert: 'dm',
     name: 'Direktnachricht senden',
     beschreibung: 'Verschickt eine gespeicherte Nachricht an die Person, die geklickt hat.',
-    /** Ohne diese Angabe wüsste die Aktion nicht, was sie verschicken soll. */
-    pflichtfeld: 'nachrichtId',
-    fehlt: 'Wähle die Nachricht aus, die verschickt werden soll.',
+    felder: Object.freeze([
+      // Ohne diese Angabe wuesste die Aktion nicht, was sie verschicken soll.
+      { name: 'nachrichtId', standard: '', pflicht: true, fehlt: 'Wähle die Nachricht aus, die verschickt werden soll.' },
+    ]),
+  },
+  {
+    wert: 'rolle',
+    name: 'Rolle geben oder nehmen',
+    beschreibung: 'Gibt der Person, die geklickt hat, eine Rolle — oder nimmt sie ihr weg.',
+    felder: Object.freeze([
+      { name: 'rolleId', standard: '', pflicht: true, fehlt: 'Wähle die Rolle aus.' },
+      { name: 'richtung', standard: 'geben', pflicht: false },
+    ]),
   },
 ]);
+
+/** Die beiden Richtungen der Rollen-Aktion, unter ihren deutschen Namen. */
+export const RICHTUNGEN = Object.freeze([
+  { wert: 'geben', name: 'geben' },
+  { wert: 'nehmen', name: 'wegnehmen' },
+]);
+
+const RICHTUNGEN_KARTE = new Set(RICHTUNGEN.map((r) => r.wert));
+
+export function richtung(wert) {
+  return RICHTUNGEN_KARTE.has(String(wert)) ? String(wert) : RICHTUNGEN[0].wert;
+}
 
 const ARTEN_KARTE = new Map(AKTIONSARTEN.map((a) => [a.wert, a]));
 
@@ -68,7 +90,29 @@ export function aktionsart(wert) {
 }
 
 export function leereAktion(art) {
-  return { art: aktionsart(art)?.wert ?? AKTIONSARTEN[0].wert, nachrichtId: '' };
+  const gewaehlt = aktionsart(art) ?? AKTIONSARTEN[0];
+  const aus = { art: gewaehlt.wert };
+  for (const feld of gewaehlt.felder) aus[feld.name] = feld.standard;
+  return aus;
+}
+
+/**
+ * Nur die Felder, die zu dieser Art gehören.
+ *
+ * Das Formular schickt alle Felder aller Arten mit — anders ginge es ohne
+ * JavaScript nicht. Gespeichert wird trotzdem nur, was die Art kennt: Sonst
+ * schleppte eine Rollen-Aktion für immer eine Nachrichtenkennung mit sich
+ * herum, und beim Lesen wüsste niemand, ob sie etwas bedeutet.
+ */
+export function sichereAktion(aktion) {
+  const art = aktionsart(aktion?.art);
+  if (!art) return null;
+
+  const aus = { art: art.wert };
+  for (const feld of art.felder) {
+    aus[feld.name] = String(aktion?.[feld.name] ?? feld.standard);
+  }
+  return aus;
 }
 
 /**
@@ -113,7 +157,8 @@ export function verschiebe(knoepfe, index, richtung) {
  * Leere Knöpfe werden nicht stillschweigend weggeworfen: Wer einen angelegt und
  * nicht ausgefüllt hat, soll das lesen, statt sich zu wundern, wohin er ist.
  */
-export function pruefeLeiste({ name, knoepfe = [] }) {
+export function pruefeLeiste({ name, knoepfe = [] }, { rollen = [] } = {}) {
+  const rollenKarte = new Map(rollen.map((r) => [r.id, r]));
   const fehler = [];
   const sauber = String(name ?? '').trim();
 
@@ -161,11 +206,23 @@ export function pruefeLeiste({ name, knoepfe = [] }) {
         return;
       }
 
-      if (art.pflichtfeld && String(aktion[art.pflichtfeld] ?? '') === '') {
-        fehler.push({
-          feld: `knopf${i}`,
-          meldung: `Aktion ${j + 1} von Knopf ${i + 1}: ${art.fehlt}`,
-        });
+      const nenne = (meldung) =>
+        fehler.push({ feld: `knopf${i}`, meldung: `Aktion ${j + 1} von Knopf ${i + 1}: ${meldung}` });
+
+      for (const feld of art.felder) {
+        if (feld.pflicht && String(aktion[feld.name] ?? '') === '') nenne(feld.fehlt);
+      }
+
+      // Eine Rolle, an die der Bot nicht heranreicht, ergibt einen Knopf, der
+      // beim Klicken immer scheitert. Das gehoert beim Speichern gesagt und
+      // nicht erst dem ersten Klickenden.
+      if (art.wert === 'rolle' && String(aktion.rolleId ?? '') !== '' && rollenKarte.size > 0) {
+        const rolle = rollenKarte.get(String(aktion.rolleId));
+        if (!rolle) {
+          nenne('Diese Rolle gibt es auf dem Server nicht mehr.');
+        } else if (!rolle.vergebbar) {
+          nenne(`„${rolle.name}“ — ${rolle.sperrgrund}`);
+        }
       }
     });
   });

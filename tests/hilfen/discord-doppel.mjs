@@ -72,8 +72,9 @@ export function erstelleClientDoppel({
     });
   }
 
-  // Was der Bot tatsaechlich an Rollen weggenommen hat.
+  // Was der Bot tatsaechlich an Rollen weggenommen und gegeben hat.
   const entzogen = [];
+  const vergeben = [];
 
   const mitgliederMap = new Map();
   for (const m of mitglieder) {
@@ -87,6 +88,13 @@ export function erstelleClientDoppel({
           if (rollenFehler[rollenId]) throw rollenFehler[rollenId];
           entzogen.push({ mitglied: m.id, rolle: rollenId, grund });
           mitgliederMap.get(m.id)?.roles.cache.delete(rollenId);
+        },
+        async add(rollenId, grund) {
+          if (rollenFehler[rollenId]) throw rollenFehler[rollenId];
+          vergeben.push({ mitglied: m.id, rolle: rollenId, grund });
+          mitgliederMap.get(m.id)?.roles.cache.set(
+            rollenId, rollenMap.get(rollenId) ?? { id: rollenId, name: rollenId, position: 1 },
+          );
         },
       },
     });
@@ -227,7 +235,7 @@ export function erstelleClientDoppel({
   }
 
   return {
-    client, gilde, rollenMap, kanaeleMap, mitgliederMap, gesendet, entzogen,
+    client, gilde, rollenMap, kanaeleMap, mitgliederMap, gesendet, entzogen, vergeben,
     loeseBeitrittAus, loeseRollenaenderungAus,
   };
 }
